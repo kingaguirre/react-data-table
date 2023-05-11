@@ -58,6 +58,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [selectedRows, setSelectedRows] = useState<Array<string>>([]);
   const [collapsedRows, setCollapsedRows] = useState<Array<string>>([]);
   const [search, setSearch] = useState("");
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   let frozenWidth = 0
 
   useEffect(() => {
@@ -134,10 +135,33 @@ export const DataTable: React.FC<DataTableProps> = ({
   const renderMainTableHeader = () => {
     return (
       <TableHeader>
-        <input type="text" value={search} onChange={handleSearchChange} placeholder="Search..." />
+        <input
+          type="text"
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search..."
+        />
+        <button onClick={() => setDropdownOpen(prev => !prev)}>
+          Column Visibility
+        </button>
+        {isDropdownOpen && (
+          <div style={{ position: 'absolute', backgroundColor: 'white', zIndex: 20 }}>
+            {columns.map((col, index) => (
+              <div key={index}>
+                <input
+                  type="checkbox"
+                  checked={!col.hide}
+                  onChange={() => handleColumnVisibilityChange(index)}
+                />
+                <label>{col.title}</label>
+              </div>
+            ))}
+          </div>
+        )}
       </TableHeader>
     );
   };
+  
 
   const renderGroupHeader = () => {
     const groupHeaders = columns.reduce(
@@ -189,36 +213,57 @@ export const DataTable: React.FC<DataTableProps> = ({
         {selectable && <TableCell width="42px"/>}
         {collapsibleRowRender && <TableCell width="38px" />}
         {columns.map((col, index) => {
+          if (col.hide) return null;
           const isFrozen = col.freeze;
           if (isFrozen) {
             frozenWidth += parseInt(col.width, 10);
           }
           return (
-          <TableCell
-            key={index}
-            width={col.width}
-            minWidth={col.minWidth}
-            align={col.align}
-            style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
-            onDragOver={(e) => onDragOver(e, index)}
-            onDrop={(e) => onDrop(e, index)}
-          >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <DragHandle
-                draggable={true}
-                onDragStart={(e: any) => onDragStart(e, index)}
-              >
-                ☰
-              </DragHandle>
-              <CellContent>{col.title}</CellContent>
-              {showLineAtIndex === index && <VerticalLine />}
-            </div>
-            <ResizeHandle onMouseDown={onMouseDown(index)} />
-          </TableCell>
-        )})}
+            <TableCell
+              key={index}
+              width={col.width}
+              minWidth={col.minWidth}
+              align={col.align}
+              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
+              onDragOver={(e) => onDragOver(e, index)}
+              onDrop={(e) => onDrop(e, index)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <DragHandle
+                  draggable={true}
+                  onDragStart={(e: any) => onDragStart(e, index)}
+                >
+                  ☰
+                </DragHandle>
+                <CellContent>{col.title}</CellContent>
+                {showLineAtIndex === index && <VerticalLine />}
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering other click events
+                    // Create a copy of columns and modify the freeze value of the current column
+                    const newColumns = [...columns];
+                    newColumns[index] = {
+                      ...newColumns[index],
+                      freeze: !newColumns[index].freeze,
+                    };
+                    // Update the state and call onColumnSettingsChange if provided
+                    setColumns(newColumns);
+                    if (onColumnSettingsChange) {
+                      onColumnSettingsChange(newColumns);
+                    }
+                  }}
+                >
+                  📌
+                </div>
+              </div>
+              <ResizeHandle onMouseDown={onMouseDown(index)} />
+            </TableCell>
+          );
+        })}
       </TableRow>
     );
   };
+  
 
   const renderTableBody = () => {
     
@@ -257,6 +302,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               </TableCell>
             )}
             {columns.map((col, index) => {
+              if (col.hide) return null;
               const isFrozen = col.freeze;
               if (isFrozen) {
                 frozenWidth += parseInt(col.width, 10);
@@ -328,6 +374,15 @@ export const DataTable: React.FC<DataTableProps> = ({
     );
   };
 
+  const handleColumnVisibilityChange = (columnIndex: number) => {
+    const newColumns = [...columns];
+    newColumns[columnIndex].hide = !newColumns[columnIndex].hide;
+    setColumns(newColumns);
+    if (onColumnSettingsChange) {
+      onColumnSettingsChange(newColumns);
+    }
+  };
+  
   const toggleRowSelection = (id: string) => {
     setSelectedRows(prev => {
       if (prev.includes(id)) {

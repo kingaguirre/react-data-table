@@ -3,6 +3,7 @@ export interface ColumnSettings {
   title: string;
   align?: string;
   freeze?: boolean;
+  hide?: boolean;
   width?: string;
   groupTitle?: string;
   order?: number;

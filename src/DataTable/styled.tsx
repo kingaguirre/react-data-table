@@ -83,7 +83,6 @@ export const TableFooter = styled.div`
 `;
 
 export const TableBodyWrapper = styled.div`
-  overflow: auto;
 `;
 
 export const CellContent = styled.div`

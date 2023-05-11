@@ -140,7 +140,7 @@ export default () => {
           onRowDoubleClick={handleRowDoubleClick}
           onColumnSettingsChange={handleColumnSettingsChange}
           onPageIndexChange={e => console.log(`Page index: ${e}`)}
-          onSelectedRowsChange={e => console.log(`Selected Row: ${e}`)}
+          onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
           rowKey="userID"
           selectable
           collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
