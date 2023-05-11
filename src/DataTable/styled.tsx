@@ -24,7 +24,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   padding: 8px;
   text-align: ${({ align }) => align || 'left'};
   width: ${({ width }) => width || 'auto'};
-  min-width: ${({ minWidth }) => minWidth || 'auto'};
+  min-width: ${({ width }) => width || 'auto'};
   position: relative;
   border: 1px solid #ddd;
   background-color: white;
@@ -70,7 +70,7 @@ export const GroupHeader = styled.div<{ width?: string; minWidth?: string; align
   font-weight: bold;
   border: 1px solid #ddd;
   width: ${({ width }) => width || 'auto'};
-  min-width: ${({ minWidth }) => minWidth || 'auto'};
+  min-width: ${({ width }) => width || 'auto'};
 `;
 
 export const TableFooter = styled.div`
@@ -92,4 +92,18 @@ export const CellContent = styled.div`
   text-overflow: ellipsis;
 `;
 
+export const CollapseIcon = styled.span`
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+`;
+
+export const TableHeader = styled.div``
 

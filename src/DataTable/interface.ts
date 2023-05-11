@@ -4,8 +4,7 @@ export interface ColumnSettings {
   align?: string;
   freeze?: boolean;
   width?: string;
-  minWidth?: string;
   groupTitle?: string;
   order?: number;
-  customColumnRenderer?: (text: any, data: any) => any;
+  customColumnRenderer?: (value: any, rowData: any) => React.ReactNode;
 }

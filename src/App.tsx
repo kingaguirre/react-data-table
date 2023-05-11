@@ -6,6 +6,7 @@ import Body from '~/components/Body'
 import {DataTable} from './DataTable';
 
 const dataSource = Array(20).fill("").map((_, i) => ({
+  userID: `user-id${i}`,
   username: `test-username${i}`,
   password: `test-password${i}`,
   userDetails: {
@@ -44,7 +45,8 @@ const columnSettings = [
     column: 'userDetails.email',
     title: 'Email',
     groupTitle: 'User Details',
-    order: 1
+    order: 1,
+    freeze: true
   },
   {
     column: 'userDetails.isAdmin',
@@ -138,6 +140,10 @@ export default () => {
           onRowDoubleClick={handleRowDoubleClick}
           onColumnSettingsChange={handleColumnSettingsChange}
           onPageIndexChange={e => console.log(`Page index: ${e}`)}
+          onSelectedRowsChange={e => console.log(`Selected Row: ${e}`)}
+          rowKey="userID"
+          selectable
+          collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
         />
       </Body>
     </Container>
