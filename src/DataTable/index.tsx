@@ -17,6 +17,7 @@ import {
 import { useDragDropManager } from './useDragDropManager';
 import { useResizeManager } from './useResizeManager';
 import { ColumnSettings } from './interface';
+import { useDoubleClick } from "./utils"
 
 interface DataTableProps {
   dataSource: any[];
@@ -59,7 +60,21 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [collapsedRows, setCollapsedRows] = useState<Array<string>>([]);
   const [search, setSearch] = useState("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  let frozenWidth = 0
+  const [activeRow, setActiveRow] = useState<string | null>(null);
+  let frozenWidth = 0;
+
+  const filteredData = useMemo(() => {
+    return dataSource.filter(row => {
+      return Object.values(row).some(val =>
+        String(val).toLowerCase().includes(search.toLowerCase())
+      );
+    });
+  }, [dataSource, search]);
+  
+  const start = localPageIndex * localPageSize;
+  const end = start + localPageSize;
+  const visibleRows = useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
+  
 
   useEffect(() => {
     if (onPageIndexChange) {
@@ -210,8 +225,16 @@ export const DataTable: React.FC<DataTableProps> = ({
   const renderTableHeader = () => {
     return (
       <TableRow>
-        {selectable && <TableCell width="42px"/>}
-        {collapsibleRowRender && <TableCell width="38px" />}
+        {collapsibleRowRender && <TableCell width="42px" />}
+        {selectable && (
+          <TableCell width="38px">
+            <input
+              type="checkbox"
+              checked={visibleRows.length && selectedRows.length === visibleRows.length}
+              onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
+            />
+          </TableCell>
+        )}
         {columns.map((col, index) => {
           if (col.hide) return null;
           const isFrozen = col.freeze;
@@ -266,26 +289,20 @@ export const DataTable: React.FC<DataTableProps> = ({
   
 
   const renderTableBody = () => {
-    
-    const filteredData = dataSource.filter(row => {
-      return Object.values(row).some(val =>
-        String(val).toLowerCase().includes(search.toLowerCase())
-      );
-    });
-
-    const start = localPageIndex * localPageSize;
-    const end = start + localPageSize;
-    const visibleRows = filteredData.slice(start, end);
-
     return visibleRows.map((row, rowIndex) => {
       const isRowCollapsed = collapsedRows.includes(row[rowKey]);
       frozenWidth = 0; // reset the frozenWidth for each row
+      const isActiveRow = row[rowKey] === activeRow;
+      const isSelectedRow = selectedRows.includes(row[rowKey]);
+      const handleRowClick = useDoubleClick(() => handleRowSingleClick(row), () => handleRowDoubleClick(row));
       return (
         <React.Fragment key={rowIndex}>
           <TableRow
-            onClick={() => onRowClick?.(row)}
-            onDoubleClick={() => onRowDoubleClick?.(row)}
-            style={{ backgroundColor: selectedRows.includes(row[rowKey]) ? '#ddd' : 'white' }}
+            onClick={handleRowClick}
+            style={{
+              backgroundColor: isActiveRow ? 'lightblue' : isSelectedRow ? '#ddd' : 'white', // Set the background color based on whether the row is active.
+              border: isSelectedRow ? '1px solid black' : undefined, // Set the border if the row is selected.
+            }}
           >
             {collapsibleRowRender && (
               <TableCell onClick={() => toggleRowCollapse(row[rowKey])}>
@@ -383,6 +400,14 @@ export const DataTable: React.FC<DataTableProps> = ({
     }
   };
   
+  const selectAllRows = () => {
+    setSelectedRows(visibleRows.map(row => row[rowKey]));
+  };
+  
+  const deselectAllRows = () => {
+    setSelectedRows([]);
+  };
+
   const toggleRowSelection = (id: string) => {
     setSelectedRows(prev => {
       if (prev.includes(id)) {
@@ -432,6 +457,17 @@ export const DataTable: React.FC<DataTableProps> = ({
     )}</span>;
   };
   
+  const handleRowSingleClick = (row: any) => {
+    onRowClick?.(row);
+    setActiveRow((prev) => (prev === row[rowKey] ? null : row[rowKey]));
+  };
+  
+  const handleRowDoubleClick = (row: any) => {
+    onRowDoubleClick?.(row);
+  };
+  
+
+  const handleRowClick = useDoubleClick(handleRowSingleClick, handleRowDoubleClick);
 
   return (
     <div>
