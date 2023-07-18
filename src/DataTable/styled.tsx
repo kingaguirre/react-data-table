@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const TableInnerWrapper = styled.div`
-  overflow-x: auto;
+  overflow-x: scroll;
   width: 100%;
 `;
 

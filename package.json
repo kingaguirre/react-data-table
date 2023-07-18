@@ -6,9 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "build-app": "vite build --outDir dist/app"
   },
   "dependencies": {
+    "@ag-grid-community/all-modules": "^27.3.0",
+    "@ag-grid-enterprise/all-modules": "^27.3.0",
+    "ag-grid-community": "^30.0.3",
+    "ag-grid-react": "^30.0.4",
     "font-awesome": "^4.7.0",
     "lodash": "^4.17.21",
     "react": "^18.x",
@@ -19,12 +26,21 @@
     "vite-tsconfig-paths": "^3.5.0"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "^7.0.13",
+    "@storybook/addon-interactions": "^7.0.13",
+    "@storybook/addon-links": "^7.0.13",
+    "@storybook/blocks": "^7.0.13",
+    "@storybook/react": "^7.0.13",
+    "@storybook/react-vite": "^7.0.13",
+    "@storybook/testing-library": "^0.0.14-next.2",
     "@types/lodash": "^4.14.184",
     "@types/node": "^18.7.14",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@types/styled-components": "^5.1.26",
     "@vitejs/plugin-react": "^2.0.1",
+    "prop-types": "^15.8.1",
+    "storybook": "^7.0.13",
     "typescript": "^4.6.4",
     "vite": "^3.0.7"
   },

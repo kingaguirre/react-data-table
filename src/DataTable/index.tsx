@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Table,
   TableRow,
@@ -17,9 +17,9 @@ import {
 import { useDragDropManager } from './useDragDropManager';
 import { useResizeManager } from './useResizeManager';
 import { ColumnSettings } from './interface';
-import { useDoubleClick } from "./utils"
+import { useDoubleClick, getDeepValue, exportToCsv } from "./utils"
 
-interface DataTableProps {
+export interface DataTableProps {
   dataSource: any[];
   columnSettings: ColumnSettings[];
   pageSize?: number;
@@ -51,30 +51,24 @@ export const DataTable: React.FC<DataTableProps> = ({
   onSelectedRowsChange,
   collapsibleRowRender,
   collapsibleRowHeight = '100px',
-}) => {
+}: DataTableProps) => {
   const tableRef = useRef<HTMLDivElement>(null);
   const [parentWidth, setParentWidth] = useState<number | null>(null);
   const [localPageIndex, setLocalPageIndex] = useState(pageIndex);
   const [localPageSize, setLocalPageSize] = useState(pageSize || 10);
   const [selectedRows, setSelectedRows] = useState<Array<string>>([]);
   const [collapsedRows, setCollapsedRows] = useState<Array<string>>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [activeRow, setActiveRow] = useState<string | null>(null);
+  const [filterValues, setFilterValues] = React.useState(() => {
+    return columnSettings.reduce((initialValues, col: ColumnSettings) => ({
+      ...initialValues,
+      [col.column]: col.filterBy ? col.filterBy.value : '',
+    }), {});
+  });
+  
   let frozenWidth = 0;
-
-  const filteredData = useMemo(() => {
-    return dataSource.filter(row => {
-      return Object.values(row).some(val =>
-        String(val).toLowerCase().includes(search.toLowerCase())
-      );
-    });
-  }, [dataSource, search]);
-  
-  const start = localPageIndex * localPageSize;
-  const end = start + localPageSize;
-  const visibleRows = useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
-  
 
   useEffect(() => {
     if (onPageIndexChange) {
@@ -104,15 +98,13 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   const updatedColumnSettings = useMemo(() => {
     if (parentWidth === null) return columnSettings;
-
-    const columnsWithWidth = columnSettings.filter((col) => col.width);
-    const totalWidthWithWidth = columnsWithWidth.reduce(
-      (acc, col) => acc + parseInt(col.width!, 10), 0
-    );
+  
+    const columnsWithWidth = columnSettings.filter(col => col.width);
+    const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
     const remainingWidth = parentWidth - totalWidthWithWidth;
-    const columnsWithoutWidth = columnSettings.filter((col) => !col.width);
+    const columnsWithoutWidth = columnSettings.filter(col => !col.width);
     const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 100);
-
+  
     return columnSettings
       .sort((a, b) => {
         if (a.order !== undefined && b.order !== undefined) {
@@ -133,7 +125,8 @@ export const DataTable: React.FC<DataTableProps> = ({
       }));
   }, [columnSettings, parentWidth]);
 
-  const [columns, setColumns] = useState<any>(updatedColumnSettings);
+
+  const [columns, setColumns] = useState<ColumnSettings[]>(updatedColumnSettings);
   const dragImageRef = React.useRef<HTMLDivElement>(null);
   const {
     onDragStart,
@@ -173,50 +166,51 @@ export const DataTable: React.FC<DataTableProps> = ({
             ))}
           </div>
         )}
+        <button onClick={() => exportToCsv('data.csv', visibleRows, columns)}>Export to Excel</button>
+
       </TableHeader>
     );
   };
-  
 
   const renderGroupHeader = () => {
     const groupHeaders = columns.reduce(
-      (acc: { title: string | null; colSpan: number; width: number }[], col) => {
+      (acc: { title: string | null; width: number }[], col) => {
         const lastHeader = acc[acc.length - 1];
-        const colWidth = parseInt(col.width);
-  
+        const colWidth = col.hide ? 0 : parseInt(col.width);
+
         if (col.groupTitle) {
           if (lastHeader && lastHeader.title === col.groupTitle) {
-            lastHeader.colSpan++;
             lastHeader.width += colWidth;
           } else {
-            acc.push({ title: col.groupTitle, colSpan: 1, width: colWidth });
+            acc.push({ title: col.groupTitle, width: colWidth });
           }
         } else {
           if (lastHeader && lastHeader.title === null) {
-            lastHeader.colSpan++;
             lastHeader.width += colWidth;
           } else {
-            acc.push({ title: null, colSpan: 1, width: colWidth });
+            acc.push({ title: null, width: colWidth });
           }
         }
         return acc;
       },
       []
     );
-  
+
     return (
       <TableRow>
-        {selectable && <TableCell width="42px"/>}
+        {selectable && <TableCell width="42px" />}
         {collapsibleRowRender && <TableCell width="38px" />}
         {groupHeaders.map((groupHeader, index) => (
-          <GroupHeader
-            key={index}
-            style={{ 
-              width: `${groupHeader.width}px`,
-            }}
-          >
-            <CellContent>{groupHeader.title}</CellContent>
-          </GroupHeader>
+          groupHeader.width > 0 && (
+            <GroupHeader
+              key={index}
+              style={{
+                width: `${groupHeader.width}px`,
+              }}
+            >
+              <CellContent>{groupHeader.title}</CellContent>
+            </GroupHeader>
+          )
         ))}
       </TableRow>
     );
@@ -260,7 +254,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                 </DragHandle>
                 <CellContent>{col.title}</CellContent>
                 {showLineAtIndex === index && <VerticalLine />}
-                <div 
+                <div
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent triggering other click events
                     // Create a copy of columns and modify the freeze value of the current column
@@ -286,7 +280,86 @@ export const DataTable: React.FC<DataTableProps> = ({
       </TableRow>
     );
   };
-  
+
+  const renderFilterRow = () => {
+    const anyFilterBy = columns.some(col => col.filterBy);
+    let frozenWidth = 0;
+
+    if (!anyFilterBy) {
+      return null;
+    }
+
+    return (
+      <TableRow>
+        {selectable && <TableCell width="42px" />}
+        {collapsibleRowRender && <TableCell width="38px" />}
+        {columns.map((col, index) => {
+          if (col.hide) return null;
+          const isFrozen = col.freeze;
+          if (isFrozen) {
+            frozenWidth += parseInt(col.width, 10);
+          }
+          return (
+            <TableCell
+              key={index}
+              width={col.width}
+              minWidth={col.minWidth}
+              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
+            >
+              {(col.filterBy) ? col.filterBy.type === "text" ? (
+                <input
+                  type="text"
+                  value={filterValues[col.column]}
+                  onChange={e => {
+                    setFilterValues(prev => ({
+                      ...prev,
+                      [col.column]: e.target.value,
+                    }));
+                  }}
+                />
+              ) : col.filterBy.type === "select" ? (
+                <select
+                  value={filterValues[col.column]}
+                  onChange={e => {
+                    setFilterValues(prev => ({
+                      ...prev,
+                      [col.column]: e.target.value,
+                    }));
+                  }}
+                >
+                  {col.filterBy.options.map((option, optionIndex) => (
+                    <option key={optionIndex} value={option.value}>
+                      {option.text}
+                    </option>
+                  ))}
+                </select>
+              ) : null : null}
+            </TableCell>
+          )
+        })}
+      </TableRow>
+    );
+  };
+
+  const handleRowSingleClick = useCallback((row: any) => {
+    onRowClick?.(row);
+    setActiveRow((prev) => (prev === row[rowKey] ? null : row[rowKey]));
+  }, [onRowClick]);
+
+  const handleRowDoubleClick = useCallback((row: any) => {
+    onRowDoubleClick?.(row);
+  }, [onRowDoubleClick]);
+
+  const handleRowClick = useCallback((row: any) => {
+    const singleClickAction = () => {
+      handleRowSingleClick(row);
+    };
+    const doubleClickAction = () => {
+      handleRowDoubleClick(row);
+    };
+    return useDoubleClick(singleClickAction, doubleClickAction);
+  }, [handleRowSingleClick, handleRowDoubleClick]);
+
 
   const renderTableBody = () => {
     return visibleRows.map((row, rowIndex) => {
@@ -294,11 +367,11 @@ export const DataTable: React.FC<DataTableProps> = ({
       frozenWidth = 0; // reset the frozenWidth for each row
       const isActiveRow = row[rowKey] === activeRow;
       const isSelectedRow = selectedRows.includes(row[rowKey]);
-      const handleRowClick = useDoubleClick(() => handleRowSingleClick(row), () => handleRowDoubleClick(row));
+      // const handleRowClick = useDoubleClick(() => handleRowSingleClick(row), () => handleRowDoubleClick(row));
       return (
         <React.Fragment key={rowIndex}>
           <TableRow
-            onClick={handleRowClick}
+            onClick={() => handleRowClick(row)}
             style={{
               backgroundColor: isActiveRow ? 'lightblue' : isSelectedRow ? '#ddd' : 'white', // Set the background color based on whether the row is active.
               border: isSelectedRow ? '1px solid black' : undefined, // Set the border if the row is selected.
@@ -327,7 +400,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               let cellContent = col.customColumnRenderer
                 ? col.customColumnRenderer(row[col.column], row)
                 : getDeepValue(row, col.column);
-        
+
               // If search text exists, highlight the text
               if (search) {
                 cellContent = highlightText(cellContent, search);
@@ -355,14 +428,37 @@ export const DataTable: React.FC<DataTableProps> = ({
             </TableRow>
           )}
         </React.Fragment>
-      )}
+      )
+    }
     );
   };
 
+  const filteredData = useMemo(() => {
+    return dataSource.filter(row => {
+      // Filter by column filter
+      const columnFilterMatches = columns.every(col => {
+        if (col.filterBy) {
+          const filterValue = filterValues[col.column].toLowerCase();
+          const rowValue = String(getDeepValue(row, col.column)).toLowerCase();
+          return rowValue.includes(filterValue);
+        }
+        return true;
+      });
+  
+      // Filter by search
+      const searchMatches = columns.some(col => {
+        const columnValue = String(getDeepValue(row, col.column)).toLowerCase();
+        return columnValue.includes(search.toLowerCase());
+      });
+  
+      return columnFilterMatches && searchMatches;
+    });
+  }, [dataSource, columns, filterValues, search]);
+
   const renderTableFooter = () => {
     const start = localPageIndex * localPageSize + 1;
-    const end = Math.min(start + localPageSize - 1, dataSource.length);
-    const paginationInfo = `${start}-${end} of ${dataSource.length} items`;
+    const end = Math.min(start + localPageSize - 1, filteredData.length);
+    const paginationInfo = `${start}-${end} of ${filteredData.length} items`;
     return (
       <TableFooter>
         <button
@@ -374,9 +470,9 @@ export const DataTable: React.FC<DataTableProps> = ({
         <span style={{ margin: '0 8px' }}>{localPageIndex + 1}</span>
         <button
           onClick={() =>
-            setLocalPageIndex((prev) => Math.min(prev + 1, Math.floor(dataSource.length / localPageSize) - 1))
+            setLocalPageIndex((prev) => Math.min(prev + 1, Math.floor(filteredData.length / localPageSize) - 1))
           }
-          disabled={localPageIndex >= Math.floor(dataSource.length / localPageSize) - 1}
+          disabled={localPageIndex >= Math.floor(filteredData.length / localPageSize) - 1}
         >
           ▶
         </button>
@@ -390,25 +486,33 @@ export const DataTable: React.FC<DataTableProps> = ({
       </TableFooter>
     );
   };
+  
+  useEffect(() => {
+    setLocalPageIndex(0);
+  }, [search, filterValues]);
+  
+  const start = localPageIndex * localPageSize;
+  const end = start + localPageSize;
+  const visibleRows = useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
 
-  const handleColumnVisibilityChange = (columnIndex: number) => {
+  const handleColumnVisibilityChange = useCallback((columnIndex: number) => {
     const newColumns = [...columns];
     newColumns[columnIndex].hide = !newColumns[columnIndex].hide;
     setColumns(newColumns);
     if (onColumnSettingsChange) {
       onColumnSettingsChange(newColumns);
     }
-  };
-  
-  const selectAllRows = () => {
-    setSelectedRows(visibleRows.map(row => row[rowKey]));
-  };
-  
-  const deselectAllRows = () => {
-    setSelectedRows([]);
-  };
+  }, [columns, onColumnSettingsChange]);
 
-  const toggleRowSelection = (id: string) => {
+  const selectAllRows = useCallback(() => {
+    setSelectedRows(visibleRows.map(row => row[rowKey]));
+  }, [visibleRows]);
+
+  const deselectAllRows = useCallback(() => {
+    setSelectedRows([]);
+  }, []);
+
+  const toggleRowSelection = useCallback((id: string) => {
     setSelectedRows(prev => {
       if (prev.includes(id)) {
         return prev.filter(rowId => rowId !== id);
@@ -416,9 +520,9 @@ export const DataTable: React.FC<DataTableProps> = ({
         return [...prev, id];
       }
     });
-  };
+  }, []);
 
-  const toggleRowCollapse = (id: string) => {
+  const toggleRowCollapse = useCallback((id: string) => {
     setCollapsedRows(prev => {
       if (prev.includes(id)) {
         return prev.filter(rowId => rowId !== id);
@@ -426,48 +530,26 @@ export const DataTable: React.FC<DataTableProps> = ({
         return [...prev, id];
       }
     });
-  };
+  }, []);
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handlePageSizeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setLocalPageSize(parseInt(e.target.value, 10));
     setLocalPageIndex(0);
-  };
+  }, []);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
-  };
-  
-  const getDeepValue = (obj: any, path: string) => {
-    const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
-  
-    if (typeof value === 'boolean' || typeof value === 'object') {
-      return JSON.stringify(value);
-    }
-  
-    return value;
-  };
+  }, []);
 
   const highlightText = (text: string, highlight: string) => {
     // Split text on highlight term, include term itself into parts, ignore case
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return <span>{parts.map((part, i) =>
       part.toLowerCase() === highlight.toLowerCase() ?
-        <span key={i} style={{backgroundColor: '#ffc069'}}>{part}</span> : 
+        <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
         <span key={i}>{part}</span>
     )}</span>;
   };
-  
-  const handleRowSingleClick = (row: any) => {
-    onRowClick?.(row);
-    setActiveRow((prev) => (prev === row[rowKey] ? null : row[rowKey]));
-  };
-  
-  const handleRowDoubleClick = (row: any) => {
-    onRowDoubleClick?.(row);
-  };
-  
-
-  const handleRowClick = useDoubleClick(handleRowSingleClick, handleRowDoubleClick);
 
   return (
     <div>
@@ -476,13 +558,14 @@ export const DataTable: React.FC<DataTableProps> = ({
         <TableInnerWrapper>
           <div style={{
             width: columns.reduce(
-              (acc, col) => acc + (parseInt(col.width, 10) || 0),
+              (acc, col) => acc + (parseInt(col.hide ? 0 : col.width, 10) || 0),
               0
             ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
           }}
           >
             {renderGroupHeader()}
             {renderTableHeader()}
+            {renderFilterRow()}
             <TableBodyWrapper>
               {renderTableBody()}
             </TableBodyWrapper>
