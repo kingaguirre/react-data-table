@@ -176,7 +176,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     const groupHeaders = columns.reduce(
       (acc: { title: string | null; width: number }[], col) => {
         const lastHeader = acc[acc.length - 1];
-        const colWidth = col.hide ? 0 : parseInt(col.width);
+        const colWidth = col.hide ? 0 : parseInt(col.width || "");
 
         if (col.groupTitle) {
           if (lastHeader && lastHeader.title === col.groupTitle) {
@@ -224,7 +224,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           <TableCell width="38px">
             <input
               type="checkbox"
-              checked={visibleRows.length && selectedRows.length === visibleRows.length}
+              checked={!!visibleRows.length && selectedRows.length === visibleRows.length}
               onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
             />
           </TableCell>
@@ -233,7 +233,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           if (col.hide) return null;
           const isFrozen = col.freeze;
           if (isFrozen) {
-            frozenWidth += parseInt(col.width, 10);
+            frozenWidth += parseInt(col.width || "", 10);
           }
           return (
             <TableCell
@@ -241,7 +241,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               width={col.width}
               minWidth={col.minWidth}
               align={col.align}
-              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
+              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
               onDragOver={(e) => onDragOver(e, index)}
               onDrop={(e) => onDrop(e, index)}
             >
@@ -297,14 +297,14 @@ export const DataTable: React.FC<DataTableProps> = ({
           if (col.hide) return null;
           const isFrozen = col.freeze;
           if (isFrozen) {
-            frozenWidth += parseInt(col.width, 10);
+            frozenWidth += parseInt(col.width || "", 10);
           }
           return (
             <TableCell
               key={index}
               width={col.width}
               minWidth={col.minWidth}
-              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
+              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
             >
               {(col.filterBy) ? col.filterBy.type === "text" ? (
                 <input
@@ -395,7 +395,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               if (col.hide) return null;
               const isFrozen = col.freeze;
               if (isFrozen) {
-                frozenWidth += parseInt(col.width, 10);
+                frozenWidth += parseInt(col.width || "", 10);
               }
               let cellContent = col.customColumnRenderer
                 ? col.customColumnRenderer(row[col.column], row)
@@ -411,7 +411,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   width={col.width}
                   minWidth={col.minWidth}
                   align={col.align}
-                  style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width, 10)}px`, zIndex: 1, background: '#fff' } : {}}
+                  style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
                 >
                   <CellContent className="cell-content" style={{ maxWidth: col.width }}>{cellContent}</CellContent>
                   {showLineAtIndex === index && <VerticalLine />}
@@ -558,7 +558,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         <TableInnerWrapper>
           <div style={{
             width: columns.reduce(
-              (acc, col) => acc + (parseInt(col.hide ? 0 : col.width, 10) || 0),
+              (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
               0
             ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
           }}

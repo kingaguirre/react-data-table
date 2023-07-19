@@ -15,12 +15,12 @@ const StyledGrid = styled.div`
 `;
 
 const MyGridComponent = () => {
-  const columnDefs = [
-    { headerName: 'Column 1', field: 'col1', resizable: true, filter: true },
-    { headerName: 'Column 2', field: 'col2', resizable: true, filter: true },
-    { headerName: 'Column 3', field: 'col3', resizable: true, filter: true },
-    // Add more column definitions as needed
-  ];
+  // const columnDefs = [
+  //   { headerName: 'Column 1', field: 'col1', resizable: true, filter: true },
+  //   { headerName: 'Column 2', field: 'col2', resizable: true, filter: true },
+  //   { headerName: 'Column 3', field: 'col3', resizable: true, filter: true },
+  //   // Add more column definitions as needed
+  // ];
 
   const rowData = [
     { col1: 'Row 1', col2: 'Value 1', col3: 'Data 1' },
@@ -39,7 +39,7 @@ const MyGridComponent = () => {
         }}
       >
         <AgGridReact
-          columnDefs={columnDefs}
+          // columnDefs={columnDefs}
           rowData={rowData}
           suppressColumnVirtualisation={true}
           domLayout="autoHeight"

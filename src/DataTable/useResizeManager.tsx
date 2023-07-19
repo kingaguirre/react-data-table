@@ -7,7 +7,7 @@ interface ResizeManagerProps {
 
 export const useResizeManager = (
   columnSettings: ColumnSettings[],
-  setColumnSettings: (newColumnSettings: ColumnSettings[]) => void,
+  setColumnSettings: (newColumnSettings: any) => void,
   onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void,
 ): ResizeManagerProps => {
   const [resizingColumnIndex, setResizingColumnIndex] = useState<number | null>(null);

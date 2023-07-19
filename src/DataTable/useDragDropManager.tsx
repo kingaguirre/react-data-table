@@ -23,7 +23,7 @@ export const useDragDropManager = (
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', JSON.stringify(columnSettings[columnIndex]));
 
-      const dragImage = createDragImage(columnSettings[columnIndex], columnIndex, dataSource);
+      const dragImage = createDragImage(columnSettings[columnIndex], dataSource);
       if (dragImageRef.current) {
         dragImageRef.current.innerHTML = '';
         dragImageRef.current.appendChild(dragImage);
@@ -81,7 +81,7 @@ export const useDragDropManager = (
   };
 };
 
-const createDragImage = (column: ColumnSettings, columnIndex: number, dataSource: any[]) => {
+const createDragImage = (column: ColumnSettings, dataSource: any[]) => {
   const table = document.createElement('div');
   table.style.display = 'table';
   table.style.borderCollapse = 'separate';

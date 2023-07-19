@@ -3,6 +3,7 @@ import styled from 'styled-components';
 export const TableInnerWrapper = styled.div`
   overflow-x: scroll;
   width: 100%;
+  font-family: 'Helvetica';
 `;
 
 export const Table = styled.div`
@@ -28,6 +29,9 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   position: relative;
   border: 1px solid #ddd;
   background-color: white;
+  select, input {
+    width: 100%;
+  }
 `;
 
 export const VerticalLine = styled.div`

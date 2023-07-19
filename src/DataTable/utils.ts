@@ -52,8 +52,8 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   csvContent += rows.map(processRow).join('\r\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=ISO-8859-1;' });
-  if (navigator.msSaveBlob) { // IE 10+
-    navigator.msSaveBlob(blob, filename);
+  if ((navigator as any).msSaveBlob) { // IE 10+
+    (navigator as any).msSaveBlob(blob, filename);
   } else {
     const link = document.createElement('a');
     if (link.download !== undefined) { // feature detection

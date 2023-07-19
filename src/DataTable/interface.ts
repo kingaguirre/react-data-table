@@ -6,6 +6,7 @@ export interface ColumnSettings {
   freeze?: boolean;
   hide?: boolean;
   width?: string;
+  minWidth?: string;
   groupTitle?: string;
   order?: number;
   customColumnRenderer?: (value: any, rowData: any) => React.ReactNode;
