@@ -1,32 +1,29 @@
-import React, { useState, useCallback } from 'react';
-import { exportToCsv } from "../utils"
-import { TableHeader } from '../styled';
-import { ColumnSettings } from '../interface';
+import React from "react";
+import { TableHeader } from "../styled";
+import { ColumnSettings } from "../interfaces";
+import { exportToCsv } from "../utils";
 
 interface IProps {
   columns: ColumnSettings[];
-  setColumns: (value: ColumnSettings[]) => void;
-  search: string;
-  setSearch: (value: string) => void;
   visibleRows: any[];
-  onColumnSettingsChange: (newColumnSettings: ColumnSettings[]) => void;
+  search: string;
+  setSearch: (value: React.SetStateAction<string>) => void;
+  setColumns: React.Dispatch<React.SetStateAction<ColumnSettings[]>>;
+  onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void;
 }
 
 export default (props: IProps) => {
-  const { columns, setColumns, search, setSearch, visibleRows, onColumnSettingsChange } = props;
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const { columns, visibleRows, search, setSearch, setColumns, onColumnSettingsChange } = props;
 
-  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
-  }, []);
+  const [isDropdownOpen, setDropdownOpen] = React.useState(false);
 
-  const handleColumnVisibilityChange = useCallback((columnIndex: number) => {
+  const handleSearchChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => setSearch(event.target.value), []);
+
+  const handleColumnVisibilityChange = React.useCallback((columnIndex: number) => {
     const newColumns = [...columns];
     newColumns[columnIndex].hide = !newColumns[columnIndex].hide;
     setColumns(newColumns);
-    if (onColumnSettingsChange) {
-      onColumnSettingsChange(newColumns);
-    }
+    onColumnSettingsChange?.(newColumns);
   }, [columns, onColumnSettingsChange]);
 
   return (
@@ -55,7 +52,6 @@ export default (props: IProps) => {
         </div>
       )}
       <button onClick={() => exportToCsv('data.csv', visibleRows, columns)}>Export to Excel</button>
-
     </TableHeader>
   )
 }

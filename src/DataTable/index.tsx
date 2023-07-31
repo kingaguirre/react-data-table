@@ -364,7 +364,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const renderTableBody = () => {
     return visibleRows.map((row, rowIndex) => {
       const isRowCollapsed = collapsedRows.includes(row[rowKey]);
-      frozenWidth = 0; // reset the frozenWidth for each row
+      let frozenWidth = 0; // reset the frozenWidth for each row
       const isActiveRow = row[rowKey] === activeRow;
       const isSelectedRow = selectedRows.includes(row[rowKey]);
       // const handleRowClick = useDoubleClick(() => handleRowSingleClick(row), () => handleRowDoubleClick(row));

@@ -1,5 +1,6 @@
 import React from 'react'
 import { DataTable } from '../DataTable'
+import DataTablePOC from '../DataTablePOC'
 
 const dataSource = Array(20).fill("").map((_, i) => ({
   userID: `user-id${i}`,
@@ -142,6 +143,14 @@ export default () => {
   };
 
   return (
+    <>
+    <DataTablePOC
+      dataSource={dataSource}
+      columnSettings={columnSettings}
+      rowKey="userID"
+      selectable
+      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+    />
     <DataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
@@ -154,5 +163,6 @@ export default () => {
       selectable
       collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
     />
+    </>
   )
 }
