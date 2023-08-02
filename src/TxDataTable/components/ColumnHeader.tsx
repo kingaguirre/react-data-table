@@ -9,7 +9,7 @@ export default () => {
     selectable,
     visibleRows,
     showLineAtIndex,
-    state: { selectedRows, columns },
+    state: { selectedRows, columns  },
     setState,
     onMouseDown,
     onDragStart,
@@ -84,6 +84,41 @@ export default () => {
               >
                 📌
               </div>
+
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  let newSortDirection: 'asc' | 'desc' | undefined;  // Change here
+                  if (!col.sorted) {  // Change here
+                    newSortDirection = 'asc';
+                  } else if (col.sorted === 'asc') {
+                    newSortDirection = 'desc';
+                  } else {
+                    newSortDirection = undefined;  // Change here
+                  }
+
+                  const newColumns = [...columns];
+                  newColumns[index] = {
+                    ...newColumns[index],
+                  };
+
+                  // Change here: conditionally add the sorted field
+                  if (newSortDirection) {
+                    newColumns[index].sorted = newSortDirection;
+                  } else {
+                    delete newColumns[index].sorted;
+                  }
+
+                  setState({ type: SET_COLUMNS, payload: newColumns });
+                  onColumnSettingsChange?.(newColumns);
+                }}
+              >
+                {(!col.sorted) && '⬆️⬇️'}
+                {col.sorted === 'asc' && '⬆️'}
+                {col.sorted === 'desc' && '⬇️'}
+              </div>
+
+
             </div>
             <ResizeHandle onMouseDown={onMouseDown(index)} />
           </TableCell>

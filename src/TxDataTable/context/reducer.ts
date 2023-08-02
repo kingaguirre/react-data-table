@@ -14,11 +14,11 @@ export interface IReducerState {
   search: string;
   parentWidth: number | null;
   localPageIndex: number | null;
-  localPageSize: number | null
-  columns: ColumnSettings[]
-  activeRow: string | null
-  selectedRows: string[]
-  filterValues: any
+  localPageSize: number | null;
+  columns: ColumnSettings[];
+  activeRow: string | null;
+  selectedRows: string[];
+  filterValues: any;
 }
 
 interface IAction {
@@ -34,7 +34,7 @@ export const initialState: IReducerState = {
   columns: [],
   activeRow: null,
   selectedRows: [],
-  filterValues: {}
+  filterValues: {},
 }
 const dataTableReducer = (state: IReducerState, action: IAction) => {
   switch (action.type) {

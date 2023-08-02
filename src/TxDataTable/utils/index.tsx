@@ -43,6 +43,38 @@ export const getDeepValue = (obj: any, path: string) => {
   return value;
 };
 
+export const sortData = (data: any[], column: string, direction: 'asc' | 'desc') => {
+  const compareFunction = (a: any, b: any) => {
+    const aVal = String(getDeepValue(a, column));
+    const bVal = String(getDeepValue(b, column));
+
+    // Extract numbers from the strings
+    const aMatches = aVal.match(/\d+/g) || [];
+    const bMatches = bVal.match(/\d+/g) || [];
+
+    // If both have numbers, compare as numbers
+    if (aMatches.length > 0 && bMatches.length > 0) {
+      const aNum = parseInt(aMatches.join(''), 10);
+      const bNum = parseInt(bMatches.join(''), 10);
+      if (aNum !== bNum) {
+        return aNum - bNum;
+      }
+    }
+
+    // If not, or if the numbers are equal, compare as strings
+    return aVal.localeCompare(bVal);
+  }
+
+  return direction === 'asc' ? [...data].sort(compareFunction) : [...data].sort((a, b) => -compareFunction(a, b));
+};
+
+export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
+  width: state.columns.reduce(
+    (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
+    0
+  ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
+});
+
 export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   const processRow = (row: any) => {
     return columns

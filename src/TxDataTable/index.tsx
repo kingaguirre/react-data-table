@@ -1,6 +1,6 @@
 import React from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_PARENT_WIDTH } from "./context/actions";
 import * as SC from "./styled";
@@ -73,7 +73,7 @@ export default (props: DataTableProps) => {
   }, [columnSettings, state.parentWidth]);
 
   const filteredData = React.useMemo(() => {
-    return dataSource.filter(row => {
+    let filtered = dataSource.filter(row => {
       // Filter by column filter
       const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
@@ -92,11 +92,21 @@ export default (props: DataTableProps) => {
   
       return columnFilterMatches && searchMatches;
     });
+  
+    // get the first sorted column
+    const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
+    
+    if (sortedColumn) {
+      filtered = sortData(filtered, sortedColumn.column, sortedColumn.sorted);
+    }
+    
+    return filtered;
   }, [dataSource, state.columns, state.filterValues, state.search]);
 
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
   const visibleRows = React.useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
+
   /** Memos End */
 
   /** UseEffects Start */
@@ -122,13 +132,6 @@ export default (props: DataTableProps) => {
     showLineAtIndex
   } = useDragDropManager(state.columns, setColumns, dataSource, dragImageRef, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
-
-  const getTableWidth = () => ({
-    width: state.columns.reduce(
-      (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
-      0
-    ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
-  })
   /** Custom Functions End */
 
   return (
@@ -156,7 +159,7 @@ export default (props: DataTableProps) => {
         <MainHeader />
         <SC.Table ref={tableRef}>
           <SC.TableInnerWrapper>
-            <div style={getTableWidth()}>
+            <div style={getTableWidth({state, selectable, collapsibleRowRender})}>
               <ColumnGroupHeader />
               <ColumnHeader />
               <ColumnFilters />

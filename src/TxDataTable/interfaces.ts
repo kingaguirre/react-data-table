@@ -26,6 +26,7 @@ export interface ColumnSettings {
   minWidth?: string;
   groupTitle?: string;
   order?: number;
+  sorted?: 'asc' | 'desc' | 'none';
   customColumnRenderer?: (value: any, rowData: any) => React.ReactNode;
 }
 
