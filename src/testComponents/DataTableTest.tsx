@@ -1,6 +1,7 @@
 import React from 'react'
 import { DataTable } from '../DataTable'
 import DataTablePOC from '../DataTablePOC'
+import TxDataTable from '../TxDataTable'
 
 const dataSource = Array(20).fill("").map((_, i) => ({
   userID: `user-id${i}`,
@@ -58,6 +59,9 @@ const columnSettings = [
       type: 'select',
       value: '',
       options: [{
+        text: 'clear',
+        value: ''
+        },{
         text: 'admin',
         value: 'true'
         },{
@@ -144,6 +148,19 @@ export default () => {
 
   return (
     <>
+    <TxDataTable
+      dataSource={dataSource}
+      columnSettings={columnSettings}
+      onRowClick={handleRowClick}
+      onRowDoubleClick={handleRowDoubleClick}
+      rowKey="userID"
+      selectable
+      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+      onColumnSettingsChange={handleColumnSettingsChange}
+      // onPageIndexChange={e => console.log(`Page index: ${e}`)}
+      // onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
+      // collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+    />
     <DataTablePOC
       dataSource={dataSource}
       columnSettings={columnSettings}

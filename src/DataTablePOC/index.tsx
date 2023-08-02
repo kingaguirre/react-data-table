@@ -108,7 +108,6 @@ export default (props: DataTableProps) => {
       setParentWidth(tableRef.current.offsetWidth);
     }
   }, [tableRef]);
-
   /** UseEffects End */
 
   /** Custom Functions Start */
@@ -119,6 +118,13 @@ export default (props: DataTableProps) => {
     showLineAtIndex
   } = useDragDropManager(columns, setColumns, dataSource, dragImageRef, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(columns, setColumns, onColumnSettingsChange);
+
+  const getTableWidth = () => ({
+    width: columns.reduce(
+      (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
+      0
+    ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
+  })
   /** Custom Functions End */
 
   return (
@@ -133,12 +139,7 @@ export default (props: DataTableProps) => {
       />
       <SC.Table ref={tableRef}>
         <SC.TableInnerWrapper>
-          <div style={{
-            width: columns.reduce(
-              (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
-              0
-            ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
-          }}>
+          <div style={getTableWidth()}>
             <ColumnGroupHeader
               selectable={selectable}
               columns={columns}
