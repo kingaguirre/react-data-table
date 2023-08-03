@@ -1,15 +1,17 @@
 import React from 'react';
 
 export const highlightText = (text: string, highlight: string) => {
-  // Split text on highlight term, include term itself into parts, ignore case
-  const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
-  return (
-  <span>
-    {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
-      <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
-      <span key={i}>{part}</span>
-    )}
-  </span>);
+  if (typeof text === "string") {
+    // Split text on highlight term, include term itself into parts, ignore case
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return (
+    <span>
+      {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
+        <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
+        <span key={i}>{part}</span>
+      )}
+    </span>);
+  }
 };
 
 export const useDoubleClick = (onClick, onDoubleClick, delay = 300) => {

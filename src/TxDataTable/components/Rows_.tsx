@@ -65,6 +65,7 @@ export default () => {
               {selectable && (
                 <TableCell>
                   <input
+                    style={{margin: 0}}
                     type="checkbox"
                     checked={selectedRows.includes(row[rowKey])}
                     onChange={() => toggleRowSelection(row[rowKey])}

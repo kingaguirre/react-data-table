@@ -27,8 +27,8 @@ export default () => {
 
   return (
     <TableRow>
-      {selectable && <TableCell width="42px" />}
-      {collapsibleRowRender && <TableCell width="38px" />}
+      {selectable && <TableCell width="30px" />}
+      {collapsibleRowRender && <TableCell width="27px" />}
       {columns.map((col, index) => {
         if (col.hide) return null;
 
@@ -45,12 +45,14 @@ export default () => {
           >
             {(col.filterBy) ? col.filterBy.type === "text" ? (
               <input
+                className="sm"
                 type="text"
                 value={filterValues[col.column]}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               />
             ) : col.filterBy.type === "select" ? (
               <select
+                className="sm"
                 value={filterValues[col.column]}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               >

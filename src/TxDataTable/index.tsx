@@ -52,7 +52,7 @@ export default (props: DataTableProps) => {
     const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
     const remainingWidth = state.parentWidth - totalWidthWithWidth;
     const columnsWithoutWidth = columnSettings.filter(col => !col.width);
-    const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 180);
+    const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
 
     return columnSettings.sort((a, b) => {
       if (a.order !== undefined && b.order !== undefined) {
@@ -166,8 +166,8 @@ export default (props: DataTableProps) => {
               <Rows />
             </div>
           </SC.TableInnerWrapper>
-          <Footer />
         </SC.Table>
+        <Footer />
       </SC.TableWrapper>
     </DataTableContext.Provider>
   );

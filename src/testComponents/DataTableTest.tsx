@@ -131,6 +131,11 @@ const columnSettings = [
     groupTitle: 'User Accounts',
     hide: true
   },
+  {
+    column: 'userID',
+    title: 'Action',
+    customColumnRenderer: (value) => <button style={{fontSize: 5}}>Button {value}</button>
+  },
 ];
 
 export default () => {
@@ -147,7 +152,7 @@ export default () => {
   };
 
   return (
-    <>
+    <div style={{padding: 16}}>
     <TxDataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
@@ -180,6 +185,6 @@ export default () => {
       selectable
       collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
     />
-    </>
+    </div>
   )
 }
