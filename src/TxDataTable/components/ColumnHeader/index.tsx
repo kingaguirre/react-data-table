@@ -1,5 +1,5 @@
 import React from "react";
-import { TableRow, TableCell, CellContent, ResizeHandle, VerticalLine } from "../../styled";
+import { TableRow, TableCell, CellContent, ResizeHandle, VerticalLine } from "../Rows/styled";
 import { SET_SELECTED_ROWS, SET_COLUMNS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import SelectCheckboxColumn from "../SelectCheckboxColumn";
@@ -51,7 +51,8 @@ export default () => {
             width={col.width}
             minWidth={col.minWidth}
             align={col.align}
-            style={isFrozen ? { position: "sticky", left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: "#fff" } : {}}
+            isFrozen={isFrozen}
+            style={isFrozen ? { left: `${frozenWidth - parseInt(col.width || "", 10)}px` } : {}}
             onDragOver={(e) => onDragOver(e, index)}
             onDrop={(e) => onDrop(e, index)}
           >

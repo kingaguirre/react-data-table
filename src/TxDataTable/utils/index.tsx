@@ -71,10 +71,9 @@ export const sortData = (data: any[], column: string, direction: 'asc' | 'desc')
 };
 
 export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
-  width: state.columns.reduce(
-    (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
-    0
-  ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
+  width: state.columns.reduce((acc, col) => 
+    acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0), 0
+  ) + (selectable ? 27 : 0) + (collapsibleRowRender ? 30 : 0),
 });
 
 export const exportToCsv = (filename: string, rows: any[], columns: any) => {

@@ -19,7 +19,7 @@ export interface ColumnSettings {
   filterBy?: any;
   column: string;
   title: string;
-  align?: 'left' | 'right' | 'center';
+  align?: 'left' | 'right' | 'center' | string;
   freeze?: boolean;
   hide?: boolean;
   width?: string;

@@ -86,9 +86,15 @@ export default () => {
                     width={col.width}
                     minWidth={col.minWidth}
                     align={col.align}
-                    style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
+                    isFrozen={isFrozen}
+                    style={isFrozen ? { left: `${frozenWidth - parseInt(col.width || "", 10)}px` } : {}}
                   >
-                    <SC.CellContent className="cell-content" style={{ maxWidth: col.width }}>{cellContent}</SC.CellContent>
+                    <SC.CellContent
+                      className="cell-content"
+                      style={{ maxWidth: col.width }}
+                    >
+                      {cellContent}
+                    </SC.CellContent>
                     {showLineAtIndex === index && <SC.VerticalLine />}
                     <SC.ResizeHandle onMouseDown={onMouseDown(index)} />
                   </SC.TableCell>

@@ -1,14 +1,14 @@
 import React from "react";
-import { TableRow, TableCell } from "../styled";
-import { SET_FILTER_VALUES } from "../context/actions";
-import { DataTableContext } from "../index";
+import { TableRow, TableCell } from "../Rows/styled";
+import SelectCheckboxColumn from "../SelectCheckboxColumn";
+import CollapsibleRowColumn from "../CollapsibleRowColumn";
+import { SET_FILTER_VALUES } from "../../context/actions";
+import { DataTableContext } from "../../index";
 
 export default () => {
   const {
-    selectable,
     state: { filterValues, columns },
-    setState,
-    collapsibleRowRender
+    setState
   } = React.useContext(DataTableContext);
 
   const anyFilterBy = columns.some(col => col.filterBy);
@@ -27,8 +27,8 @@ export default () => {
 
   return (
     <TableRow>
-      {selectable && <TableCell width="30px" />}
-      {collapsibleRowRender && <TableCell width="27px" />}
+      <CollapsibleRowColumn/>
+      <SelectCheckboxColumn/>
       {columns.map((col, index) => {
         if (col.hide) return null;
 

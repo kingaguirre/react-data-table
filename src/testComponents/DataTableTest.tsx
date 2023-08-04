@@ -134,7 +134,10 @@ const columnSettings = [
   {
     column: 'userID',
     title: 'Action',
-    customColumnRenderer: (value) => <button style={{fontSize: 5}}>Button {value}</button>
+    customColumnRenderer: (value) => <button onClick={e => {
+      e.stopPropagation();
+      console.log(`button ${value} clicked`)
+    }} style={{fontSize: 5}}>Button {value}</button>
   },
 ];
 
@@ -166,6 +169,7 @@ export default () => {
       // onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
       // collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
     />
+    <div style={{height: 200}}/>
     <DataTablePOC
       dataSource={dataSource}
       columnSettings={columnSettings}

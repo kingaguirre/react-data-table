@@ -7,20 +7,22 @@ export const TableRow = styled.div`
   display: flex;
 `;
 
-export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string }>`
+export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string, isFrozen?: boolean }>`
   display: block;
   padding: 4px 6px;
-  /* text-align: ${({ align }) => align || 'left'}; */
   width: ${({ width }) => width || 'auto'};
   min-width: ${({ width }) => width || 'auto'};
   position: relative;
-  /* border: 1px solid #ddd; */
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
+  ${({isFrozen}) => !!isFrozen ? `
+    position: sticky;
+    z-index: 1;
+  ` : ''}
   &:after {
     position: absolute;
     bottom: 0;
