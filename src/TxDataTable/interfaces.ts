@@ -1,3 +1,9 @@
+interface FetchConfig {
+  endpoint: string;
+  requestData?: any;
+  responseDataPath?: string; // Use to get string path of the array data if its too deep.
+  responseTotalDataPath?: string; // Use to get string path of the total data count of the reponse.
+}
 export interface DataTableProps {
   dataSource: any[];
   columnSettings: ColumnSettings[];
@@ -13,6 +19,7 @@ export interface DataTableProps {
   // onSelectedRowsChange?: (rowData: any) => void;
   collapsibleRowRender?: (rowData: any) => React.ReactNode;
   collapsibleRowHeight?: string;
+  fetchConfig?: FetchConfig;
 }
 
 export interface ColumnSettings {

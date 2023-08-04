@@ -2,7 +2,7 @@ import React from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
 import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
-import { SET_COLUMNS, SET_PARENT_WIDTH } from "./context/actions";
+import { SET_COLUMNS, SET_PARENT_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
 import Rows from "./components/Rows";
 import ColumnHeader from "./components/ColumnHeader";
@@ -21,6 +21,7 @@ export default (props: DataTableProps) => {
     pageIndex = 0,
     selectable = false,
     rowKey,
+    fetchConfig,
     collapsibleRowHeight = "100px",
     onColumnSettingsChange,
     onRowClick,
@@ -74,7 +75,7 @@ export default (props: DataTableProps) => {
 
   const filteredData = React.useMemo(() => {
     let filtered = dataSource.filter(row => {
-      // Filter by column filter
+      /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
           const filterValue = state.filterValues[col.column].toLowerCase();
@@ -84,7 +85,7 @@ export default (props: DataTableProps) => {
         return true;
       });
   
-      // Filter by search
+      /** Filter by search */
       const searchMatches = state.columns.some(col => {
         const columnValue = String(getDeepValue(row, col.column)).toLowerCase();
         return columnValue.includes(state.search.toLowerCase());
@@ -93,13 +94,13 @@ export default (props: DataTableProps) => {
       return columnFilterMatches && searchMatches;
     });
   
-    // get the first sorted column
+    /** get the first sorted column */
     const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
-    
+
     if (sortedColumn) {
       filtered = sortData(filtered, sortedColumn.column, sortedColumn.sorted);
     }
-    
+
     return filtered;
   }, [dataSource, state.columns, state.filterValues, state.search]);
 
@@ -107,6 +108,32 @@ export default (props: DataTableProps) => {
   const end = start + state.localPageSize;
   const visibleRows = React.useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
 
+  const fetchWithPagination = React.useCallback(async (pageIndex, pageSize) => {
+    /** Fetch data from the endpoint specified in fetchConfig */
+    if (fetchConfig) {
+      const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
+
+      /** Replace the placeholders in the endpoint URL with actual page index and size */
+      const endpointWithPagination = endpoint.replace('{pageNumber}', (pageIndex + 1).toString()).replace('{pageSize}', pageSize.toString());
+
+      /** Using `fetch` to get the data. Replace with your preferred method */
+      const response: any = await fetch(endpointWithPagination, {
+        method: requestData ? 'POST' : 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (requestData) {
+        response.body = JSON.stringify(requestData)
+      }
+
+      const data = await response.json();
+
+      setState({ type: SET_FETCHED_DATA, payload: {
+        data: JSON.parse(getDeepValue(data, responseDataPath)),
+        totalData: getDeepValue(data, responseTotalDataPath)
+      }});
+    }
+  }, [fetchConfig]);
   /** Memos End */
 
   /** UseEffects Start */
@@ -119,6 +146,10 @@ export default (props: DataTableProps) => {
       setParentWidth(tableRef.current.offsetWidth);
     }
   }, [tableRef]);
+
+  React.useEffect(() => {
+    fetchWithPagination(0, 5);
+  }, [fetchWithPagination]);
   /** UseEffects End */
 
   /** Custom Functions Start */
@@ -130,7 +161,7 @@ export default (props: DataTableProps) => {
     onDragOver,
     onDrop,
     showLineAtIndex
-  } = useDragDropManager(state.columns, setColumns, dataSource, dragImageRef, onColumnSettingsChange);
+  } = useDragDropManager(state.columns, setColumns, dragImageRef, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
   /** Custom Functions End */
 
@@ -139,6 +170,7 @@ export default (props: DataTableProps) => {
       value={{
         rowKey,
         selectable,
+        fetchConfig,
         visibleRows,
         filteredData,
         showLineAtIndex,
@@ -152,7 +184,8 @@ export default (props: DataTableProps) => {
         onRowClick,
         onRowDoubleClick,
         collapsibleRowRender,
-        onColumnSettingsChange
+        onColumnSettingsChange,
+        fetchWithPagination
       }}
     >
       <SC.TableWrapper>

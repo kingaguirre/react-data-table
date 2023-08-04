@@ -7,7 +7,8 @@ export const GroupHeader = styled.div<{ width?: string; minWidth?: string; align
   padding: 4px 6px 2px;
   text-align: center;
   font-weight: bold;
-  /* border: 1px solid #ddd; */
+  border-right: 1px solid rgb(221, 221, 221);
+  border-left: 1px solid rgb(221, 221, 221);
   width: ${({ width }) => width || 'auto'};
   min-width: ${({ width }) => width || 'auto'};
   > * {

@@ -8,18 +8,22 @@ export default () => {
     filteredData,
     state: { localPageIndex, localPageSize },
     setState,
+    fetchWithPagination
   } = React.useContext(DataTableContext);
 
   const start = localPageIndex * localPageSize + 1;
   const end = Math.min(start + localPageSize - 1, filteredData.length);
 
   const handlePageIndexChange = React.useCallback((index: number) => {
-    setState({ type: SET_LOCAL_PAGE_INDEX, payload: index })
+    setState({ type: SET_LOCAL_PAGE_INDEX, payload: index });
+    fetchWithPagination(index, localPageSize);
   }, [setState]);
 
   const handlePageSizeChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setState({ type: SET_LOCAL_PAGE_SIZE, payload: parseInt(e.target.value, 10) })
-    setState({ type: SET_LOCAL_PAGE_INDEX, payload: 0 })
+    const newSize = parseInt(e.target.value, 10);
+    setState({ type: SET_LOCAL_PAGE_SIZE, payload: newSize });
+    setState({ type: SET_LOCAL_PAGE_INDEX, payload: 0 });
+    fetchWithPagination(0, newSize);
   }, [setState]);
 
   return (

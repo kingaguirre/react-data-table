@@ -3,7 +3,7 @@ import { DataTable } from '../DataTable'
 import DataTablePOC from '../DataTablePOC'
 import TxDataTable from '../TxDataTable'
 
-const dataSource = Array(20).fill("").map((_, i) => ({
+const dataSource = Array(100).fill("").map((_, i) => ({
   userID: `user-id${i}`,
   username: `test-username${i}`,
   password: `test-password${i}`,
@@ -156,6 +156,23 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <TxDataTable
+        dataSource={dataSource}
+        fetchConfig={{
+          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}',
+          // requestData: { someKey: 'someValue' },
+          responseDataPath: "data.dataTableItem",
+          responseTotalDataPath: "data.count"
+        }}
+        columnSettings={columnSettings}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID"
+        selectable
+        collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+        onColumnSettingsChange={handleColumnSettingsChange}
+      />
+      <div style={{height: 200}}/>
     <TxDataTable
       dataSource={dataSource}
       columnSettings={columnSettings}

@@ -12,7 +12,8 @@ export default () => {
     visibleRows,
     showLineAtIndex,
     collapsibleRowHeight,
-    state: { selectedRows, activeRow, columns, search },
+    fetchConfig,
+    state: { selectedRows, activeRow, columns, search, fetchedData },
     setState,
     onMouseDown,
     onRowClick,
@@ -45,9 +46,17 @@ export default () => {
     setState({ type: SET_SELECTED_ROWS, payload })
   }, [selectedRows]);
 
+  /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
+  const rows = fetchConfig ? fetchedData.data : visibleRows;
+
+  if (!Array.isArray(rows)) {
+    console.error("The 'rows' prop is not an array.");
+    return null; // TODO: You can return a fallback UI or simply return null
+  }
+
   return (
     <SC.TableRowsContainer>
-      {visibleRows.map((row, rowIndex) => {
+      {rows.map((row, rowIndex) => {
         const isRowCollapsed = collapsedRows.includes(row[rowKey]);
         let frozenWidth = 0;
         const isActiveRow = row[rowKey] === activeRow;

@@ -8,8 +8,13 @@ import {
   SET_ACTIVE_ROW,
   SET_SELECTED_ROWS,
   SET_FILTER_VALUES,
+  SET_FETCHED_DATA,
 } from "./actions";
 
+interface IFetchedData {
+  data: any[];
+  totalData: number
+}
 export interface IReducerState {
   search: string;
   parentWidth: number | null;
@@ -19,6 +24,7 @@ export interface IReducerState {
   activeRow: string | null;
   selectedRows: string[];
   filterValues: any;
+  fetchedData?: IFetchedData
 }
 
 interface IAction {
@@ -35,6 +41,7 @@ export const initialState: IReducerState = {
   activeRow: null,
   selectedRows: [],
   filterValues: {},
+  fetchedData: { data: [], totalData: 0 },
 }
 const dataTableReducer = (state: IReducerState, action: IAction) => {
   switch (action.type) {
@@ -54,6 +61,8 @@ const dataTableReducer = (state: IReducerState, action: IAction) => {
       return { ...state, selectedRows: action.payload };
     case SET_FILTER_VALUES:
       return { ...state, filterValues: action.payload };
+    case SET_FETCHED_DATA:
+      return { ...state, fetchedData: action.payload };
     default:
       throw new Error(`Unhandled action type: ${action.type}`);
   }
