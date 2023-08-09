@@ -5,8 +5,29 @@ const middlewares = jsonServer.defaults();
 
 server.use(middlewares);
 
-server.get('/custom-items/:pageNumber/:pageSize', (req, res) => {
-  const { pageNumber, pageSize } = req.params;
+function deepSearch(obj, searchString) {
+  if (typeof obj === 'string' || typeof obj === 'number') {
+    return String(obj).toLowerCase().includes(searchString.toLowerCase());
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.some(item => deepSearch(item, searchString));
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
+    return Object.values(obj).some(value => deepSearch(value, searchString));
+  }
+
+  return false;
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => (acc && acc[part]) ? acc[part] : null, obj);
+}
+
+server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (req, res) => {
+  const { pageNumber, pageSize, sortColumn, sortDirection } = req.params;
+  const searchString = req.query.searchString || '';
 
   if (!pageNumber || !pageSize) {
     console.error('Both pageNumber and pageSize parameters are required');
@@ -14,14 +35,35 @@ server.get('/custom-items/:pageNumber/:pageSize', (req, res) => {
     return;
   }
 
-  const start = (pageNumber - 1) * pageSize;
-  const end = pageNumber * pageSize;
+  const start = (Number(pageNumber) - 1) * Number(pageSize);
+  const end = Number(pageNumber) * Number(pageSize);
 
-  const data = router.db.get('items').value().slice(start, end);
-  const totalItems = router.db.get('items').value().length;
+  // Sorting data based on the sortColumn and sortDirection
+  let items = router.db.get('items').value();
 
-  res.json({ data: {dataTableItem: data, count: totalItems} });
+  if (searchString) {
+    items = items.filter(item => deepSearch(item, searchString));
+  }
+
+  if (sortColumn !== 'none' && sortDirection !== 'none') {
+    items = items.sort((a, b) => {
+      const aValue = getNestedValue(a, sortColumn) || ''; // handle undefined values
+      const bValue = getNestedValue(b, sortColumn) || '';
+  
+      if (sortDirection === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
+  }
+
+  const data = items.slice(start, end);
+  const totalItems = items.length;
+
+  res.json({ data: { dataTableItem: data, count: totalItems } });
 });
+
 
 server.use(router);
 server.listen(3000, () => {

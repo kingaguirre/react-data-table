@@ -1,5 +1,6 @@
 import React from "react";
 import { TableRow, TableCell, CellContent, ResizeHandle, VerticalLine } from "../Rows/styled";
+import { getPinnedDetails } from "../../utils";
 import { SET_SELECTED_ROWS, SET_COLUMNS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import SelectCheckboxColumn from "../SelectCheckboxColumn";
@@ -11,20 +12,23 @@ export default () => {
     rowKey,
     visibleRows,
     showLineAtIndex,
-    state: { selectedRows, columns  },
+    state: { selectedRows, columns, fetchedData, localPageIndex, localPageSize, search },
+    fetchConfig,
     setState,
     onMouseDown,
     onDragStart,
     onDragOver,
     onDrop,
-    onColumnSettingsChange
+    onColumnSettingsChange,
+    fetchWithPagination
   } = React.useContext(DataTableContext);
 
-  let frozenWidth = 0;
+  const rows = fetchConfig ? fetchedData.data : visibleRows;
+  let pinnedWidth = 0;
 
   const selectAllRows = React.useCallback(() => {
-    setState({ type: SET_SELECTED_ROWS, payload: visibleRows.map(row => row[rowKey]) });
-  }, [visibleRows, setState]);
+    setState({ type: SET_SELECTED_ROWS, payload: rows.map(row => row[rowKey]) });
+  }, [rows, setState]);
 
   const deselectAllRows = React.useCallback(() => {
     setState({ type: SET_SELECTED_ROWS, payload: [] });
@@ -34,15 +38,16 @@ export default () => {
     <TableRow>
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
-        checked={!!visibleRows.length && selectedRows.length === visibleRows.length}
+        checked={!!rows.length && selectedRows.length === rows.length}
         onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
       />
       {columns.map((col, index) => {
-        if (col.hide) return null;
+        if (col.hidden) return null;
+        const showSortIcon = col.sorted !== 'none';
+        const { showPinIcon, isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
 
-        const isFrozen = col.freeze;
-        if (isFrozen) {
-          frozenWidth += parseInt(col.width || "", 10);
+        if (isPinned) {
+          pinnedWidth += colWidth;
         }
 
         return (
@@ -51,8 +56,8 @@ export default () => {
             width={col.width}
             minWidth={col.minWidth}
             align={col.align}
-            isFrozen={isFrozen}
-            style={isFrozen ? { left: `${frozenWidth - parseInt(col.width || "", 10)}px` } : {}}
+            isPinned={isPinned}
+            style={pinnedStyle}
             onDragOver={(e) => onDragOver(e, index)}
             onDrop={(e) => onDrop(e, index)}
           >
@@ -65,53 +70,51 @@ export default () => {
               </SC.TitleContainer>
               
               <SC.TitleControlsContainer>
-                <div
-                  onClick={(e) => {
-                     // Prevent triggering other click events
-                    e.stopPropagation();
-                    // Create a copy of columns and modify the freeze value of the current column
-                    const newColumns = [...columns];
-                    newColumns[index] = {
-                      ...newColumns[index],
-                      freeze: !newColumns[index].freeze,
-                    };
-                    // Update the state and call onColumnSettingsChange if provided
-                    setState({ type: SET_COLUMNS, payload: newColumns });
-                    onColumnSettingsChange?.(newColumns);
-                  }}
-                >
-                  <i className="fa fa-thumb-tack"/>
-                </div>
+                {showPinIcon && (
+                  <SC.PinContainer
+                    isPinned={isPinned}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newColumns = [...columns];
+                      newColumns[index] = {
+                        ...newColumns[index],
+                        pinned: !newColumns[index].pinned,
+                      };
 
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    let newSortDirection: 'asc' | 'desc' | undefined;
-                    if (!col.sorted) {
-                      newSortDirection = 'asc';
-                    } else if (col.sorted === 'asc') {
-                      newSortDirection = 'desc';
-                    } else {
-                      newSortDirection = undefined;
-                    }
+                      setState({ type: SET_COLUMNS, payload: newColumns });
+                      onColumnSettingsChange?.(newColumns);
+                    }}
+                  >
+                    <i className="fa fa-thumb-tack"/>
+                  </SC.PinContainer>
+                )}
 
-                    const newColumns = [...columns];
-                    newColumns[index] = {
-                      ...newColumns[index],
-                    };
-
-                    if (newSortDirection) {
-                      newColumns[index].sorted = newSortDirection;
-                    } else {
-                      delete newColumns[index].sorted;
-                    }
-
-                    setState({ type: SET_COLUMNS, payload: newColumns });
-                    onColumnSettingsChange?.(newColumns);
-                  }}
-                >
-                  <i className={`fa fa-${!col.sorted ? 'sort' : col.sorted === 'asc' ? 'sort-up' : 'sort-down'}`}/>
-                </div>
+                {showSortIcon && (
+                  <SC.SortContainer
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newColumns = columns.map((column, idx) => {
+                        if (idx === index) {
+                          return {
+                            ...column,
+                            sorted: !column.sorted ? 'asc' : column.sorted === 'asc' ? 'desc' : undefined,
+                          };
+                        }
+                        return { ...column, sorted: undefined }; // Reset sorting for all other columns
+                      });
+                    
+                      setState({ type: SET_COLUMNS, payload: newColumns });
+                      onColumnSettingsChange?.(newColumns);
+                    
+                      const sortedColumn = newColumns[index];
+                      if (fetchConfig && sortedColumn.sorted) {
+                        fetchWithPagination(localPageIndex, localPageSize, search, sortedColumn.column, sortedColumn.sorted);
+                      }
+                    }}
+                  >
+                    <i className={`fa fa-${!col.sorted ? 'sort' : col.sorted === 'asc' ? 'sort-up' : 'sort-down'}`}/>
+                  </SC.SortContainer>
+                )}
               </SC.TitleControlsContainer>
 
               {showLineAtIndex === index && <VerticalLine />}

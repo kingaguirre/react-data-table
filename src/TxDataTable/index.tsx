@@ -1,6 +1,6 @@
 import React from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, debounce } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_PARENT_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
@@ -74,7 +74,7 @@ export default (props: DataTableProps) => {
   }, [columnSettings, state.parentWidth]);
 
   const filteredData = React.useMemo(() => {
-    let filtered = dataSource.filter(row => {
+    let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
       /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
@@ -92,7 +92,7 @@ export default (props: DataTableProps) => {
       });
   
       return columnFilterMatches && searchMatches;
-    });
+    }) : null;
   
     /** get the first sorted column */
     const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
@@ -106,17 +106,19 @@ export default (props: DataTableProps) => {
 
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
-  const visibleRows = React.useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
+  const visibleRows = React.useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
 
-  const fetchWithPagination = React.useCallback(async (pageIndex, pageSize) => {
-    /** Fetch data from the endpoint specified in fetchConfig */
+  const fetchWithPagination = React.useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
     if (fetchConfig) {
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
-      /** Replace the placeholders in the endpoint URL with actual page index and size */
-      const endpointWithPagination = endpoint.replace('{pageNumber}', (pageIndex + 1).toString()).replace('{pageSize}', pageSize.toString());
+      const endpointWithPagination = endpoint
+        .replace('{pageNumber}', (pageIndex + 1).toString())
+        .replace('{pageSize}', pageSize.toString())
+        .replace('{searchString}', searchString)
+        .replace('{sortColumn}', sortColumn)
+        .replace('{sortDirection}', sortDirection);
 
-      /** Using `fetch` to get the data. Replace with your preferred method */
       const response: any = await fetch(endpointWithPagination, {
         method: requestData ? 'POST' : 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -127,6 +129,7 @@ export default (props: DataTableProps) => {
       }
 
       const data = await response.json();
+      console.log(data)
 
       setState({ type: SET_FETCHED_DATA, payload: {
         data: JSON.parse(getDeepValue(data, responseDataPath)),
@@ -135,22 +138,6 @@ export default (props: DataTableProps) => {
     }
   }, [fetchConfig]);
   /** Memos End */
-
-  /** UseEffects Start */
-  React.useEffect(() => {
-    setColumns(updatedColumnSettings);
-  }, [updatedColumnSettings]);
-
-  React.useEffect(() => {
-    if (tableRef.current) {
-      setParentWidth(tableRef.current.offsetWidth);
-    }
-  }, [tableRef]);
-
-  React.useEffect(() => {
-    fetchWithPagination(0, 5);
-  }, [fetchWithPagination]);
-  /** UseEffects End */
 
   /** Custom Functions Start */
   const setColumns = (payload: ColumnSettings[]) => setState({ type: SET_COLUMNS, payload });
@@ -164,6 +151,28 @@ export default (props: DataTableProps) => {
   } = useDragDropManager(state.columns, setColumns, dragImageRef, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
   /** Custom Functions End */
+
+  /** UseEffects Start */
+  React.useEffect(() => {
+    setColumns(updatedColumnSettings);
+  }, [updatedColumnSettings]);
+
+  React.useEffect(() => {
+    if (tableRef.current) {
+      setParentWidth(tableRef.current.offsetWidth);
+    }
+  }, [tableRef]);
+
+  React.useEffect(() => {
+    const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
+    const sortColumn = sortedColumn?.column || 'none';
+    const sortDirection = sortedColumn?.sorted || 'none';
+
+    if (state.search !== undefined || sortedColumn || state.localPageIndex !== pageIndex || state.localPageSize !== pageSize) {
+      fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
+    }
+  }, [fetchWithPagination, state.search, state.localPageIndex, state.localPageSize, state.columns]);
+  /** UseEffects End */
 
   return (
     <DataTableContext.Provider

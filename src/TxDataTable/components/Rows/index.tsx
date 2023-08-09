@@ -1,5 +1,5 @@
 import React from "react";
-import { useDoubleClick, getDeepValue, highlightText } from "../../utils"
+import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import SelectCheckboxColumn from "../SelectCheckboxColumn";
@@ -58,7 +58,7 @@ export default () => {
     <SC.TableRowsContainer>
       {rows.map((row, rowIndex) => {
         const isRowCollapsed = collapsedRows.includes(row[rowKey]);
-        let frozenWidth = 0;
+        let pinnedWidth = 0;
         const isActiveRow = row[rowKey] === activeRow;
         const isSelectedRow = selectedRows.includes(row[rowKey]);
         return (
@@ -76,11 +76,14 @@ export default () => {
                 onChange={() => toggleRowSelection(row[rowKey])}
               />
               {columns.map((col, index) => {
-                if (col.hide) return null;
-                const isFrozen = col.freeze;
-                if (isFrozen) {
-                  frozenWidth += parseInt(col.width || "", 10);
+                if (col.hidden) return null;
+
+                const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
+
+                if (isPinned) {
+                  pinnedWidth += colWidth;
                 }
+
                 let cellContent = col.customColumnRenderer
                   ? col.customColumnRenderer(row[col.column], row)
                   : getDeepValue(row, col.column);
@@ -95,8 +98,8 @@ export default () => {
                     width={col.width}
                     minWidth={col.minWidth}
                     align={col.align}
-                    isFrozen={isFrozen}
-                    style={isFrozen ? { left: `${frozenWidth - parseInt(col.width || "", 10)}px` } : {}}
+                    isPinned={isPinned}
+                    style={pinnedStyle}
                   >
                     <SC.CellContent
                       className="cell-content"

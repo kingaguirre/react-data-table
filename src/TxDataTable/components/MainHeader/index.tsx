@@ -20,7 +20,7 @@ export default () => {
 
   const handleColumnVisibilityChange = React.useCallback((columnIndex: number) => {
     const newColumns = [...columns];
-    newColumns[columnIndex].hide = !newColumns[columnIndex].hide;
+    newColumns[columnIndex].hidden = !newColumns[columnIndex].hidden;
 
     setState({ type: SET_COLUMNS, payload: newColumns });
     onColumnSettingsChange?.(newColumns);
@@ -52,7 +52,7 @@ export default () => {
           <label key={index}>
             <input
               type="checkbox"
-              checked={!col.hide}
+              checked={!col.hidden}
               onChange={() => handleColumnVisibilityChange(index)}
             />
             <span>{col.title}</span>

@@ -1,11 +1,11 @@
 interface FetchConfig {
-  endpoint: string;
+  endpoint: string; // Endpoint string should have {pageNumber}, {pageSize}, {searchString}
   requestData?: any;
-  responseDataPath?: string; // Use to get string path of the array data if its too deep.
-  responseTotalDataPath?: string; // Use to get string path of the total data count of the reponse.
+  responseDataPath?: string; // Path to the array of 'data' from api response.
+  responseTotalDataPath?: string; // Path to the 'totalData' from api response.
 }
 export interface DataTableProps {
-  dataSource: any[];
+  dataSource?: any[];
   columnSettings: ColumnSettings[];
   pageSize?: number;
   pageIndex?: number;
@@ -27,13 +27,13 @@ export interface ColumnSettings {
   column: string;
   title: string;
   align?: 'left' | 'right' | 'center' | string;
-  freeze?: boolean;
-  hide?: boolean;
+  pinned?: boolean | string;
+  hidden?: boolean;
   width?: string;
   minWidth?: string;
   groupTitle?: string;
   order?: number;
-  sorted?: 'asc' | 'desc' | 'none';
+  sorted?: 'asc' | 'desc' | string;
   customColumnRenderer?: (value: any, rowData: any) => React.ReactNode;
 }
 

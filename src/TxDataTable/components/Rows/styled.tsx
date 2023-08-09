@@ -7,7 +7,7 @@ export const TableRow = styled.div`
   display: flex;
 `;
 
-export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string, isFrozen?: boolean }>`
+export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string, isPinned?: boolean }>`
   display: block;
   padding: 4px 6px;
   width: ${({ width }) => width || 'auto'};
@@ -19,7 +19,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
-  ${({isFrozen}) => !!isFrozen ? `
+  ${({isPinned}) => !!isPinned ? `
     position: sticky;
     z-index: 1;
   ` : ''}

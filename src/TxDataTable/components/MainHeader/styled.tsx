@@ -26,7 +26,7 @@ export const ControlsWrapper = styled.div`
   > * {
     background-color: #e1e1e1;
     padding: 0 16px;
-    color: #0175b0;
+    color: #222;
     background: transparent;
     transition: all .3s ease;
     border: none;

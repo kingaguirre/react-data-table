@@ -6,18 +6,23 @@ import { DataTableContext } from "../../index";
 export default () => {
   const {
     filteredData,
-    state: { localPageIndex, localPageSize },
+    state: { localPageIndex, localPageSize, fetchedData },
+    fetchConfig,
     setState,
     fetchWithPagination
   } = React.useContext(DataTableContext);
 
+  const totalData = fetchConfig ? fetchedData.totalData : filteredData.length;
+  const totalPages = Math.ceil(totalData / localPageSize);
   const start = localPageIndex * localPageSize + 1;
-  const end = Math.min(start + localPageSize - 1, filteredData.length);
+  const end = Math.min(start + localPageSize - 1, totalData);
+  const isLastPage = localPageIndex >= totalPages - 1;
+  const isFirstPage = localPageIndex === 0;
 
   const handlePageIndexChange = React.useCallback((index: number) => {
     setState({ type: SET_LOCAL_PAGE_INDEX, payload: index });
     fetchWithPagination(index, localPageSize);
-  }, [setState]);
+  }, [setState, localPageSize]);
 
   const handlePageSizeChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = parseInt(e.target.value, 10);
@@ -28,9 +33,15 @@ export default () => {
 
   return (
     <SC.TableFooter>
-      <SC.InfoContainer>
-        Displaying {start} to {end} of {filteredData.length} Records | <i className="fa fa-refresh"/>
-      </SC.InfoContainer>
+      {totalData > 0 ? (
+        <SC.InfoContainer>
+          Displaying {start} to {end} of {totalData} Records | <i className="fa fa-refresh"/>
+        </SC.InfoContainer>
+      ) : (
+        <SC.InfoContainer>
+          No Data To Disaplay
+        </SC.InfoContainer>
+      )}
       
       <SC.PaginationContainer>
         <span>Rows</span>
@@ -43,26 +54,26 @@ export default () => {
         </select>
         <button
           onClick={() => handlePageIndexChange(0)}
-          disabled={localPageIndex === 0}
+          disabled={isFirstPage}
         >
           <i className="fa fa-angle-double-left"/>
         </button>
         <button
           onClick={() => handlePageIndexChange(Math.max(localPageIndex - 1, 0))}
-          disabled={localPageIndex === 0}
+          disabled={isFirstPage}
         >
           <i className="fa fa-angle-left"/>
         </button>
         <span style={{ margin: '0 8px' }}>{localPageIndex + 1}</span>
         <button
-          onClick={() => handlePageIndexChange(Math.min(localPageIndex + 1, Math.floor(filteredData.length / localPageSize) - 1))}
-          disabled={localPageIndex >= Math.floor(filteredData.length / localPageSize) - 1}
+          onClick={() => handlePageIndexChange(Math.min(localPageIndex + 1, totalPages - 1))}
+          disabled={isLastPage}
         >
           <i className="fa fa-angle-right"/>
         </button>
         <button
-          onClick={() => handlePageIndexChange(Math.floor(filteredData.length / localPageSize) - 1)}
-          disabled={localPageIndex >= Math.floor(filteredData.length / localPageSize) - 1}
+          onClick={() => handlePageIndexChange(totalPages - 1)}
+          disabled={isLastPage}
         >
           <i className="fa fa-angle-double-right"/>
         </button>

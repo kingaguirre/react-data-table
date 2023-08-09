@@ -44,3 +44,30 @@ export const TitleControlsContainer = styled.div`
   justify-content: flex-end;
   padding-left: 10px;
 `;
+
+export const SortContainer = styled.div`
+  height: 16px;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  margin-right: -5px;
+  transition: all .3s ease;
+  &:hover {
+    background-color: #eee;
+  }
+`;
+
+export const PinContainer = styled(SortContainer)<{isPinned?: boolean}>`
+  margin: 0;
+  font-size: 10px;
+  ${({isPinned}) => isPinned ? `
+    font-size: 14px;
+    color: red;
+    > i {
+      transform: rotate(30deg);
+    }
+  ` : ''}
+`;

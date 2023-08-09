@@ -3068,37 +3068,6 @@
           }
         }
       ]
-    },
-    {
-      "userID": "user-id99",
-      "username": "test-username99",
-      "password": "test-password99",
-      "userDetails": {
-        "email": "test99@email.com",
-        "isAdmin": false,
-        "other": "other value99",
-        "birthDay": "24-08-19999",
-        "firstName": "John99",
-        "lastName": "Doe99",
-        "phoneNumber": "123-456-78990",
-        "address": "9923 Main St",
-        "city": "New York",
-        "state": "NY",
-        "zipCode": "100099"
-      },
-      "userAccounts": [
-        {
-          "account1": "test account1-99"
-        },
-        {
-          "account2": "test account2-99"
-        },
-        {
-          "account3": {
-            "accountNumber": "test account number 3-99"
-          }
-        }
-      ]
     }
   ]
 }

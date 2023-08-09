@@ -32,7 +32,7 @@ const columnSettings = [
     column: 'username',
     title: 'Username',
     align: 'center',
-    freeze: true,
+    pinned: true,
     filterBy: {
       type: 'text',
       value: '',
@@ -42,19 +42,21 @@ const columnSettings = [
     column: 'password',
     title: 'Password',
     width: '200px',
+    sorted: 'none'
   },
   {
     column: 'userDetails.email',
     title: 'Email',
     groupTitle: 'User Details',
     order: 1,
-    freeze: true
+    pinned: true
   },
   {
     column: 'userDetails.isAdmin',
     title: 'Is Admin',
     groupTitle: 'User Details',
     order: 0,
+    pinned: 'none',
     filterBy: {
       type: 'select',
       value: '',
@@ -117,19 +119,19 @@ const columnSettings = [
     column: 'userAccounts[0].account1',
     title: 'Account 1',
     groupTitle: 'User Accounts',
-    hide: true
+    hidden: true
   },
   {
     column: 'userAccounts[1].account2',
     title: 'Account 2',
     groupTitle: 'User Accounts',
-    hide: true
+    hidden: true
   },
   {
     column: 'userAccounts[2].account3',
     title: 'Account 3',
     groupTitle: 'User Accounts',
-    hide: true
+    hidden: true
   },
   {
     column: 'userID',
@@ -157,9 +159,9 @@ export default () => {
   return (
     <div style={{padding: 16}}>
       <TxDataTable
-        dataSource={dataSource}
+        // dataSource={dataSource}
         fetchConfig={{
-          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}',
+          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
           // requestData: { someKey: 'someValue' },
           responseDataPath: "data.dataTableItem",
           responseTotalDataPath: "data.count"

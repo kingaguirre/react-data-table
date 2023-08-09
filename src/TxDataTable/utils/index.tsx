@@ -45,7 +45,7 @@ export const getDeepValue = (obj: any, path: string) => {
   return value;
 };
 
-export const sortData = (data: any[], column: string, direction: 'asc' | 'desc') => {
+export const sortData = (data: any[] | null, column: string, direction: 'asc' | 'desc') => {
   const compareFunction = (a: any, b: any) => {
     const aVal = String(getDeepValue(a, column));
     const bVal = String(getDeepValue(b, column));
@@ -67,7 +67,7 @@ export const sortData = (data: any[], column: string, direction: 'asc' | 'desc')
     return aVal.localeCompare(bVal);
   }
 
-  return direction === 'asc' ? [...data].sort(compareFunction) : [...data].sort((a, b) => -compareFunction(a, b));
+  return data !== null ? direction === 'asc' ? [...data].sort(compareFunction) : [...data].sort((a, b) => -compareFunction(a, b)) : null;
 };
 
 export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
@@ -115,6 +115,27 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
     }
   }
 };
+
+export const getPinnedDetails = (col: any, pinnedWidth: number) => {
+  const showPinIcon = col.pinned !== 'none';
+  const isPinned = col.pinned === true;
+  const colWidth = parseInt(col.width || "", 10);
+
+  return {
+    showPinIcon,
+    isPinned,
+    colWidth,
+    pinnedStyle: isPinned ? { left: `${pinnedWidth}px` } : {}
+  }
+}
+
+export const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

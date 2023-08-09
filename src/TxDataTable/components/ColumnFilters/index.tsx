@@ -4,6 +4,7 @@ import SelectCheckboxColumn from "../SelectCheckboxColumn";
 import CollapsibleRowColumn from "../CollapsibleRowColumn";
 import { SET_FILTER_VALUES } from "../../context/actions";
 import { DataTableContext } from "../../index";
+import { getPinnedDetails } from "../../utils";
 
 export default () => {
   const {
@@ -12,7 +13,7 @@ export default () => {
   } = React.useContext(DataTableContext);
 
   const anyFilterBy = columns.some(col => col.filterBy);
-  let frozenWidth = 0;
+  let pinnedWidth = 0;
 
   if (!anyFilterBy) {
     return null;
@@ -30,18 +31,21 @@ export default () => {
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn/>
       {columns.map((col, index) => {
-        if (col.hide) return null;
+        if (col.hidden) return null;
 
-        const isFrozen = col.freeze;
-        if (isFrozen) {
-          frozenWidth += parseInt(col.width || "", 10);
+        const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
+
+        if (isPinned) {
+          pinnedWidth += colWidth;
         }
+
         return (
           <TableCell
             key={index}
             width={col.width}
             minWidth={col.minWidth}
-            style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
+            isPinned={isPinned}
+            style={pinnedStyle}
           >
             {(col.filterBy) ? col.filterBy.type === "text" ? (
               <input
