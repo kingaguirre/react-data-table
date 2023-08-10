@@ -47,6 +47,7 @@ export default () => {
   }, [selectedRows]);
 
   /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
+  const isFetching = fetchConfig && fetchedData.fetching;
   const rows = fetchConfig ? fetchedData.data : visibleRows;
 
   if (!Array.isArray(rows)) {
@@ -54,8 +55,18 @@ export default () => {
     return null; // TODO: You can return a fallback UI or simply return null
   }
 
+   // Placeholder for loading
+   if (isFetching && rows === undefined) {
+    return <SC.TableRowsContainer>Loading the data-table...</SC.TableRowsContainer>;
+  }
+
+  // Placeholder for no data
+  if (!rows || rows.length === 0) {
+    return <SC.TableRowsContainer>No data available.</SC.TableRowsContainer>;
+  }
+
   return (
-    <SC.TableRowsContainer>
+    <SC.TableRowsContainer isFetching={isFetching}>
       {rows.map((row, rowIndex) => {
         const isRowCollapsed = collapsedRows.includes(row[rowKey]);
         let pinnedWidth = 0;

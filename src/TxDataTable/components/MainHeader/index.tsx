@@ -31,7 +31,7 @@ export default () => {
       <SC.SearchWrapper>
         <input
           type="text"
-          value={search}
+          value={search || ""}
           onChange={handleSearchChange}
           placeholder="Search..."
         />

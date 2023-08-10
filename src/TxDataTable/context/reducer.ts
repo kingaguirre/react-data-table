@@ -12,11 +12,12 @@ import {
 } from "./actions";
 
 interface IFetchedData {
-  data: any[];
-  totalData: number
+  data: any[] | null | undefined;
+  totalData: number;
+  fetching: boolean;
 }
 export interface IReducerState {
-  search: string;
+  search: string | null;
   parentWidth: number | null;
   localPageIndex: number | null;
   localPageSize: number | null;
@@ -33,7 +34,7 @@ interface IAction {
 }
 
 export const initialState: IReducerState = {
-  search: "",
+  search: null,
   parentWidth: null,
   localPageIndex: null,
   localPageSize: null,
@@ -41,7 +42,7 @@ export const initialState: IReducerState = {
   activeRow: null,
   selectedRows: [],
   filterValues: {},
-  fetchedData: { data: [], totalData: 0 },
+  fetchedData: { data: undefined, totalData: 0, fetching: false },
 }
 const dataTableReducer = (state: IReducerState, action: IAction) => {
   switch (action.type) {

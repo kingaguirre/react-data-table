@@ -1,6 +1,10 @@
 import styled from 'styled-components';
 
-export const TableRowsContainer = styled.div`
+export const TableRowsContainer = styled.div<{isFetching?: boolean}>`
+  ${({isFetching}) => !!isFetching ? `
+    pointer-events: none;
+    opacity: 0.6;
+  ` : ''}
 `;
 
 export const TableRow = styled.div`

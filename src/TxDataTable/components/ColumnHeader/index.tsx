@@ -12,15 +12,14 @@ export default () => {
     rowKey,
     visibleRows,
     showLineAtIndex,
-    state: { selectedRows, columns, fetchedData, localPageIndex, localPageSize, search },
+    state: { selectedRows, columns, fetchedData },
     fetchConfig,
     setState,
     onMouseDown,
     onDragStart,
     onDragOver,
     onDrop,
-    onColumnSettingsChange,
-    fetchWithPagination
+    onColumnSettingsChange
   } = React.useContext(DataTableContext);
 
   const rows = fetchConfig ? fetchedData.data : visibleRows;
@@ -38,7 +37,7 @@ export default () => {
     <TableRow>
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
-        checked={!!rows.length && selectedRows.length === rows.length}
+        checked={(!!rows && !!rows.length) && selectedRows.length === rows.length}
         onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
       />
       {columns.map((col, index) => {
@@ -105,11 +104,6 @@ export default () => {
                     
                       setState({ type: SET_COLUMNS, payload: newColumns });
                       onColumnSettingsChange?.(newColumns);
-                    
-                      const sortedColumn = newColumns[index];
-                      if (fetchConfig && sortedColumn.sorted) {
-                        fetchWithPagination(localPageIndex, localPageSize, search, sortedColumn.column, sortedColumn.sorted);
-                      }
                     }}
                   >
                     <i className={`fa fa-${!col.sorted ? 'sort' : col.sorted === 'asc' ? 'sort-up' : 'sort-down'}`}/>

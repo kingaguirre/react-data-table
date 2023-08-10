@@ -72,14 +72,14 @@ export const sortData = (data: any[] | null, column: string, direction: 'asc' | 
 
 export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
   width: state.columns.reduce((acc, col) => 
-    acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0), 0
+    acc + (parseInt(col.hidden ? "" : col.width || "", 10) || 0), 0
   ) + (selectable ? 27 : 0) + (collapsibleRowRender ? 30 : 0),
 });
 
 export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   const processRow = (row: any) => {
     return columns
-      .filter(col => !col.hide)
+      .filter(col => !col.hidden)
       .map(col => {
         let cell = col.customColumnRenderer ? col.customColumnRenderer(row[col.column], row) : getDeepValue(row, col.column);
         cell = (cell === null || cell === undefined) ? '' : cell.toString();
@@ -92,7 +92,7 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   };
 
   let csvContent = columns
-    .filter(col => !col.hide)
+    .filter(col => !col.hidden)
     .map(col => `"${col.title.replace(/"/g, '""')}"`)
     .join(',') + '\r\n';
 

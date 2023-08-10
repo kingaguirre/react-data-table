@@ -175,7 +175,7 @@ export default () => {
         onColumnSettingsChange={handleColumnSettingsChange}
       />
       <div style={{height: 200}}/>
-    <TxDataTable
+    {/* <TxDataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
       onRowClick={handleRowClick}
@@ -207,7 +207,7 @@ export default () => {
       rowKey="userID"
       selectable
       collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-    />
+    /> */}
     </div>
   )
 }

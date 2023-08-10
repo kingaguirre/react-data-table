@@ -107,9 +107,17 @@ export default (props: DataTableProps) => {
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
   const visibleRows = React.useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
-
+  /** Memos End */
+  
+  /** Callback Start */
   const fetchWithPagination = React.useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
     if (fetchConfig) {
+      /** Keep current data and totalData */
+      setState({ type: SET_FETCHED_DATA, payload: {
+        ...state.fetchedData,
+        fetching: true
+      }});
+
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
       const endpointWithPagination = endpoint
@@ -129,15 +137,22 @@ export default (props: DataTableProps) => {
       }
 
       const data = await response.json();
-      console.log(data)
 
-      setState({ type: SET_FETCHED_DATA, payload: {
-        data: JSON.parse(getDeepValue(data, responseDataPath)),
-        totalData: getDeepValue(data, responseTotalDataPath)
-      }});
+      const fetchedData = JSON.parse(getDeepValue(data, responseDataPath));
+      const totalData = getDeepValue(data, responseTotalDataPath);
+
+      setState({
+        type: SET_FETCHED_DATA, 
+        payload: {
+          /** set to null if undefined or null */
+          data: fetchedData !== null && fetchedData !== undefined ? fetchedData : null,
+          totalData: totalData || state.fetchedData.totalData,
+          fetching: false
+        }
+      });
     }
-  }, [fetchConfig]);
-  /** Memos End */
+  }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+  /** Callback End */
 
   /** Custom Functions Start */
   const setColumns = (payload: ColumnSettings[]) => setState({ type: SET_COLUMNS, payload });
@@ -164,14 +179,24 @@ export default (props: DataTableProps) => {
   }, [tableRef]);
 
   React.useEffect(() => {
-    const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
-    const sortColumn = sortedColumn?.column || 'none';
-    const sortDirection = sortedColumn?.sorted || 'none';
-
-    if (state.search !== undefined || sortedColumn || state.localPageIndex !== pageIndex || state.localPageSize !== pageSize) {
+    /** Initial fetch */
+    if (state.columns.length === 0) {
+      fetchWithPagination(pageIndex, pageSize, undefined, undefined, undefined);
+      return; /** Exit the effect to prevent the rest of the code from running */
+    }
+  
+    /** Subsequent fetch when state changes */
+    const isReadyToFetch = state.columns.length > 0;
+    const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
+  
+    if (isReadyToFetch && hasStateChanged) {
+      const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
+      const sortColumn = sortedColumn?.column || 'none';
+      const sortDirection = sortedColumn?.sorted || 'none';
+  
       fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
     }
-  }, [fetchWithPagination, state.search, state.localPageIndex, state.localPageSize, state.columns]);
+  }, [fetchWithPagination, state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
   /** UseEffects End */
 
   return (

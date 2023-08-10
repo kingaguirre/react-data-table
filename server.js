@@ -38,7 +38,6 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
   const start = (Number(pageNumber) - 1) * Number(pageSize);
   const end = Number(pageNumber) * Number(pageSize);
 
-  // Sorting data based on the sortColumn and sortDirection
   let items = router.db.get('items').value();
 
   if (searchString) {
@@ -47,9 +46,9 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
 
   if (sortColumn !== 'none' && sortDirection !== 'none') {
     items = items.sort((a, b) => {
-      const aValue = getNestedValue(a, sortColumn) || ''; // handle undefined values
-      const bValue = getNestedValue(b, sortColumn) || '';
-  
+      const aValue = String(getNestedValue(a, sortColumn) || ''); // handle undefined values
+      const bValue = String(getNestedValue(b, sortColumn) || '');
+      
       if (sortDirection === 'asc') {
         return aValue.localeCompare(bValue);
       } else {
@@ -61,9 +60,11 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
   const data = items.slice(start, end);
   const totalItems = items.length;
 
-  res.json({ data: { dataTableItem: data, count: totalItems } });
+  // Simulate a slow API response with a timeout
+  setTimeout(() => {
+    res.json({ data: { dataTableItem: data, count: totalItems } });
+  }, 2000); // 2-second delay
 });
-
 
 server.use(router);
 server.listen(3000, () => {
