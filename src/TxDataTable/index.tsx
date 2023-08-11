@@ -1,8 +1,8 @@
 import React from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, debounce } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
-import { SET_COLUMNS, SET_PARENT_WIDTH, SET_FETCHED_DATA } from "./context/actions";
+import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
 import Rows from "./components/Rows";
 import ColumnHeader from "./components/ColumnHeader";
@@ -47,11 +47,11 @@ export default (props: DataTableProps) => {
 
   /** Memos Start */
   const updatedColumnSettings = React.useMemo(() => {
-    if (state.parentWidth === null) return columnSettings;
+    if (state.tableWidth === null) return columnSettings;
   
     const columnsWithWidth = columnSettings.filter(col => col.width);
     const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
-    const remainingWidth = state.parentWidth - totalWidthWithWidth;
+    const remainingWidth = state.tableWidth - totalWidthWithWidth;
     const columnsWithoutWidth = columnSettings.filter(col => !col.width);
     const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
 
@@ -71,7 +71,7 @@ export default (props: DataTableProps) => {
       width: col.width || `${columnWidth}px`,
       order: index,
     }));
-  }, [columnSettings, state.parentWidth]);
+  }, [columnSettings, state.tableWidth]);
 
   const filteredData = React.useMemo(() => {
     let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
@@ -88,7 +88,7 @@ export default (props: DataTableProps) => {
       /** Filter by search */
       const searchMatches = state.columns.some(col => {
         const columnValue = String(getDeepValue(row, col.column)).toLowerCase();
-        return columnValue.includes(state.search.toLowerCase());
+        return columnValue.includes(!!state.search ? state.search.toLowerCase() : '');
       });
   
       return columnFilterMatches && searchMatches;
@@ -138,6 +138,7 @@ export default (props: DataTableProps) => {
 
       const data = await response.json();
 
+      console.log(data)
       const fetchedData = JSON.parse(getDeepValue(data, responseDataPath));
       const totalData = getDeepValue(data, responseTotalDataPath);
 
@@ -156,7 +157,7 @@ export default (props: DataTableProps) => {
 
   /** Custom Functions Start */
   const setColumns = (payload: ColumnSettings[]) => setState({ type: SET_COLUMNS, payload });
-  const setParentWidth = (payload: number) => setState({ type: SET_PARENT_WIDTH, payload });
+  const setTableWidth = (payload: number) => setState({ type: SET_TABLE_WIDTH, payload });
 
   const {
     onDragStart,
@@ -173,30 +174,24 @@ export default (props: DataTableProps) => {
   }, [updatedColumnSettings]);
 
   React.useEffect(() => {
-    if (tableRef.current) {
-      setParentWidth(tableRef.current.offsetWidth);
+    if (tableRef && tableRef.current) {
+      setTableWidth(tableRef.current.offsetWidth);
     }
   }, [tableRef]);
 
   React.useEffect(() => {
-    /** Initial fetch */
-    if (state.columns.length === 0) {
-      fetchWithPagination(pageIndex, pageSize, undefined, undefined, undefined);
-      return; /** Exit the effect to prevent the rest of the code from running */
+    if (state.columns.length > 0 && !!fetchConfig) {
+      const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
+    
+      if (hasStateChanged) {
+        const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
+        const sortColumn = sortedColumn?.column || 'none';
+        const sortDirection = sortedColumn?.sorted || 'none';
+    
+        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
+      }
     }
-  
-    /** Subsequent fetch when state changes */
-    const isReadyToFetch = state.columns.length > 0;
-    const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
-  
-    if (isReadyToFetch && hasStateChanged) {
-      const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
-      const sortColumn = sortedColumn?.column || 'none';
-      const sortDirection = sortedColumn?.sorted || 'none';
-  
-      fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
-    }
-  }, [fetchWithPagination, state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
+  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
   /** UseEffects End */
 
   return (
@@ -218,15 +213,14 @@ export default (props: DataTableProps) => {
         onRowClick,
         onRowDoubleClick,
         collapsibleRowRender,
-        onColumnSettingsChange,
-        fetchWithPagination
+        onColumnSettingsChange
       }}
     >
       <SC.TableWrapper>
         <MainHeader />
         <SC.Table ref={tableRef}>
           <SC.TableInnerWrapper>
-            <div style={getTableWidth({state, selectable, collapsibleRowRender})}>
+            <div style={{...getTableWidth({state, selectable, collapsibleRowRender})}}>
               <ColumnGroupHeader />
               <ColumnHeader />
               <ColumnFilters />

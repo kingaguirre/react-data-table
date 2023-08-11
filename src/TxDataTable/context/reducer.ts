@@ -1,7 +1,7 @@
 import { ColumnSettings } from "../interfaces";
 import {
   SET_SEARCH,
-  SET_PARENT_WIDTH,
+  SET_TABLE_WIDTH,
   SET_LOCAL_PAGE_INDEX,
   SET_LOCAL_PAGE_SIZE,
   SET_COLUMNS,
@@ -17,8 +17,8 @@ interface IFetchedData {
   fetching: boolean;
 }
 export interface IReducerState {
-  search: string | null;
-  parentWidth: number | null;
+  search?: string | undefined;
+  tableWidth: number | null;
   localPageIndex: number | null;
   localPageSize: number | null;
   columns: ColumnSettings[];
@@ -34,8 +34,8 @@ interface IAction {
 }
 
 export const initialState: IReducerState = {
-  search: null,
-  parentWidth: null,
+  search: undefined,
+  tableWidth: null,
   localPageIndex: null,
   localPageSize: null,
   columns: [],
@@ -48,8 +48,8 @@ const dataTableReducer = (state: IReducerState, action: IAction) => {
   switch (action.type) {
     case SET_SEARCH:
       return { ...state, search: action.payload };
-    case SET_PARENT_WIDTH:
-      return { ...state, parentWidth: action.payload };
+    case SET_TABLE_WIDTH:
+      return { ...state, tableWidth: action.payload };
     case SET_LOCAL_PAGE_INDEX:
       return { ...state, localPageIndex: action.payload };
     case SET_LOCAL_PAGE_SIZE:

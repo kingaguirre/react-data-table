@@ -11,6 +11,7 @@ export interface DataTableProps {
   pageIndex?: number;
   selectable?: boolean;
   rowKey: string;
+  tableHeight?: string;
   // onPageSizeChange?: (newPageSize: number) => void;
   // onPageIndexChange?: (newPageIndex: number) => void;
   onRowClick?: (rowData: any) => void;

@@ -9,8 +9,8 @@ export const MainHeaderWrapper = styled.div`
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   box-shadow: 0 1px 0 1px #ddd;
-  position: relative;
   z-index: 1;
+  border: 1px solid #ddd;
 `;
 
 export const SearchWrapper = styled.div``;
@@ -46,7 +46,10 @@ export const SettingsContainer = styled.div`
   right: 0;
   width: 200px;
   display: none;
-  height: 250px;
+  box-shadow: -3px 0 6px 0 #ddd;
+  border-left: 1px solid #ddd;
+  height: calc(100% - 92px);
+  z-index: 1;
   &.is-visible {
     display: block;
   }
@@ -54,6 +57,10 @@ export const SettingsContainer = styled.div`
     display: flex;
     align-items: center;
     transition: all .3s ease;
+    padding: 4px 8px;
+    &:not(:last-child) {
+      border-bottom: 1px dashed #ddd;
+    }
     cursor: pointer;
     &:hover {
       background-color: #e1e1e1;

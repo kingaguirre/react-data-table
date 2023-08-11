@@ -61,9 +61,9 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
   const totalItems = items.length;
 
   // Simulate a slow API response with a timeout
-  setTimeout(() => {
+  // setTimeout(() => {
     res.json({ data: { dataTableItem: data, count: totalItems } });
-  }, 2000); // 2-second delay
+  // }, 1000); // 2-second delay
 });
 
 server.use(router);

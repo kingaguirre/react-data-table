@@ -158,7 +158,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <TxDataTable
+      {/* <TxDataTable
         // dataSource={dataSource}
         fetchConfig={{
           endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
@@ -173,9 +173,9 @@ export default () => {
         selectable
         collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
         onColumnSettingsChange={handleColumnSettingsChange}
-      />
+      /> */}
       <div style={{height: 200}}/>
-    {/* <TxDataTable
+    <TxDataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
       onRowClick={handleRowClick}
@@ -188,6 +188,7 @@ export default () => {
       // onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
       // collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
     />
+    {/* 
     <div style={{height: 200}}/>
     <DataTablePOC
       dataSource={dataSource}

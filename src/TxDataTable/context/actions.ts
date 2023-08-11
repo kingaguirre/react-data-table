@@ -1,5 +1,5 @@
 export const SET_SEARCH = "SET_SEARCH";
-export const SET_PARENT_WIDTH = "SET_PARENT_WIDTH";
+export const SET_TABLE_WIDTH = "SET_TABLE_WIDTH";
 export const SET_LOCAL_PAGE_INDEX = "SET_LOCAL_PAGE_INDEX";
 export const SET_LOCAL_PAGE_SIZE = "SET_LOCAL_PAGE_SIZE";
 export const SET_COLUMNS = "SET_COLUMNS";

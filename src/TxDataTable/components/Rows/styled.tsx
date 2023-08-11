@@ -9,6 +9,12 @@ export const TableRowsContainer = styled.div<{isFetching?: boolean}>`
 
 export const TableRow = styled.div`
   display: flex;
+  position: relative;
+  &.is-active {
+    > * {
+      background-color: #cbddf6;
+    }
+  }
 `;
 
 export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string, isPinned?: boolean }>`
@@ -79,4 +85,12 @@ export const VerticalLine = styled.div`
   width: 2px;
   background-color: #007bff;
   z-index: 2;
+`;
+
+export const LoadingPanel = styled.div`
+  padding: 16px;
+  color: #aaa;
+  text-shadow: 0 0 0 #222;
+  text-align: left;
+  font-weight: bold;
 `;

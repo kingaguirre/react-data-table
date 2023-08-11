@@ -65,7 +65,7 @@ export const PinContainer = styled(SortContainer)<{isPinned?: boolean}>`
   font-size: 10px;
   ${({isPinned}) => isPinned ? `
     font-size: 14px;
-    color: red;
+    color: #006eff;
     > i {
       transform: rotate(30deg);
     }
