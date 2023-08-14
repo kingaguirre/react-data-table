@@ -18,7 +18,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/DataTable/index.tsx'),
-      name: 'react-data-table.eaa',
+      name: 'ReactDataTable',
       formats: ['es', 'cjs', 'umd'],
       fileName: (format) => `react-data-table.${format}.js`,
     },
