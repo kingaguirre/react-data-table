@@ -1,579 +1,253 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import {
-  Table,
-  TableRow,
-  TableCell,
-  VerticalLine,
-  DragHandle,
-  ResizeHandle,
-  GroupHeader,
-  TableFooter,
-  TableInnerWrapper,
-  TableBodyWrapper,
-  CellContent,
-  CollapseIcon,
-  TableHeader
-} from './styled';
-import { useDragDropManager } from './useDragDropManager';
-import { useResizeManager } from './useResizeManager';
-import { ColumnSettings } from './interface';
-import { useDoubleClick, getDeepValue, exportToCsv } from "./utils"
+import React from "react";
+import { DataTableProps, ColumnSettings } from "./interfaces";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
+import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
+import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
+import * as SC from "./styled";
+import { Rows } from "./components/Rows";
+import { ColumnHeader } from "./components/ColumnHeader";
+import { ColumnGroupHeader } from "./components/ColumnGroupHeader";
+import { ColumnFilters } from "./components/ColumnFilters";
+import { MainHeader } from "./components/MainHeader";
+import { Footer } from "./components/Footer";
 
-export interface DataTableProps {
-  dataSource: any[];
-  columnSettings: ColumnSettings[];
-  pageSize?: number;
-  pageIndex?: number;
-  selectable?: boolean;
-  rowKey: string;
-  onPageSizeChange?: (newPageSize: number) => void;
-  onPageIndexChange?: (newPageIndex: number) => void;
-  onRowClick?: (rowData: any) => void;
-  onRowDoubleClick?: (rowData: any) => void;
-  onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void;
-  onSelectedRowsChange?: (rowData: any) => void;
-  collapsibleRowRender?: (rowData: any) => React.ReactNode;
-  collapsibleRowHeight?: string;
-}
+export const DataTableContext = React.createContext<any>(null);
 
-export const DataTable: React.FC<DataTableProps> = ({
-  dataSource,
-  columnSettings,
-  pageSize = 5,
-  pageIndex = 0,
-  selectable = false,
-  rowKey,
-  onPageIndexChange,
-  onPageSizeChange,
-  onRowClick,
-  onRowDoubleClick,
-  onColumnSettingsChange,
-  onSelectedRowsChange,
-  collapsibleRowRender,
-  collapsibleRowHeight = '100px',
-}: DataTableProps) => {
-  const tableRef = useRef<HTMLDivElement>(null);
-  const [parentWidth, setParentWidth] = useState<number | null>(null);
-  const [localPageIndex, setLocalPageIndex] = useState(pageIndex);
-  const [localPageSize, setLocalPageSize] = useState(pageSize || 10);
-  const [selectedRows, setSelectedRows] = useState<Array<string>>([]);
-  const [collapsedRows, setCollapsedRows] = useState<Array<string>>([]);
-  const [search, setSearch] = useState<string>("");
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [activeRow, setActiveRow] = useState<string | null>(null);
-  const [filterValues, setFilterValues] = React.useState(() => {
-    return columnSettings.reduce((initialValues, col: ColumnSettings) => ({
+export const DataTable = (props: DataTableProps) => {
+  const {
+    dataSource,
+    columnSettings,
+    pageSize = 5,
+    pageIndex = 0,
+    selectable = false,
+    rowKey,
+    fetchConfig,
+    collapsibleRowHeight,
+    filterAll = true,
+    downloadCSV = false,
+    activeRow = null,
+    selectedRows = [],
+    onColumnSettingsChange,
+    onRowClick,
+    onRowDoubleClick,
+    collapsibleRowRender,
+    onPageSizeChange,
+    onPageIndexChange,
+    onSelectedRowsChange,
+  } = props;
+
+  /** Refs */
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const dragImageRef = React.useRef<HTMLDivElement>(null);
+
+  /** Reducer Start */
+  const [state, setState] = React.useReducer(dataTableReducer, {
+    ...initialState,
+    activeRow,
+    selectedRows,
+    localPageIndex: pageIndex,
+    localPageSize: pageSize,
+    filterValues: columnSettings.reduce((initialValues, col: ColumnSettings) => ({
       ...initialValues,
-      [col.column]: col.filterBy ? col.filterBy.value : '',
-    }), {});
-  });
-  
-  let frozenWidth = 0;
+      [col.column]: col.filterBy ? col.filterBy.value : "",
+    }), {})
+  } as IReducerState);
+  /** Reducer End */
 
-  useEffect(() => {
-    if (onPageIndexChange) {
-      onPageIndexChange(localPageIndex);
-    }
-  }, [onPageIndexChange, localPageIndex]);
-
-  useEffect(() => {
-    if (onPageSizeChange) {
-      onPageSizeChange(localPageSize);
-    }
-  }, [onPageSizeChange, localPageSize]);
-
-  useEffect(() => {
-    if (onSelectedRowsChange) {
-      const selectedRowData = selectedRows.map(rowId => dataSource.find(row => row[rowKey] === rowId));
-      onSelectedRowsChange(selectedRowData);
-    }
-  }, [selectedRows]);
-
-  useEffect(() => {
-    if (tableRef.current) {
-      const tableWidth = tableRef.current.offsetWidth;
-      setParentWidth(tableWidth);
-    }
-  }, [tableRef]);
-
-  const updatedColumnSettings = useMemo(() => {
-    if (parentWidth === null) return columnSettings;
+  /** Memos Start */
+  const updatedColumnSettings = React.useMemo(() => {
+    if (state.tableWidth === null) return columnSettings;
   
     const columnsWithWidth = columnSettings.filter(col => col.width);
     const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
-    const remainingWidth = parentWidth - totalWidthWithWidth;
+    const remainingWidth = state.tableWidth - totalWidthWithWidth;
     const columnsWithoutWidth = columnSettings.filter(col => !col.width);
-    const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 100);
-  
-    return columnSettings
-      .sort((a, b) => {
-        if (a.order !== undefined && b.order !== undefined) {
-          return a.order - b.order;
-        }
-        if (a.order !== undefined) {
-          return -1;
-        }
-        if (b.order !== undefined) {
-          return 1;
-        }
-        return 0;
-      })
-      .map((col, index) => ({
-        ...col,
-        width: col.width || `${columnWidth}px`,
-        order: index,
-      }));
-  }, [columnSettings, parentWidth]);
+    const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
 
+    return columnSettings.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      if (a.order !== undefined) {
+        return -1;
+      }
+      if (b.order !== undefined) {
+        return 1;
+      }
+      return 0;
+    }).map((col, index) => ({
+      ...col,
+      width: col.width || `${columnWidth}px`,
+      order: index,
+    }));
+  }, [columnSettings, state.tableWidth]);
 
-  const [columns, setColumns] = useState<ColumnSettings[]>(updatedColumnSettings);
-  const dragImageRef = React.useRef<HTMLDivElement>(null);
-  const {
-    onDragStart,
-    onDragOver,
-    onDrop,
-    showLineAtIndex,
-  } = useDragDropManager(columns, setColumns, dataSource, dragImageRef, onColumnSettingsChange);
-  const { onMouseDown } = useResizeManager(columns, setColumns, onColumnSettingsChange);
-
-  useEffect(() => {
-    setColumns(updatedColumnSettings);
-  }, [updatedColumnSettings]);
-
-  const renderMainTableHeader = () => {
-    return (
-      <TableHeader>
-        <input
-          type="text"
-          value={search}
-          onChange={handleSearchChange}
-          placeholder="Search..."
-        />
-        <button onClick={() => setDropdownOpen(prev => !prev)}>
-          Column Visibility
-        </button>
-        {isDropdownOpen && (
-          <div style={{ position: 'absolute', backgroundColor: 'white', zIndex: 20 }}>
-            {columns.map((col, index) => (
-              <div key={index}>
-                <input
-                  type="checkbox"
-                  checked={!col.hide}
-                  onChange={() => handleColumnVisibilityChange(index)}
-                />
-                <label>{col.title}</label>
-              </div>
-            ))}
-          </div>
-        )}
-        <button onClick={() => exportToCsv('data.csv', visibleRows, columns)}>Export to Excel</button>
-
-      </TableHeader>
-    );
-  };
-
-  const renderGroupHeader = () => {
-    const groupHeaders = columns.reduce(
-      (acc: { title: string | null; width: number }[], col) => {
-        const lastHeader = acc[acc.length - 1];
-        const colWidth = col.hide ? 0 : parseInt(col.width || "");
-
-        if (col.groupTitle) {
-          if (lastHeader && lastHeader.title === col.groupTitle) {
-            lastHeader.width += colWidth;
-          } else {
-            acc.push({ title: col.groupTitle, width: colWidth });
-          }
-        } else {
-          if (lastHeader && lastHeader.title === null) {
-            lastHeader.width += colWidth;
-          } else {
-            acc.push({ title: null, width: colWidth });
-          }
-        }
-        return acc;
-      },
-      []
-    );
-
-    return (
-      <TableRow>
-        {selectable && <TableCell width="42px" />}
-        {collapsibleRowRender && <TableCell width="38px" />}
-        {groupHeaders.map((groupHeader, index) => (
-          groupHeader.width > 0 && (
-            <GroupHeader
-              key={index}
-              style={{
-                width: `${groupHeader.width}px`,
-              }}
-            >
-              <CellContent>{groupHeader.title}</CellContent>
-            </GroupHeader>
-          )
-        ))}
-      </TableRow>
-    );
-  };
-
-  const renderTableHeader = () => {
-    return (
-      <TableRow>
-        {collapsibleRowRender && <TableCell width="42px" />}
-        {selectable && (
-          <TableCell width="38px">
-            <input
-              type="checkbox"
-              checked={!!visibleRows.length && selectedRows.length === visibleRows.length}
-              onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
-            />
-          </TableCell>
-        )}
-        {columns.map((col, index) => {
-          if (col.hide) return null;
-          const isFrozen = col.freeze;
-          if (isFrozen) {
-            frozenWidth += parseInt(col.width || "", 10);
-          }
-          return (
-            <TableCell
-              key={index}
-              width={col.width}
-              minWidth={col.minWidth}
-              align={col.align}
-              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
-              onDragOver={(e) => onDragOver(e, index)}
-              onDrop={(e) => onDrop(e, index)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <DragHandle
-                  draggable={true}
-                  onDragStart={(e: any) => onDragStart(e, index)}
-                >
-                  ☰
-                </DragHandle>
-                <CellContent>{col.title}</CellContent>
-                {showLineAtIndex === index && <VerticalLine />}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering other click events
-                    // Create a copy of columns and modify the freeze value of the current column
-                    const newColumns = [...columns];
-                    newColumns[index] = {
-                      ...newColumns[index],
-                      freeze: !newColumns[index].freeze,
-                    };
-                    // Update the state and call onColumnSettingsChange if provided
-                    setColumns(newColumns);
-                    if (onColumnSettingsChange) {
-                      onColumnSettingsChange(newColumns);
-                    }
-                  }}
-                >
-                  📌
-                </div>
-              </div>
-              <ResizeHandle onMouseDown={onMouseDown(index)} />
-            </TableCell>
-          );
-        })}
-      </TableRow>
-    );
-  };
-
-  const renderFilterRow = () => {
-    const anyFilterBy = columns.some(col => col.filterBy);
-    let frozenWidth = 0;
-
-    if (!anyFilterBy) {
-      return null;
-    }
-
-    return (
-      <TableRow>
-        {selectable && <TableCell width="42px" />}
-        {collapsibleRowRender && <TableCell width="38px" />}
-        {columns.map((col, index) => {
-          if (col.hide) return null;
-          const isFrozen = col.freeze;
-          if (isFrozen) {
-            frozenWidth += parseInt(col.width || "", 10);
-          }
-          return (
-            <TableCell
-              key={index}
-              width={col.width}
-              minWidth={col.minWidth}
-              style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
-            >
-              {(col.filterBy) ? col.filterBy.type === "text" ? (
-                <input
-                  type="text"
-                  value={filterValues[col.column]}
-                  onChange={e => {
-                    setFilterValues(prev => ({
-                      ...prev,
-                      [col.column]: e.target.value,
-                    }));
-                  }}
-                />
-              ) : col.filterBy.type === "select" ? (
-                <select
-                  value={filterValues[col.column]}
-                  onChange={e => {
-                    setFilterValues(prev => ({
-                      ...prev,
-                      [col.column]: e.target.value,
-                    }));
-                  }}
-                >
-                  {col.filterBy.options.map((option, optionIndex) => (
-                    <option key={optionIndex} value={option.value}>
-                      {option.text}
-                    </option>
-                  ))}
-                </select>
-              ) : null : null}
-            </TableCell>
-          )
-        })}
-      </TableRow>
-    );
-  };
-
-  const handleRowSingleClick = useCallback((row: any) => {
-    onRowClick?.(row);
-    setActiveRow((prev) => (prev === row[rowKey] ? null : row[rowKey]));
-  }, [onRowClick]);
-
-  const handleRowDoubleClick = useCallback((row: any) => {
-    onRowDoubleClick?.(row);
-  }, [onRowDoubleClick]);
-
-  const handleRowClick = useCallback((row: any) => {
-    const singleClickAction = () => {
-      handleRowSingleClick(row);
-    };
-    const doubleClickAction = () => {
-      handleRowDoubleClick(row);
-    };
-    return useDoubleClick(singleClickAction, doubleClickAction);
-  }, [handleRowSingleClick, handleRowDoubleClick]);
-
-
-  const renderTableBody = () => {
-    return visibleRows.map((row, rowIndex) => {
-      const isRowCollapsed = collapsedRows.includes(row[rowKey]);
-      let frozenWidth = 0; // reset the frozenWidth for each row
-      const isActiveRow = row[rowKey] === activeRow;
-      const isSelectedRow = selectedRows.includes(row[rowKey]);
-      // const handleRowClick = useDoubleClick(() => handleRowSingleClick(row), () => handleRowDoubleClick(row));
-      return (
-        <React.Fragment key={rowIndex}>
-          <TableRow
-            onClick={() => handleRowClick(row)}
-            style={{
-              backgroundColor: isActiveRow ? 'lightblue' : isSelectedRow ? '#ddd' : 'white', // Set the background color based on whether the row is active.
-              border: isSelectedRow ? '1px solid black' : undefined, // Set the border if the row is selected.
-            }}
-          >
-            {collapsibleRowRender && (
-              <TableCell onClick={() => toggleRowCollapse(row[rowKey])}>
-                <CollapseIcon>{isRowCollapsed ? '-' : '+'}</CollapseIcon>
-              </TableCell>
-            )}
-            {selectable && (
-              <TableCell>
-                <input
-                  type="checkbox"
-                  checked={selectedRows.includes(row[rowKey])}
-                  onChange={() => toggleRowSelection(row[rowKey])}
-                />
-              </TableCell>
-            )}
-            {columns.map((col, index) => {
-              if (col.hide) return null;
-              const isFrozen = col.freeze;
-              if (isFrozen) {
-                frozenWidth += parseInt(col.width || "", 10);
-              }
-              let cellContent = col.customColumnRenderer
-                ? col.customColumnRenderer(row[col.column], row)
-                : getDeepValue(row, col.column);
-
-              // If search text exists, highlight the text
-              if (search) {
-                cellContent = highlightText(cellContent, search);
-              }
-              return (
-                <TableCell
-                  key={index}
-                  width={col.width}
-                  minWidth={col.minWidth}
-                  align={col.align}
-                  style={isFrozen ? { position: 'sticky', left: `${frozenWidth - parseInt(col.width || "", 10)}px`, zIndex: 1, background: '#fff' } : {}}
-                >
-                  <CellContent className="cell-content" style={{ maxWidth: col.width }}>{cellContent}</CellContent>
-                  {showLineAtIndex === index && <VerticalLine />}
-                  <ResizeHandle onMouseDown={onMouseDown(index)} />
-                </TableCell>
-              );
-            })}
-          </TableRow>
-          {isRowCollapsed && collapsibleRowRender && (
-            <TableRow style={{ height: collapsibleRowHeight }}>
-              <TableCell>
-                {collapsibleRowRender(row)}
-              </TableCell>
-            </TableRow>
-          )}
-        </React.Fragment>
-      )
-    }
-    );
-  };
-
-  const filteredData = useMemo(() => {
-    return dataSource.filter(row => {
-      // Filter by column filter
-      const columnFilterMatches = columns.every(col => {
+  const filteredData = React.useMemo(() => {
+    let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
+      /** Filter by column filter */
+      const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
-          const filterValue = filterValues[col.column].toLowerCase();
+          const filterValue = state.filterValues[col.column].toLowerCase();
           const rowValue = String(getDeepValue(row, col.column)).toLowerCase();
           return rowValue.includes(filterValue);
         }
         return true;
       });
   
-      // Filter by search
-      const searchMatches = columns.some(col => {
+      /** Filter by search */
+      const searchMatches = state.columns.some(col => {
         const columnValue = String(getDeepValue(row, col.column)).toLowerCase();
-        return columnValue.includes(search.toLowerCase());
+        return columnValue.includes(!!state.search ? state.search.toLowerCase() : '');
       });
   
       return columnFilterMatches && searchMatches;
-    });
-  }, [dataSource, columns, filterValues, search]);
-
-  const renderTableFooter = () => {
-    const start = localPageIndex * localPageSize + 1;
-    const end = Math.min(start + localPageSize - 1, filteredData.length);
-    const paginationInfo = `${start}-${end} of ${filteredData.length} items`;
-    return (
-      <TableFooter>
-        <button
-          onClick={() => setLocalPageIndex((prev) => Math.max(prev - 1, 0))}
-          disabled={localPageIndex === 0}
-        >
-          ◀
-        </button>
-        <span style={{ margin: '0 8px' }}>{localPageIndex + 1}</span>
-        <button
-          onClick={() =>
-            setLocalPageIndex((prev) => Math.min(prev + 1, Math.floor(filteredData.length / localPageSize) - 1))
-          }
-          disabled={localPageIndex >= Math.floor(filteredData.length / localPageSize) - 1}
-        >
-          ▶
-        </button>
-        <span style={{ margin: '0 8px' }}>{paginationInfo}</span>
-        <select value={localPageSize} onChange={handlePageSizeChange}>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-          <option value={50}>50</option>
-          <option value={100}>100</option>
-        </select>
-      </TableFooter>
-    );
-  };
+    }) : null;
   
-  useEffect(() => {
-    setLocalPageIndex(0);
-  }, [search, filterValues]);
-  
-  const start = localPageIndex * localPageSize;
-  const end = start + localPageSize;
-  const visibleRows = useMemo(() => filteredData.slice(start, end), [filteredData, start, end]);
+    /** get the first sorted column */
+    const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
 
-  const handleColumnVisibilityChange = useCallback((columnIndex: number) => {
-    const newColumns = [...columns];
-    newColumns[columnIndex].hide = !newColumns[columnIndex].hide;
-    setColumns(newColumns);
-    if (onColumnSettingsChange) {
-      onColumnSettingsChange(newColumns);
+    if (sortedColumn) {
+      filtered = sortData(filtered, sortedColumn.column, sortedColumn.sorted);
     }
-  }, [columns, onColumnSettingsChange]);
 
-  const selectAllRows = useCallback(() => {
-    setSelectedRows(visibleRows.map(row => row[rowKey]));
-  }, [visibleRows]);
+    return filtered;
+  }, [dataSource, state.columns, state.filterValues, state.search]);
 
-  const deselectAllRows = useCallback(() => {
-    setSelectedRows([]);
-  }, []);
+  const start = state.localPageIndex * state.localPageSize;
+  const end = start + state.localPageSize;
+  const visibleRows = React.useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
+  /** Memos End */
+  
+  /** Callback Start */
+  const fetchWithPagination = React.useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
+    if (fetchConfig) {
+      /** Keep current data and totalData */
+      setState({ type: SET_FETCHED_DATA, payload: {
+        ...state.fetchedData,
+        fetching: true
+      }});
 
-  const toggleRowSelection = useCallback((id: string) => {
-    setSelectedRows(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(rowId => rowId !== id);
-      } else {
-        return [...prev, id];
+      const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
+
+      const endpointWithPagination = endpoint
+        .replace('{pageNumber}', (pageIndex + 1).toString())
+        .replace('{pageSize}', pageSize.toString())
+        .replace('{searchString}', searchString)
+        .replace('{sortColumn}', sortColumn)
+        .replace('{sortDirection}', sortDirection);
+
+      const response: any = await fetch(endpointWithPagination, {
+        method: requestData ? 'POST' : 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (requestData) {
+        response.body = JSON.stringify(requestData)
       }
-    });
-  }, []);
 
-  const toggleRowCollapse = useCallback((id: string) => {
-    setCollapsedRows(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(rowId => rowId !== id);
-      } else {
-        return [...prev, id];
+      const data = await response.json();
+
+      console.log(data)
+      const fetchedData = JSON.parse(getDeepValue(data, responseDataPath));
+      const totalData = getDeepValue(data, responseTotalDataPath);
+
+      setState({
+        type: SET_FETCHED_DATA, 
+        payload: {
+          /** set to null if undefined or null */
+          data: fetchedData !== null && fetchedData !== undefined ? fetchedData : null,
+          totalData: totalData || state.fetchedData.totalData,
+          fetching: false
+        }
+      });
+    }
+  }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+  /** Callback End */
+
+  /** Custom Functions Start */
+  const setColumns = (payload: ColumnSettings[]) => setState({ type: SET_COLUMNS, payload });
+  const setTableWidth = (payload: number) => setState({ type: SET_TABLE_WIDTH, payload });
+
+  const {
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDrop,
+    showLineAtIndex
+  } = useDragDropManager(state.columns, setColumns, dragImageRef, onColumnSettingsChange);
+  const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
+  /** Custom Functions End */
+
+  /** UseEffects Start */
+  React.useEffect(() => {
+    setColumns(updatedColumnSettings);
+  }, [updatedColumnSettings]);
+
+  React.useEffect(() => {
+    if (tableRef && tableRef.current) {
+      setTableWidth(tableRef.current.offsetWidth);
+    }
+  }, [tableRef]);
+
+  React.useEffect(() => {
+    if (state.columns.length > 0 && !!fetchConfig) {
+      const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
+    
+      if (hasStateChanged) {
+        const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
+        const sortColumn = sortedColumn?.column || 'none';
+        const sortDirection = sortedColumn?.sorted || 'none';
+    
+        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
       }
-    });
-  }, []);
-
-  const handlePageSizeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLocalPageSize(parseInt(e.target.value, 10));
-    setLocalPageIndex(0);
-  }, []);
-
-  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
-  }, []);
-
-  const highlightText = (text: string, highlight: string) => {
-    // Split text on highlight term, include term itself into parts, ignore case
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
-    return <span>{parts.map((part, i) =>
-      part.toLowerCase() === highlight.toLowerCase() ?
-        <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
-        <span key={i}>{part}</span>
-    )}</span>;
-  };
+    }
+  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
+  /** UseEffects End */
 
   return (
-    <div>
-      {renderMainTableHeader()}
-      <Table ref={tableRef}>
-        <TableInnerWrapper>
-          <div style={{
-            width: columns.reduce(
-              (acc, col) => acc + (parseInt(col.hide ? "" : col.width || "", 10) || 0),
-              0
-            ) + (selectable ? 38 : 0) + (collapsibleRowRender ? 44 : 0),
-          }}
-          >
-            {renderGroupHeader()}
-            {renderTableHeader()}
-            {renderFilterRow()}
-            <TableBodyWrapper>
-              {renderTableBody()}
-            </TableBodyWrapper>
-            <div ref={dragImageRef} style={{ display: 'none' }} />
-          </div>
-        </TableInnerWrapper>
-        {renderTableFooter()}
-      </Table>
-    </div>
+    <DataTableContext.Provider
+      value={{
+        rowKey,
+        selectable,
+        fetchConfig,
+        visibleRows,
+        filteredData,
+        showLineAtIndex,
+        collapsibleRowHeight,
+        filterAll,
+        downloadCSV,
+        state,
+        setState,
+        onMouseDown,
+        onDragStart,
+        onDragEnd,
+        onDragOver,
+        onDrop,
+        onRowClick,
+        onRowDoubleClick,
+        collapsibleRowRender,
+        onColumnSettingsChange,
+        onPageSizeChange,
+        onPageIndexChange,
+        onSelectedRowsChange,
+      }}
+    >
+      <SC.TableWrapper>
+        <MainHeader />
+        <SC.Table ref={tableRef}>
+          <SC.TableInnerWrapper>
+            <div style={{...getTableWidth({state, selectable, collapsibleRowRender})}}>
+              <ColumnGroupHeader />
+              <ColumnHeader />
+              <ColumnFilters />
+              <Rows />
+            </div>
+          </SC.TableInnerWrapper>
+        </SC.Table>
+        <Footer />
+      </SC.TableWrapper>
+    </DataTableContext.Provider>
   );
-};
+}
+
+export { getDeepValue };

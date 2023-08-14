@@ -8,7 +8,6 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   logLevel: 'warn',
   plugins: [
-    react(),
     tsconfigPaths(),
     dts({
       insertTypesEntry: true,
@@ -17,7 +16,8 @@ export default defineConfig({
         'src/constants/**',
         'src/utils/**'
       ]
-    })
+    }),
+    react()
   ],
   build: {
     lib: {

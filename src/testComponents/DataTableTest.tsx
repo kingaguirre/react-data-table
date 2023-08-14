@@ -1,7 +1,4 @@
-import React from 'react'
-import { DataTable } from '../DataTable'
-import DataTablePOC from '../DataTablePOC'
-import TxDataTable from '../TxDataTable'
+import { DataTable } from '../DataTable';
 
 const dataSource = Array(100).fill("").map((_, i) => ({
   userID: `user-id${i}`,
@@ -158,7 +155,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      {/* <TxDataTable
+      <DataTable
         // dataSource={dataSource}
         fetchConfig={{
           endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
@@ -173,42 +170,24 @@ export default () => {
         selectable
         collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
         onColumnSettingsChange={handleColumnSettingsChange}
-      /> */}
+      />
       <div style={{height: 200}}/>
-    <TxDataTable
-      dataSource={dataSource}
-      columnSettings={columnSettings}
-      onRowClick={handleRowClick}
-      onRowDoubleClick={handleRowDoubleClick}
-      rowKey="userID"
-      selectable
-      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-      onColumnSettingsChange={handleColumnSettingsChange}
-      // onPageIndexChange={e => console.log(`Page index: ${e}`)}
-      // onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
-      // collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-    />
-    {/* 
-    <div style={{height: 200}}/>
-    <DataTablePOC
-      dataSource={dataSource}
-      columnSettings={columnSettings}
-      rowKey="userID"
-      selectable
-      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-    />
     <DataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
       onRowClick={handleRowClick}
       onRowDoubleClick={handleRowDoubleClick}
-      onColumnSettingsChange={handleColumnSettingsChange}
-      onPageIndexChange={e => console.log(`Page index: ${e}`)}
-      onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
       rowKey="userID"
+      activeRow="user-id2"
+      // selectedRows={[{"userID": "user-id0"}]}
+      selectedRows={["user-id0"]}
       selectable
       collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-    /> */}
+      onColumnSettingsChange={handleColumnSettingsChange}
+      onPageIndexChange={e => console.log(`Page index: ${e}`)}
+      onPageSizeChange={e => console.log(`Page size: ${e}`)}
+      onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
+    />
     </div>
   )
 }
