@@ -86,6 +86,9 @@ export const TableInnerWrapper = styled.div`
   overflow-x: scroll;
   width: 100%;
   font-family: 'Helvetica';
+  > div {
+    min-width: 100%;
+  }
 `;
 
 export const Table = styled.div`
