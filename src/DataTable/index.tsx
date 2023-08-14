@@ -57,7 +57,7 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos Start */
   const updatedColumnSettings = React.useMemo(() => {
     if (state.tableWidth === null) return columnSettings;
-  
+
     const columnsWithWidth = columnSettings.filter(col => col.width);
     const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
     const remainingWidth = state.tableWidth - totalWidthWithWidth;
@@ -93,16 +93,16 @@ export const DataTable = (props: DataTableProps) => {
         }
         return true;
       });
-  
+
       /** Filter by search */
       const searchMatches = state.columns.some(col => {
         const columnValue = String(getDeepValue(row, col.column)).toLowerCase();
         return columnValue.includes(!!state.search ? state.search.toLowerCase() : '');
       });
-  
+
       return columnFilterMatches && searchMatches;
     }) : null;
-  
+
     /** get the first sorted column */
     const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
 
@@ -117,15 +117,17 @@ export const DataTable = (props: DataTableProps) => {
   const end = start + state.localPageSize;
   const visibleRows = React.useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
   /** Memos End */
-  
+
   /** Callback Start */
   const fetchWithPagination = React.useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
     if (fetchConfig) {
       /** Keep current data and totalData */
-      setState({ type: SET_FETCHED_DATA, payload: {
-        ...state.fetchedData,
-        fetching: true
-      }});
+      setState({
+        type: SET_FETCHED_DATA, payload: {
+          ...state.fetchedData,
+          fetching: true
+        }
+      });
 
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
@@ -136,32 +138,48 @@ export const DataTable = (props: DataTableProps) => {
         .replace('{sortColumn}', sortColumn)
         .replace('{sortDirection}', sortDirection);
 
-      const response: any = await fetch(endpointWithPagination, {
-        method: requestData ? 'POST' : 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      try {
+        const response: any = await fetch(endpointWithPagination, {
+          method: requestData ? 'POST' : 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-      if (requestData) {
-        response.body = JSON.stringify(requestData)
-      }
-
-      const data = await response.json();
-
-      console.log(data)
-      const fetchedData = JSON.parse(getDeepValue(data, responseDataPath));
-      const totalData = getDeepValue(data, responseTotalDataPath);
-
-      setState({
-        type: SET_FETCHED_DATA, 
-        payload: {
-          /** set to null if undefined or null */
-          data: fetchedData !== null && fetchedData !== undefined ? fetchedData : null,
-          totalData: totalData || state.fetchedData.totalData,
-          fetching: false
+        if (!response.ok) {
+          throw new Error(`Failed to fetch with status ${response.status}`);
         }
-      });
+
+        if (requestData) {
+          response.body = JSON.stringify(requestData)
+        }
+
+        const data = await response.json();
+
+        const fetchedData = JSON.parse(getDeepValue(data, responseDataPath));
+        const totalData = getDeepValue(data, responseTotalDataPath);
+
+        setState({
+          type: SET_FETCHED_DATA,
+          payload: {
+            /** set to null if undefined or null */
+            data: fetchedData !== null && fetchedData !== undefined ? fetchedData : null,
+            totalData: totalData || state.fetchedData.totalData,
+            fetching: false
+          }
+        });
+      } catch (error) {
+        setState({
+          type: SET_FETCHED_DATA,
+          payload: {
+            data: null,
+            totalData: 0,
+            fetching: false
+          }
+        });
+        console.error("There was an issue fetching the endpoint. Please try again later.")
+      }
     }
   }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+
   /** Callback End */
 
   /** Custom Functions Start */
@@ -192,12 +210,12 @@ export const DataTable = (props: DataTableProps) => {
   React.useEffect(() => {
     if (state.columns.length > 0 && !!fetchConfig) {
       const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
-    
+
       if (hasStateChanged) {
         const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
         const sortColumn = sortedColumn?.column || 'none';
         const sortDirection = sortedColumn?.sorted || 'none';
-    
+
         fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
       }
     }
@@ -236,7 +254,7 @@ export const DataTable = (props: DataTableProps) => {
         <MainHeader />
         <SC.Table ref={tableRef}>
           <SC.TableInnerWrapper>
-            <div style={{...getTableWidth({state, selectable, collapsibleRowRender})}}>
+            <div style={{ ...getTableWidth({ state, selectable, collapsibleRowRender }) }}>
               <ColumnGroupHeader />
               <ColumnHeader />
               <ColumnFilters />

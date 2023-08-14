@@ -60,18 +60,13 @@ export const Rows = () => {
   const isFetching = fetchConfig && fetchedData.fetching;
   const rows = fetchConfig ? fetchedData.data : visibleRows;
 
-  if (!Array.isArray(rows) && !isFetching && rows !== undefined) {
-    console.error("The 'rows' prop is not an array.");
-    return null; /** TODO: You can return a fallback UI or simply return null */
-  }
-
   /** Placeholder for loading */
   if (isFetching && rows === undefined) {
     return <SC.LoadingPanel>Loading the data...</SC.LoadingPanel>;
   }
 
   /** Placeholder for no data */
-  if (!rows || rows.length === 0) {
+  if (!rows || rows.length === 0 || !Array.isArray(rows) && !isFetching && rows !== undefined) {
     return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
   }
 

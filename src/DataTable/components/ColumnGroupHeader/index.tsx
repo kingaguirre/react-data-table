@@ -21,18 +21,22 @@ export const ColumnGroupHeader = () => {
     } else {
       if (lastHeader && lastHeader.title === null) {
         lastHeader.width += colWidth;
-      } else {
+      } else if (acc.some(header => header.title)) {
         acc.push({ title: null, width: colWidth });
       }
     }
     return acc;
   }, []);
 
-  return (
-    <SC.GrouoHeaderWrapper>
+  if (groupHeaders.length === 1 && groupHeaders[0].title === null) {
+    groupHeaders.length = 0;
+  }
+
+  return groupHeaders.length > 0 ? (
+    <SC.GroupHeaderWrapper className="group-header">
       <TableRow>
-        <CollapsibleRowColumn/>
-        <SelectCheckboxColumn/>
+        <CollapsibleRowColumn />
+        <SelectCheckboxColumn />
         {groupHeaders.map((groupHeader, index) => groupHeader.width > 0 && (
           <SC.GroupHeader
             key={index}
@@ -44,6 +48,7 @@ export const ColumnGroupHeader = () => {
           </SC.GroupHeader>
         ))}
       </TableRow>
-    </SC.GrouoHeaderWrapper>
-  );
+    </SC.GroupHeaderWrapper>
+  ) : null;
 }
+

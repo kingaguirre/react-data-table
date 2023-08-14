@@ -13,7 +13,7 @@ export const Footer = () => {
     onPageSizeChange
   } = React.useContext(DataTableContext);
 
-  const totalData = fetchConfig ? fetchedData.totalData : filteredData.length;
+  const totalData = fetchConfig ? fetchedData?.totalData : filteredData?.length;
   const totalPages = Math.ceil(totalData / localPageSize);
   const start = localPageIndex * localPageSize + 1;
   const end = Math.min(start + localPageSize - 1, totalData);

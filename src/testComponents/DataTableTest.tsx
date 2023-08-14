@@ -140,6 +140,19 @@ const columnSettings = [
   },
 ];
 
+const PENDING_SHIPPING_DATA_COLUMN_SETTING = [{
+  column: "totalWeight",
+  title: "Total Weight"
+}, {
+  column: "totalDimensions",
+  title: "Total Dimensions"
+}];
+
+const PENDING_SHIPPING_DATA = Array(199).fill("").map((_, i) => ({
+  "transactionNumber": `txn-number-${i}`,
+  "totalWeight": "1kg",
+  "totalDimensions": "30x30x30 cm"
+}));
 export default () => {
   const handleRowClick = (rowData: any) => {
     console.log("Clicked row:", rowData);
@@ -173,20 +186,21 @@ export default () => {
       />
       <div style={{height: 200}}/>
     <DataTable
-      dataSource={dataSource}
-      columnSettings={columnSettings}
-      onRowClick={handleRowClick}
-      onRowDoubleClick={handleRowDoubleClick}
-      rowKey="userID"
-      activeRow="user-id2"
-      // selectedRows={[{"userID": "user-id0"}]}
-      selectedRows={["user-id0"]}
-      selectable
-      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-      onColumnSettingsChange={handleColumnSettingsChange}
-      onPageIndexChange={e => console.log(`Page index: ${e}`)}
-      onPageSizeChange={e => console.log(`Page size: ${e}`)}
-      onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
+      // dataSource={PENDING_SHIPPING_DATA}
+      columnSettings={PENDING_SHIPPING_DATA_COLUMN_SETTING}
+      rowKey="transactionNumber"
+      // onRowClick={handleRowClick}
+      // onRowDoubleClick={handleRowDoubleClick}
+      // rowKey="userID"
+      // activeRow="user-id2"
+      // // selectedRows={[{"userID": "user-id0"}]}
+      // selectedRows={["user-id0"]}
+      // selectable
+      // collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+      // onColumnSettingsChange={handleColumnSettingsChange}
+      // onPageIndexChange={e => console.log(`Page index: ${e}`)}
+      // onPageSizeChange={e => console.log(`Page size: ${e}`)}
+      // onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
     />
     </div>
   )

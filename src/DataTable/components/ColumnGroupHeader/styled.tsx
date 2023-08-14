@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const GrouoHeaderWrapper = styled.div``;
+export const GroupHeaderWrapper = styled.div``;
 
 export const GroupHeader = styled.div<{ width?: string; minWidth?: string; align?: string }> `
   display: block;
