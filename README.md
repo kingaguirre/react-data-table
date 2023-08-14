@@ -25,7 +25,8 @@ import { DataTable } from 'react-data-table.eaa';
 ## Basic Usage
 
 Here's a simple example of how to use the DataTable:
-```<DataTable
+```
+<DataTable
   dataSource={yourDataArray}
   columnSettings={yourColumnSettings}
   rowKey="yourPrimaryKeyField"
@@ -55,7 +56,7 @@ Here's a simple example of how to use the DataTable:
 - **onSelectedRowsChange**: Callback that fires when the selection of rows changes.
 
 ## Contributing
-Contributions to improve or expand the DataTable component are always welcome. Make sure to test your changes before submitting a pull request.
+Contributions to improve or expand the `DataTable` component are always welcome. Make sure to test your changes before submitting a pull request.
 
 ## License
 MIT License

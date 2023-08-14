@@ -1,7 +1,7 @@
 {
   "name": "react-data-table.eaa",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,13 +12,7 @@
     "build-app": "vite build --outDir dist/app"
   },
   "dependencies": {
-    "@ag-grid-community/all-modules": "^27.3.0",
-    "@ag-grid-enterprise/all-modules": "^27.3.0",
-    "ag-grid-community": "^30.0.3",
-    "ag-grid-react": "^30.0.4",
-    "express": "^4.18.2",
     "font-awesome": "^4.7.0",
-    "json-server": "^0.17.3",
     "react": "^18.x",
     "react-dom": "^18.x",
     "styled-components": "^5.1.26",
@@ -38,6 +32,8 @@
     "@types/react-dom": "^18.2.7",
     "@types/styled-components": "^5.1.26",
     "@vitejs/plugin-react": "^2.0.1",
+    "express": "^4.18.2",
+    "json-server": "^0.17.3",
     "prop-types": "^15.8.1",
     "storybook": "^7.0.13",
     "typescript": "^5.1.6",
