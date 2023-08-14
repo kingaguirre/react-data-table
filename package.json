@@ -1,7 +1,7 @@
 {
   "name": "react-data-table.eaa",
   "private": false,
-  "version": "0.0.6",
+  "version": "0.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -48,13 +48,13 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/react-data-table.cjs.js",
+  "main": "./dist/react-data-table.cjs",
   "module": "./dist/react-data-table.es.js",
   "types": "./dist/react-data-table.d.ts",
   "exports": {
     ".": {
       "import": "./dist/react-data-table.es.js",
-      "require": "./dist/react-data-table.cjs.js",
+      "require": "./dist/react-data-table.cjs",
       "default": "./dist/react-data-table.umd.js"
     }
   }

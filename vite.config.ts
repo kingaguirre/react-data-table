@@ -20,7 +20,10 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/DataTable/index.tsx'),
       name: 'ReactDataTable',
       formats: ['es', 'cjs', 'umd'],
-      fileName: (format) => `react-data-table.${format}.js`,
+      fileName: (format) => {
+        if (format === 'cjs') return 'react-data-table.cjs';
+        return `react-data-table.${format}.js`;
+      },
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'styled-components', 'lodash', 'font-awesome'],
