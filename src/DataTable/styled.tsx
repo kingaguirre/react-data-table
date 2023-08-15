@@ -35,11 +35,11 @@ export const TableWrapper = styled.div`
 
   /* Scrollbar style for WebKit based browsers (e.g., Chrome, Safari) */
   *::-webkit-scrollbar {
-    width: 12px; /* Set the width of the scrollbar */
-    height: 12px;
+    width: 10px; /* Set the width of the scrollbar */
+    height: 10px;
     background-color: #f2f6f8;
     box-shadow: 0 0 2px 0 #bcbec0;
-    border-radius: 12px; /* Rounded edges */
+    border-radius: 10px; /* Rounded edges */
   }
 
   *::-webkit-scrollbar-thumb {
@@ -89,18 +89,15 @@ export const TableWrapper = styled.div`
 `;
 
 export const TableInnerWrapper = styled.div`
-  overflow-x: scroll;
+  overflow-x: auto;
   width: 100%;
   font-family: 'Helvetica';
-  > div {
-    min-width: 100%;
-  }
 `;
 
 export const Table = styled.div`
   display: block;
   width: 100%;
-  background-color: #eaeaea;
+  background-color: #f2f6f8;
   box-sizing: border-box;
   * {
     box-sizing: border-box;

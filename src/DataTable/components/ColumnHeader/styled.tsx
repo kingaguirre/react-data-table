@@ -7,13 +7,14 @@ export const TitleWrapper = styled.div`
   justify-content: space-between;
 `
 
-export const TitleContainer = styled.div`
+export const TitleContainer = styled.div<{isDraggedOver?: boolean}>`
   position: relative;
   flex: 1;
   cursor: grab;
   padding: 4px 6px;
   margin: -4px 0 -4px -6px;
   width: calc(100% - 60px);
+  ${({isDraggedOver}) => !isDraggedOver ? 'background-color: #eaeaea;' : ''}
   &:before {
     opacity: 0;
     content: "\f0c9";
@@ -50,7 +51,7 @@ export const TitleControlsContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-left: 10px;
+  padding-left: 5px;
 `;
 
 export const SortContainer = styled.div`

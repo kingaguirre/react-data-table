@@ -187,7 +187,24 @@ export default () => {
       selectedRows={["user-id0"]}
       selectable
       downloadCSV
-      collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+      collapsibleRowRender={() => (
+        <DataTable
+          dataSource={dataSource}
+          columnSettings={[{
+            column: 'userDetails.birthDay',
+            title: 'Birth Day',
+            order: 5,
+            width: "200px"
+          },
+          {
+            column: 'userDetails.firstName',
+            title: 'First Name',
+            width: "150px"
+          }]}
+          rowKey="userID"
+          clickableRow
+        />
+      )}
       onColumnSettingsChange={handleColumnSettingsChange}
       onPageIndexChange={e => console.log(`Page index: ${e}`)}
       onPageSizeChange={e => console.log(`Page size: ${e}`)}

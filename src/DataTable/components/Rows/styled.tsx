@@ -11,6 +11,12 @@ export const TableRowsContainer = styled.div<{ isFetching?: boolean }>`
 export const TableRow = styled.div`
   display: flex;
   position: relative;
+  &.column-header-container {
+    > * {
+      border-top: 1px solid #ddd;
+      background-color: #eaeaea;
+    }
+  }
   &.is-active {
     > * {
       background-color: #cbddf6;
@@ -52,6 +58,9 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   > * {
     position: relative;
     z-index: 2;
+  }
+  &.empty-cell {
+    background-color: white !important
   }
 `;
 
@@ -117,13 +126,16 @@ export const LoadingPanel = styled.div`
   text-shadow: 0 0 0 #222;
   text-align: left;
   font-weight: bold;
+  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd;
 `;
 
 export const CollapsibleRowRenderContainer = styled.div`
   display: block;
   font-size: 14px;
   padding: 12px;
-  background-color: white;
+  width: 100%;
+  background-color: #f2f6f8;
   border: 1px solid #ddd;
   border-top: none;
 `;

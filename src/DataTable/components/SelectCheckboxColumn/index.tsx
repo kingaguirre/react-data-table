@@ -12,7 +12,7 @@ export const SelectCheckboxColumn = (props: IProps) => {
   const { selectable } = React.useContext(DataTableContext);
 
   return selectable ? (
-    <TableCell width="27px" onClick={e => e.stopPropagation()}>
+    <TableCell className="empty-cell" width="27px" onClick={e => e.stopPropagation()}>
       {!!onChange && (
         <Checkbox
           type="checkbox"

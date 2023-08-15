@@ -167,7 +167,7 @@ export const ColumnDragHighlighter = (props: IColumnDragHighlighter) => {
     draggedColumnIndex,
   } = React.useContext(DataTableContext);
 
-  return (dropTargetIndex === index || draggedColumnIndex === index) && (
+  return (dropTargetIndex === index || draggedColumnIndex === index) ? (
     <SC.ColumnDragHighlighter className="column-drag-highlighter" isDraggedColumn={draggedColumnIndex === index}/>
-  )
+  ) : null
 }

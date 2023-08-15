@@ -11,6 +11,7 @@ import * as SC from './styled'
 export const ColumnHeader = () => {
   const {
     filteredData,
+    dropTargetIndex,
     state: { selectedRows, columns, fetchedData },
     fetchConfig,
     setState,
@@ -36,7 +37,7 @@ export const ColumnHeader = () => {
   }, [setState]);
 
   return (
-    <TableRow>
+    <TableRow className="column-header-container">
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
         checked={(!!rows && !!rows.length) && selectedRows.length === rows.length}
@@ -64,7 +65,8 @@ export const ColumnHeader = () => {
           >
             <SC.TitleWrapper>
               <SC.TitleContainer
-                draggable={true}
+                isDraggedOver={index === dropTargetIndex}
+                draggable
                 onDragStart={(e: any) => onDragStart(e, index)}
               >
                 <CellContent>{col.title}</CellContent>
@@ -113,7 +115,7 @@ export const ColumnHeader = () => {
                 )}
               </SC.TitleControlsContainer>
             </SC.TitleWrapper>
-            
+
             <ColumnDragHighlighter index={index}/>
             <ResizeHandle onMouseDown={onMouseDown(index)} />
           </TableCell>
