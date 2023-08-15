@@ -9,7 +9,7 @@ export const MainHeader = () => {
     filterAll,
     downloadCSV,
     visibleRows,
-    state: { columns, search },
+    state: { columns, search, selectedRows },
     setState,
     onColumnSettingsChange,
   } = React.useContext(DataTableContext);
@@ -65,7 +65,7 @@ export const MainHeader = () => {
       )}
       <SC.ControlsWrapper>
         {!!downloadCSV && (
-          <button onClick={() => exportToCsv('data.csv', visibleRows, columns)}>
+          <button onClick={() => exportToCsv('data.csv', selectedRows > 0 ? selectedRows : visibleRows, columns)}>
             <i className="fa fa-download"/>
           </button>
         )}

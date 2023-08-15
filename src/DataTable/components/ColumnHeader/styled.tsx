@@ -14,16 +14,19 @@ export const TitleContainer = styled.div`
   padding: 4px 6px;
   margin: -4px 0 -4px -6px;
   width: calc(100% - 60px);
-  background-color: white;
   &:before {
     opacity: 0;
-    content: "☰";
+    content: "\f0c9";
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
     position: absolute;
     margin-top: 1px;
     top: calc(50% - 1px);
     left: 5px;
     transform: translateY(-50%);
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
     transition: all .3s ease;
   }

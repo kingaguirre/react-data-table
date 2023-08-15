@@ -71,7 +71,7 @@ export const sortData = (data: any[] | null, column: string, direction: 'asc' | 
 };
 
 export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
-  width: state.columns.reduce((acc, col) => 
+  width: state.columns?.reduce((acc, col) => 
     acc + (parseInt(col.hidden ? "" : col.width || "", 10) || 0), 0
   ) + (selectable ? 27 : 0) + (collapsibleRowRender ? 30 : 0),
 });

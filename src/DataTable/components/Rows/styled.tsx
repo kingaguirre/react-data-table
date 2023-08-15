@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 export const TableRowsContainer = styled.div<{ isFetching?: boolean }>`
+  cursor: default;
   ${({ isFetching }) => !!isFetching ? `
     pointer-events: none;
     opacity: 0.6;
@@ -13,6 +14,9 @@ export const TableRow = styled.div`
   &.is-active {
     > * {
       background-color: #cbddf6;
+    }
+    .column-drag-highlighter {
+      display: none;
     }
   }
 `;
@@ -31,7 +35,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   border-left: 1px solid #ddd;
   ${({ isPinned }) => !!isPinned ? `
     position: sticky;
-    z-index: 1;
+    z-index: 10;
   ` : ''}
   &:after {
     position: absolute;
@@ -83,15 +87,19 @@ export const ResizeHandle = styled.div`
   z-index: 2;
 `;
 
-export const VerticalLine = styled.div`
+export const ColumnDragHighlighter = styled.div<{isDraggedColumn?: boolean}>`
   position: absolute;
   top: 0;
   bottom: 1px;
   right: 0;
   left: 0;
-  background-color: #c3e1f7;
   z-index: 1;
-  animation: glowingBlue 1.5s infinite;
+  ${({isDraggedColumn}) => !!isDraggedColumn ? `
+    background-color: #eee;
+  ` : `
+    background-color: #c3e1f7;
+    animation: glowingBlue 1.5s infinite;
+  `}
 
   @keyframes glowingBlue {
     0%, 100% {

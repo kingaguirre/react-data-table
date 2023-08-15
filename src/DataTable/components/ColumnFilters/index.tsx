@@ -1,5 +1,6 @@
 import React from "react";
-import { TableRow, TableCell, VerticalLine } from "../Rows/styled";
+import { TableRow, TableCell } from "../Rows/styled";
+import { ColumnDragHighlighter } from "../Rows";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
 import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import { SET_FILTER_VALUES } from "../../context/actions";
@@ -8,7 +9,6 @@ import { getPinnedDetails } from "../../utils";
 
 export const ColumnFilters = () => {
   const {
-    showLineAtIndex,
     state: { filterValues, columns },
     setState
   } = React.useContext(DataTableContext);
@@ -68,7 +68,7 @@ export const ColumnFilters = () => {
                 ))}
               </select>
             ) : null : null}
-            {showLineAtIndex === index && <VerticalLine />}
+            <ColumnDragHighlighter index={index}/>
           </TableCell>
         )
       })}

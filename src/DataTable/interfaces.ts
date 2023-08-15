@@ -18,6 +18,7 @@ export interface DataTableProps {
   downloadCSV?: boolean;
   activeRow?: string;
   selectedRows?: any[];
+  clickableRow?: boolean;
   onRowClick?: (rowData: any) => void;
   onRowDoubleClick?: (rowData: any) => void;
   onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void;

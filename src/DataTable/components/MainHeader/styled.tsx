@@ -8,13 +8,13 @@ export const MainHeaderWrapper = styled.div`
   justify-content: space-between;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
-  box-shadow: 0 1px 0 1px #ddd;
   z-index: 1;
   border: 1px solid #ddd;
 `;
 
 export const SearchWrapper = styled.div`
   width: 50%;
+  max-width: 320px;
   position: relative;
   > i {
     position: absolute;

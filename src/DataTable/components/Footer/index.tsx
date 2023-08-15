@@ -17,7 +17,7 @@ export const Footer = () => {
   const totalPages = Math.ceil(totalData / localPageSize);
   const start = localPageIndex * localPageSize + 1;
   const end = Math.min(start + localPageSize - 1, totalData);
-  const isLastPage = localPageIndex >= totalPages - 1;
+  const isLastPage = totalData === 0 || localPageIndex >= totalPages - 1;
   const isFirstPage = localPageIndex === 0;
 
   const handlePageIndexChange = React.useCallback((index: number) => {
@@ -37,7 +37,7 @@ export const Footer = () => {
     <SC.TableFooter>
       {totalData > 0 ? (
         <SC.InfoContainer>
-          Displaying {start} to {end} of {totalData} Records
+          Displaying <b>{start}</b> to <b>{end}</b> of <b>{totalData}</b> Records
           {/* | <i className="fa fa-refresh"/> */}
         </SC.InfoContainer>
       ) : (
@@ -47,7 +47,7 @@ export const Footer = () => {
       )}
       
       <SC.PaginationContainer>
-        <span>Rows</span>
+        <b>Rows</b>
         <select value={localPageSize} onChange={handlePageSizeChange}>
           <option value={5}>5</option>
           <option value={10}>10</option>

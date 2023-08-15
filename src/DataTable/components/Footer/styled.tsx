@@ -5,18 +5,19 @@ export const TableFooter = styled.div`
   justify-content: space-between;
   align-items: center;
   background-color: #f8f8f8;
-  padding: 14px 16px;
+  padding: 6px 16px;
   border: 1px solid #d4d4d4;
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
 `;
 
 export const InfoContainer = styled.div`
-  color: #6d6e71;
-  font-size: 14px;
+  color: #222;
+  font-size: 10px;
+  text-transform: uppercase;
 `;
 
-export const PaginationContainer = styled.div`
+export const PaginationContainer = styled(InfoContainer)`
   display: flex;
   align-items: center;
   justify-content: flex-end;

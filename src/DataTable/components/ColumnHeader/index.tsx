@@ -1,5 +1,6 @@
 import React from "react";
-import { TableRow, TableCell, CellContent, ResizeHandle, VerticalLine } from "../Rows/styled";
+import { TableRow, TableCell, CellContent, ResizeHandle } from "../Rows/styled";
+import { ColumnDragHighlighter } from "../Rows";
 import { getPinnedDetails } from "../../utils";
 import { SET_SELECTED_ROWS, SET_COLUMNS } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -10,7 +11,6 @@ import * as SC from './styled'
 export const ColumnHeader = () => {
   const {
     filteredData,
-    showLineAtIndex,
     state: { selectedRows, columns, fetchedData },
     fetchConfig,
     setState,
@@ -68,7 +68,6 @@ export const ColumnHeader = () => {
                 onDragStart={(e: any) => onDragStart(e, index)}
               >
                 <CellContent>{col.title}</CellContent>
-                {showLineAtIndex === index && <VerticalLine />}
               </SC.TitleContainer>
               
               <SC.TitleControlsContainer>
@@ -114,7 +113,8 @@ export const ColumnHeader = () => {
                 )}
               </SC.TitleControlsContainer>
             </SC.TitleWrapper>
-            {showLineAtIndex === index && <VerticalLine />}
+            
+            <ColumnDragHighlighter index={index}/>
             <ResizeHandle onMouseDown={onMouseDown(index)} />
           </TableCell>
         );

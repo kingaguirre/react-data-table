@@ -6,7 +6,8 @@ interface DragDropManagerProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
   onDragEnd: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
-  showLineAtIndex: number | null;
+  dropTargetIndex: number | null;
+  draggedColumnIndex: number | null;
 }
 
 export const useDragDropManager = (
@@ -79,6 +80,7 @@ export const useDragDropManager = (
     onDragOver,
     onDrop,
     onDragEnd,
-    showLineAtIndex: dropTargetIndex,
+    dropTargetIndex,
+    draggedColumnIndex,
   };
 };

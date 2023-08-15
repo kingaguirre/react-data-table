@@ -7,7 +7,7 @@ export const TableWrapper = styled.div`
   background-color: #eaeaea;
   box-sizing: border-box;
   border-radius: 2px;
-  box-shadow: 0 0 4px 3px #ddd;
+  box-shadow: 0 0 2px 1px #ddd;
   * {
     box-sizing: border-box;
     line-height: 1.2;
@@ -21,9 +21,15 @@ export const TableWrapper = styled.div`
     font-size: 12px;
     color: #222;
     outline: none;
+    transition: all .3s ease;
+    padding: 2px 6px;
+    &:focus {
+      border-color: #222;
+    }
     &.sm {
       height: 16px;
-      font-size: 9px;
+      font-size: 10px;
+      padding: 0 4px;
     }
   }
 

@@ -1,10 +1,11 @@
 import React from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
 import { Rows } from "./components/Rows";
+import { LoadingPanel } from "./components/Rows/styled";
 import { ColumnHeader } from "./components/ColumnHeader";
 import { ColumnGroupHeader } from "./components/ColumnGroupHeader";
 import { ColumnFilters } from "./components/ColumnFilters";
@@ -27,6 +28,7 @@ export const DataTable = (props: DataTableProps) => {
     downloadCSV = false,
     activeRow = null,
     selectedRows = [],
+    clickableRow = true,
     onColumnSettingsChange,
     onRowClick,
     onRowDoubleClick,
@@ -191,7 +193,8 @@ export const DataTable = (props: DataTableProps) => {
     onDragEnd,
     onDragOver,
     onDrop,
-    showLineAtIndex
+    dropTargetIndex,
+    draggedColumnIndex
   } = useDragDropManager(state.columns, setColumns, dragImageRef, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
   /** Custom Functions End */
@@ -230,10 +233,12 @@ export const DataTable = (props: DataTableProps) => {
         fetchConfig,
         visibleRows,
         filteredData,
-        showLineAtIndex,
+        dropTargetIndex,
+        draggedColumnIndex,
         collapsibleRowHeight,
         filterAll,
         downloadCSV,
+        clickableRow,
         state,
         setState,
         onMouseDown,
@@ -253,14 +258,16 @@ export const DataTable = (props: DataTableProps) => {
       <SC.TableWrapper>
         <MainHeader />
         <SC.Table ref={tableRef}>
-          <SC.TableInnerWrapper>
-            <div style={{ ...getTableWidth({ state, selectable, collapsibleRowRender }) }}>
-              <ColumnGroupHeader />
-              <ColumnHeader />
-              <ColumnFilters />
-              <Rows />
-            </div>
-          </SC.TableInnerWrapper>
+          {state.tableWidth !== null ? (
+            <SC.TableInnerWrapper>
+              <div style={{ ...getTableWidth({ state, selectable, collapsibleRowRender }) }}>
+                <ColumnGroupHeader />
+                <ColumnHeader />
+                <ColumnFilters />
+                <Rows />
+              </div>
+            </SC.TableInnerWrapper>
+          ) : <LoadingPanel>Loading Rows...</LoadingPanel>}
         </SC.Table>
         <Footer />
       </SC.TableWrapper>
@@ -268,4 +275,4 @@ export const DataTable = (props: DataTableProps) => {
   );
 }
 
-export { getDeepValue };
+export { getDeepValue, exportToCsv };

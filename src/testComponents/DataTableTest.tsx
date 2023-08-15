@@ -1,4 +1,5 @@
-import { DataTable } from '../DataTable';
+import { useState } from 'react';
+import { DataTable, exportToCsv } from '../DataTable';
 
 const dataSource = Array(100).fill("").map((_, i) => ({
   userID: `user-id${i}`,
@@ -141,6 +142,8 @@ const columnSettings = [
 ];
 
 export default () => {
+  const [selectedRow, setSselectedRow] = useState<any>(null);
+
   const handleRowClick = (rowData: any) => {
     console.log("Clicked row:", rowData);
   };
@@ -172,6 +175,7 @@ export default () => {
         onColumnSettingsChange={handleColumnSettingsChange}
       />
       <div style={{height: 200}}/>
+      <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
     <DataTable
       dataSource={dataSource}
       columnSettings={columnSettings}
@@ -182,11 +186,12 @@ export default () => {
       // selectedRows={[{"userID": "user-id0"}]}
       selectedRows={["user-id0"]}
       selectable
+      downloadCSV
       collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
       onColumnSettingsChange={handleColumnSettingsChange}
       onPageIndexChange={e => console.log(`Page index: ${e}`)}
       onPageSizeChange={e => console.log(`Page size: ${e}`)}
-      onSelectedRowsChange={e => console.log(`Selected Row: `, e)}
+      onSelectedRowsChange={rows => setSselectedRow(rows)}
     />
     </div>
   )

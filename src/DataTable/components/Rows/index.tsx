@@ -10,7 +10,7 @@ export const Rows = () => {
   const {
     rowKey,
     visibleRows,
-    showLineAtIndex,
+    clickableRow,
     collapsibleRowHeight,
     fetchConfig,
     state: { selectedRows, activeRow, columns, search, fetchedData },
@@ -46,8 +46,19 @@ export const Rows = () => {
   }, []);
 
   const toggleRowSelection = React.useCallback((row: any) => {
-    const isSelectedRow = selectedRows.find(r => r[rowKey] === row[rowKey]);
-    const payload = isSelectedRow ? selectedRows.filter((r) => r[rowKey] !== row[rowKey]) : [...selectedRows, row];
+    const normalizeSelectedRows = (rows: any[]) =>
+      rows.map((r) => (typeof r === 'string' ? { [rowKey]: r } : r));
+  
+    const normalizedSelectedRows = normalizeSelectedRows(selectedRows);
+  
+    const isSelectedRow = normalizedSelectedRows.find(
+      (r) => r[rowKey] === row[rowKey]
+    );
+  
+    const payload = isSelectedRow
+      ? normalizedSelectedRows.filter((r) => r[rowKey] !== row[rowKey])
+      : [...normalizedSelectedRows, row];
+  
     onSelectedRowsChange?.(payload);
     setState({ type: SET_SELECTED_ROWS, payload });
   }, [selectedRows]);
@@ -81,7 +92,9 @@ export const Rows = () => {
         return (
           <React.Fragment key={rowIndex}>
             <SC.TableRow
-              onClick={() => handleRowClick(row)}
+              {...(!!clickableRow ? {
+                onClick: () => handleRowClick(row)
+              } : {})}
               className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''}`}
             >
               <CollapsibleRowColumn
@@ -124,7 +137,7 @@ export const Rows = () => {
                     >
                       {cellContent}
                     </SC.CellContent>
-                    {showLineAtIndex === index && <SC.VerticalLine />}
+                    <ColumnDragHighlighter index={index}/>
                     <SC.ResizeHandle onMouseDown={onMouseDown(index)} />
                   </SC.TableCell>
                 );
@@ -141,5 +154,20 @@ export const Rows = () => {
         )
       })}
     </SC.TableRowsContainer>
+  )
+}
+
+interface IColumnDragHighlighter {
+  index: number;
+}
+export const ColumnDragHighlighter = (props: IColumnDragHighlighter) => {
+  const { index } = props;
+  const {
+    dropTargetIndex,
+    draggedColumnIndex,
+  } = React.useContext(DataTableContext);
+
+  return (dropTargetIndex === index || draggedColumnIndex === index) && (
+    <SC.ColumnDragHighlighter className="column-drag-highlighter" isDraggedColumn={draggedColumnIndex === index}/>
   )
 }
