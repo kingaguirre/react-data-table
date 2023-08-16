@@ -1,4 +1,4 @@
-import React from "react";
+import { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
 import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
@@ -12,7 +12,7 @@ import { ColumnFilters } from "./components/ColumnFilters";
 import { MainHeader } from "./components/MainHeader";
 import { Footer } from "./components/Footer";
 
-export const DataTableContext = React.createContext<any>(null);
+export const DataTableContext = createContext<any>(null);
 
 export const DataTable = (props: DataTableProps) => {
   const {
@@ -39,11 +39,11 @@ export const DataTable = (props: DataTableProps) => {
   } = props;
 
   /** Refs */
-  const tableRef = React.useRef<HTMLDivElement>(null);
-  const dragImageRef = React.useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const dragImageRef = useRef<HTMLDivElement>(null);
 
   /** Reducer Start */
-  const [state, setState] = React.useReducer(dataTableReducer, {
+  const [state, setState] = useReducer(dataTableReducer, {
     ...initialState,
     activeRow,
     selectedRows,
@@ -57,7 +57,7 @@ export const DataTable = (props: DataTableProps) => {
   /** Reducer End */
 
   /** Memos Start */
-  const updatedColumnSettings = React.useMemo(() => {
+  const updatedColumnSettings = useMemo(() => {
     if (state.tableWidth === null) return columnSettings;
 
     const columnsWithWidth = columnSettings.filter(col => col.width);
@@ -84,7 +84,7 @@ export const DataTable = (props: DataTableProps) => {
     }));
   }, [columnSettings, state.tableWidth]);
 
-  const filteredData = React.useMemo(() => {
+  const filteredData = useMemo(() => {
     let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
       /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
@@ -117,11 +117,11 @@ export const DataTable = (props: DataTableProps) => {
 
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
-  const visibleRows = React.useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
+  const visibleRows = useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
   /** Memos End */
 
   /** Callback Start */
-  const fetchWithPagination = React.useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
+  const fetchWithPagination = useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
     if (fetchConfig) {
       /** Keep current data and totalData */
       setState({
@@ -200,17 +200,17 @@ export const DataTable = (props: DataTableProps) => {
   /** Custom Functions End */
 
   /** UseEffects Start */
-  React.useEffect(() => {
+  useEffect(() => {
     setColumns(updatedColumnSettings);
   }, [updatedColumnSettings]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (tableRef && tableRef.current) {
       setTableWidth(tableRef.current.offsetWidth);
     }
   }, [tableRef]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (state.columns.length > 0 && !!fetchConfig) {
       const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
 

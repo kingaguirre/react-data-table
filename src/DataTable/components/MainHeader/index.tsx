@@ -1,10 +1,13 @@
-import React from "react";
+import { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
 import { exportToCsv } from "../../utils";
 import { SET_COLUMNS, SET_SEARCH} from "../../context/actions";
 import { DataTableContext } from "../../index";
 import * as SC from "./styled";
 
 export const MainHeader = () => {
+  const settingsContainerRef: any = useRef<any>(null);
+  const toggleButtonRef: any = useRef<any>(null);
+
   const {
     filterAll,
     downloadCSV,
@@ -12,13 +15,11 @@ export const MainHeader = () => {
     state: { columns, search, selectedRows },
     setState,
     onColumnSettingsChange,
-  } = React.useContext(DataTableContext);
-  const settingsContainerRef: any = React.useRef(null);
-  const toggleButtonRef: any = React.useRef(null);
+  } = useContext(DataTableContext);
 
-  const [isDropdownOpen, setDropdownOpen] = React.useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         settingsContainerRef.current &&
@@ -38,11 +39,11 @@ export const MainHeader = () => {
   }, []);
 
 
-  const handleSearchChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setState({ type: SET_SEARCH, payload: event.target.value });
   }, [search, setState]);
 
-  const handleColumnVisibilityChange = React.useCallback((columnIndex: number) => {
+  const handleColumnVisibilityChange = useCallback((columnIndex: number) => {
     const newColumns = [...columns];
     newColumns[columnIndex].hidden = !newColumns[columnIndex].hidden;
 

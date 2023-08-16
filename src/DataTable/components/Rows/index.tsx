@@ -1,4 +1,4 @@
-import React from "react";
+import { useContext, useRef, useState, useCallback, Fragment } from "react";
 import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -7,6 +7,8 @@ import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import * as SC from "./styled";
 
 export const Rows = () => {
+  const collapsibleRowRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+
   const {
     rowKey,
     visibleRows,
@@ -20,18 +22,16 @@ export const Rows = () => {
     onRowDoubleClick,
     collapsibleRowRender,
     onSelectedRowsChange
-  } = React.useContext(DataTableContext);
+  } = useContext(DataTableContext);
 
-  const collapsibleRowRefs = React.useRef<{ [key: string]: HTMLElement | null }>({});
+  const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
 
-  const [collapsedRows, setCollapsedRows] = React.useState<string[]>([]);
-
-  const handleRowSingleClick = React.useCallback((row: any) => {
+  const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
     setState({ type: SET_ACTIVE_ROW, payload: activeRow === row[rowKey] ? null : row[rowKey] });
   }, [onRowClick, activeRow]);
 
-  const handleRowDoubleClick = React.useCallback((row: any) => {
+  const handleRowDoubleClick = useCallback((row: any) => {
     onRowDoubleClick?.(row);
     setState({ type: SET_ACTIVE_ROW, payload: activeRow === row[rowKey] ? null : row[rowKey] });
   }, [onRowDoubleClick, activeRow]);
@@ -41,11 +41,11 @@ export const Rows = () => {
     (row) => handleRowDoubleClick(row),
   );
 
-  const toggleRowCollapse = React.useCallback((id: string) => {
+  const toggleRowCollapse = useCallback((id: string) => {
     setCollapsedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]);
   }, []);
 
-  const toggleRowSelection = React.useCallback((row: any) => {
+  const toggleRowSelection = useCallback((row: any) => {
     const normalizeSelectedRows = (rows: any[]) =>
       rows.map((r) => (typeof r === 'string' ? { [rowKey]: r } : r));
   
@@ -90,7 +90,7 @@ export const Rows = () => {
         const isActiveRow = rowKeyValue === activeRow;
         const isSelectedRow = !!selectedRows.find(row => row[rowKey] === rowKeyValue) || !!selectedRows.includes(rowKeyValue);
         return (
-          <React.Fragment key={rowIndex}>
+          <Fragment key={rowIndex}>
             <SC.TableRow
               {...(!!clickableRow ? {
                 onClick: () => handleRowClick(row)
@@ -150,7 +150,7 @@ export const Rows = () => {
                 </SC.CollapsibleRowRenderContainer>
               </SC.TableRow>
             )}
-          </React.Fragment>
+          </Fragment>
         )
       })}
     </SC.TableRowsContainer>
@@ -165,7 +165,7 @@ export const ColumnDragHighlighter = (props: IColumnDragHighlighter) => {
   const {
     dropTargetIndex,
     draggedColumnIndex,
-  } = React.useContext(DataTableContext);
+  } = useContext(DataTableContext);
 
   return (dropTargetIndex === index || draggedColumnIndex === index) ? (
     <SC.ColumnDragHighlighter className="column-drag-highlighter" isDraggedColumn={draggedColumnIndex === index}/>
