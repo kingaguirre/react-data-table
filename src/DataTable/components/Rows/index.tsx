@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, useCallback, Fragment } from "react";
+import { useContext, useState, useCallback, Fragment } from "react";
 import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -7,8 +7,6 @@ import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import * as SC from "./styled";
 
 export const Rows = () => {
-  const collapsibleRowRefs = useRef<{ [key: string]: HTMLElement | null }>({});
-
   const {
     rowKey,
     visibleRows,
@@ -44,7 +42,7 @@ export const Rows = () => {
 
   const toggleRowCollapse = useCallback((id: string) => {
     setCollapsedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]);
-  }, []);
+  }, [collapsibleRowHeight]);
 
   const toggleRowSelection = useCallback((row: any) => {
     const normalizeSelectedRows = (rows: any[]) =>
@@ -63,10 +61,6 @@ export const Rows = () => {
     onSelectedRowsChange?.(payload);
     setState({ type: SET_SELECTED_ROWS, payload });
   }, [selectedRows]);
-
-  const getCollapsibleRowHeight = (rowKey: string) => {
-    return collapsibleRowRefs.current[rowKey]?.offsetHeight || collapsibleRowHeight;
-  };
 
   /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
   const isFetching = fetchConfig && fetchedData.fetching;
@@ -119,7 +113,6 @@ export const Rows = () => {
                   ? col.customColumnRenderer(row[col.column], row)
                   : getDeepValue(row, col.column);
 
-                // If search text exists, highlight the text
                 if (search) {
                   cellContent = highlightText(cellContent, search);
                 }
@@ -145,8 +138,8 @@ export const Rows = () => {
               })}
             </SC.TableRow>
             {isRowCollapsed && collapsibleRowRender && (
-              <SC.TableRow style={{ height: collapsibleRowHeight || getCollapsibleRowHeight(rowKeyValue) }}>
-                <SC.CollapsibleRowRenderContainer ref={(el) => collapsibleRowRefs.current[rowKeyValue] = el}>
+              <SC.TableRow style={{ height: collapsibleRowHeight }}>
+                <SC.CollapsibleRowRenderContainer>
                   {collapsibleRowRender(row)}
                 </SC.CollapsibleRowRenderContainer>
               </SC.TableRow>

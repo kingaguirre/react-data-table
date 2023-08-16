@@ -190,6 +190,7 @@ export default () => {
       selectedRows={["user-id0"]}
       selectable
       downloadCSV
+      collapsibleRowHeight='100px'
       collapsibleRowRender={() => (
         <DataTable
           dataSource={dataSource}

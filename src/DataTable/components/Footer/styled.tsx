@@ -6,7 +6,8 @@ export const TableFooter = styled.div`
   align-items: center;
   background-color: #f8f8f8;
   padding: 6px 16px;
-  border: 1px solid #d4d4d4;
+  border: 1px solid #ddd;
+  border-top: none;
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
 `;

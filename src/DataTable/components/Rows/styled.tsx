@@ -64,18 +64,6 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   }
 `;
 
-export const CollapseIcon = styled.span`
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-  }
-`;
-
 export const CellContent = styled.div`
   white-space: nowrap;
   overflow: hidden;
@@ -138,4 +126,5 @@ export const CollapsibleRowRenderContainer = styled.div`
   background-color: #f2f6f8;
   border: 1px solid #ddd;
   border-top: none;
+  overflow: auto;
 `;

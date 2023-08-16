@@ -35,17 +35,21 @@ export const TableWrapper = styled.div`
 
   /* Scrollbar style for WebKit based browsers (e.g., Chrome, Safari) */
   *::-webkit-scrollbar {
-    width: 10px; /* Set the width of the scrollbar */
-    height: 10px;
+    width: 8px; /* Set the width of the scrollbar */
+    height: 8px;
     background-color: #f2f6f8;
-    box-shadow: 0 0 2px 0 #bcbec0;
-    border-radius: 10px; /* Rounded edges */
+    /* box-shadow: 0 0 2px 0 #bcbec0; */
+    border: 1px solid #ddd;
+    border-radius: 8px; /* Rounded edges */
   }
 
   *::-webkit-scrollbar-thumb {
     background-color: #bcbec0; /* Grey cursor color */
-    border: 1.5px solid #f2f6f8;
+    border: 1px solid #ddd;
     border-radius: 8px; /* Rounded edges */
+    transition: all .3s ease;
+    height: 8px;
+    width: 8px;
   }
 
   *::-webkit-scrollbar-thumb:hover {

@@ -1,6 +1,7 @@
 import React from "react";
 import { DataTableContext } from "../../index";
-import { TableCell, CollapseIcon } from "../Rows/styled";
+import { TableCell } from "../Rows/styled";
+import { CollapseIcon } from "./styled";
 
 interface IProps {
   isRowCollapsed?: boolean;
@@ -18,7 +19,11 @@ export const CollapsibleRowColumn = (props: IProps) => {
       isPinned
       style={{left: 0}}
     >
-      {!!onClick && <CollapseIcon onClick={onClick}>{isRowCollapsed ? '-' : '+'}</CollapseIcon>}
+      {!!onClick && (
+        <CollapseIcon onClick={onClick} isRowCollapsed={!!isRowCollapsed}>
+          {isRowCollapsed ? '-' : '+'}
+        </CollapseIcon>
+      )}
     </TableCell>
   ) : null
 }
