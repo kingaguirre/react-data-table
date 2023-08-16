@@ -7,13 +7,17 @@ export const TitleWrapper = styled.div`
   justify-content: space-between;
 `
 
-export const TitleContainer = styled.div<{isDraggedOver?: boolean}>`
+export const TitleContainer = styled.div<{isDraggedOver?: boolean, hasControls?: boolean, align?: string}>`
   position: relative;
   flex: 1;
   cursor: grab;
   padding: 4px 6px;
   margin: -4px 0 -4px -6px;
-  width: calc(100% - 60px);
+  text-align: ${({ align }) => !!align ? align === 'center' ? 'center' : 'right' : 'left'};
+  ${({hasControls}) => !!hasControls ? `
+    width: calc(100% - 60px);
+    text-align: left;
+  ` : "width: 100%;"}
   ${({isDraggedOver}) => !isDraggedOver ? 'background-color: #eaeaea;' : ''}
   &:before {
     opacity: 0;

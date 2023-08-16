@@ -133,7 +133,10 @@ const columnSettings = [
   },
   {
     column: 'userID',
-    title: 'Action',
+    title: '#',
+    pinned: "none",
+    sorted: "none",
+    align: "center",
     customColumnRenderer: (value) => <button onClick={e => {
       e.stopPropagation();
       console.log(`button ${value} clicked`)

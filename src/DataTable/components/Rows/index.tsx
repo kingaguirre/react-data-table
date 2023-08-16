@@ -15,6 +15,7 @@ export const Rows = () => {
     clickableRow,
     collapsibleRowHeight,
     fetchConfig,
+    selectable,
     state: { selectedRows, activeRow, columns, search, fetchedData },
     setState,
     onMouseDown,
@@ -85,7 +86,7 @@ export const Rows = () => {
     <SC.TableRowsContainer isFetching={isFetching}>
       {rows.map((row, rowIndex) => {
         const rowKeyValue = row[rowKey];
-        let pinnedWidth = 0;
+        let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
         const isRowCollapsed = collapsedRows.includes(rowKeyValue);
         const isActiveRow = rowKeyValue === activeRow;
         const isSelectedRow = !!selectedRows.find(row => row[rowKey] === rowKeyValue) || !!selectedRows.includes(rowKeyValue);

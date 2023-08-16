@@ -20,11 +20,13 @@ export const ColumnHeader = () => {
     onDragOver,
     onDrop,
     onColumnSettingsChange,
-    onSelectedRowsChange
+    onSelectedRowsChange,
+    collapsibleRowRender,
+    selectable
   } = React.useContext(DataTableContext);
 
   const rows = fetchConfig ? fetchedData.data : filteredData;
-  let pinnedWidth = 0;
+  let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
 
   const selectAllRows = React.useCallback(() => {
     onSelectedRowsChange?.(rows);
@@ -66,6 +68,8 @@ export const ColumnHeader = () => {
             <SC.TitleWrapper>
               <SC.TitleContainer
                 isDraggedOver={index === dropTargetIndex}
+                hasControls={showPinIcon || showSortIcon}
+                align={col.align}
                 draggable
                 onDragStart={(e: any) => onDragStart(e, index)}
               >

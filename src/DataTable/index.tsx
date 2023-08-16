@@ -15,6 +15,9 @@ import { Footer } from "./components/Footer";
 export const DataTableContext = createContext<any>(null);
 
 export const DataTable = (props: DataTableProps) => {
+  /** Refs */
+  const tableRef = useRef<HTMLDivElement>(null);
+
   const {
     dataSource,
     columnSettings,
@@ -37,10 +40,6 @@ export const DataTable = (props: DataTableProps) => {
     onPageIndexChange,
     onSelectedRowsChange,
   } = props;
-
-  /** Refs */
-  const tableRef = useRef<HTMLDivElement>(null);
-  const dragImageRef = useRef<HTMLDivElement>(null);
 
   /** Reducer Start */
   const [state, setState] = useReducer(dataTableReducer, {
@@ -195,7 +194,7 @@ export const DataTable = (props: DataTableProps) => {
     onDrop,
     dropTargetIndex,
     draggedColumnIndex
-  } = useDragDropManager(state.columns, setColumns, dragImageRef, onColumnSettingsChange);
+  } = useDragDropManager(state.columns, setColumns, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
   /** Custom Functions End */
 

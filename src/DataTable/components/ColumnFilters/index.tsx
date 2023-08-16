@@ -10,11 +10,13 @@ import { getPinnedDetails } from "../../utils";
 export const ColumnFilters = () => {
   const {
     state: { filterValues, columns },
-    setState
+    setState,
+    collapsibleRowRender,
+    selectable
   } = React.useContext(DataTableContext);
 
   const anyFilterBy = columns.some(col => col.filterBy);
-  let pinnedWidth = 0;
+  let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
 
   if (!anyFilterBy) {
     return null;

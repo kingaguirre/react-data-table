@@ -13,7 +13,6 @@ interface DragDropManagerProps {
 export const useDragDropManager = (
   columnSettings: ColumnSettings[],
   setColumnSettings: (newColumnSettings: ColumnSettings[]) => void,
-  dragImageRef: React.RefObject<HTMLDivElement>,
   onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void,
 ): DragDropManagerProps => {
   const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(null);
@@ -24,7 +23,7 @@ export const useDragDropManager = (
     e.dataTransfer.setData('text/plain', JSON.stringify(columnSettings[columnIndex]));
 
     setDraggedColumnIndex(columnIndex);
-  }, [columnSettings, dragImageRef]);
+  }, [columnSettings]);
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>, columnIndex: number) => {
     e.preventDefault();
