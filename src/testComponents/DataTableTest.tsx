@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { DataTable, exportToCsv } from '../DataTable';
 
 const dataSource = Array(100).fill("").map((_, i) => ({
@@ -190,7 +190,6 @@ export default () => {
       selectedRows={["user-id0"]}
       selectable
       downloadCSV
-      collapsibleRowHeight='100px'
       collapsibleRowRender={() => (
         <DataTable
           dataSource={dataSource}

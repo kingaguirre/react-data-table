@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ES5",
+    "target": "es6",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ES6"],
     "allowJs": true,
@@ -9,13 +9,14 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "noEmitOnError": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "esnext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "react",
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "noUnusedParameters": true,
@@ -32,6 +33,9 @@
       "~/constants": ["./src/constants/index.ts"]
     }
   },
-  "include": ["src"],
+  "include": [
+    "src/**/*.tsx",
+    "src/**/*.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

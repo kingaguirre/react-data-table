@@ -60,7 +60,7 @@ export const ControlsWrapper = styled.div`
 
 export const SettingsContainer = styled.div`
   position: absolute;
-  top: 38px;
+  top: 40px;
   background-color: white;
   overflow: hidden;
   overflow-y: auto;
@@ -69,7 +69,7 @@ export const SettingsContainer = styled.div`
   display: none;
   box-shadow: -3px 0 6px 0 #ddd;
   border-left: 1px solid #ddd;
-  height: calc(100% - 92px);
+  height: calc(100% - 88px);
   z-index: 10;
   &.is-visible {
     display: block;

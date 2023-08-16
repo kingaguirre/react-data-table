@@ -1,4 +1,4 @@
-import { createContext, useReducer, useMemo, useCallback, useEffect } from "react";
+import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
 import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
@@ -15,7 +15,8 @@ import { Footer } from "./components/Footer";
 export const DataTableContext = createContext<any>(null);
 
 export const DataTable = (props: DataTableProps) => {
-  const tableId = "dataTable";
+  /** Refs */
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const {
     dataSource,
@@ -203,6 +204,12 @@ export const DataTable = (props: DataTableProps) => {
   }, [updatedColumnSettings]);
 
   useEffect(() => {
+    if (tableRef && tableRef.current) {
+      setTableWidth(tableRef.current.offsetWidth);
+    }
+  }, [tableRef]);
+
+  useEffect(() => {
     if (state.columns.length > 0 && !!fetchConfig) {
       const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
 
@@ -215,20 +222,6 @@ export const DataTable = (props: DataTableProps) => {
       }
     }
   }, [state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const tableElement = document.getElementById(tableId);
-      if (tableElement) {
-        setTableWidth(tableElement.offsetWidth);
-      }
-    }
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    }
-  }, []);
   /** UseEffects End */
 
   return (
@@ -263,7 +256,7 @@ export const DataTable = (props: DataTableProps) => {
     >
       <SC.TableWrapper>
         <MainHeader />
-        <SC.Table id={tableId}>
+        <SC.Table ref={tableRef}>
           {state.tableWidth !== null ? (
             <SC.TableInnerWrapper>
               <div style={{ ...getTableWidth({ state, selectable, collapsibleRowRender }) }}>

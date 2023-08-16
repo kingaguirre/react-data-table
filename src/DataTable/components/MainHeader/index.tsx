@@ -1,6 +1,6 @@
-import { useContext, useState, useCallback, ChangeEvent, useEffect } from "react";
+import React, { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
 import { exportToCsv } from "../../utils";
-import { SET_COLUMNS, SET_SEARCH } from "../../context/actions";
+import { SET_COLUMNS, SET_SEARCH} from "../../context/actions";
 import { DataTableContext } from "../../index";
 import * as SC from "./styled";
 
@@ -14,25 +14,29 @@ export const MainHeader = () => {
     onColumnSettingsChange,
   } = useContext(DataTableContext);
 
+  const settingsContainerRef: any = useRef<any>(null);
+  const toggleButtonRef: any = useRef<any>(null);
+
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const handleDocumentClick = (event) => {
-      const target = event.target;
-
-      const isGearButton = target.closest("button") && target.closest("button").querySelector(".fa-gear");
-      const isSettingsContainer = target.closest(".SettingsContainer");
-      
-      if (isDropdownOpen && !isGearButton && !isSettingsContainer) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        settingsContainerRef.current &&
+        !settingsContainerRef.current.contains(event.target) &&
+        toggleButtonRef.current &&
+        !toggleButtonRef.current.contains(event.target)
+      ) {
         setDropdownOpen(false);
       }
     };
 
-    document.addEventListener("click", handleDocumentClick);
+    document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
-      document.removeEventListener("click", handleDocumentClick);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isDropdownOpen]);
+  }, []);
 
   const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setState({ type: SET_SEARCH, payload: event.target.value });
@@ -65,11 +69,14 @@ export const MainHeader = () => {
             <i className="fa fa-download"/>
           </button>
         )}
-        <button onClick={() => setDropdownOpen(prev => !prev)}>
+        <button ref={toggleButtonRef} onClick={() => setDropdownOpen(prev => !prev)}>
           <i className="fa fa-gear"/>
         </button>
+        {/* <button onClick={() => {}}>
+          <i className="fa fa-rotate-left"/>
+        </button> */}
       </SC.ControlsWrapper>
-      <SC.SettingsContainer className={`SettingsContainer ${isDropdownOpen ? 'is-visible' : ''}`}>
+      <SC.SettingsContainer ref={settingsContainerRef} className={`${isDropdownOpen ? 'is-visible' : ''}`}>
         {columns.map((col, index) => (
           <label key={index}>
             <input

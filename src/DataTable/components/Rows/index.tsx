@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback, Fragment } from "react";
+import React, { useContext, useState, useCallback, Fragment } from "react";
 import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
