@@ -35,7 +35,7 @@ export default defineConfig({
     },
     rollupOptions: {
       plugins: [commonjs()],
-      external: ['react', 'react-dom', 'styled-components', 'lodash', 'font-awesome'],
+      external: ['react', 'react-dom', 'styled-components', 'font-awesome'],
       output: {
         globals: {
           react: 'React',
@@ -46,6 +46,6 @@ export default defineConfig({
     },
   },
   ssr: {
-    external: ['react', 'react-dom', 'styled-components', 'lodash', 'font-awesome'],
+    external: ['react', 'react-dom', 'styled-components', 'font-awesome'],
   },
 });

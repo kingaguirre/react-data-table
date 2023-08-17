@@ -34,8 +34,8 @@
     }
   },
   "include": [
-    "src/**/*.tsx",
-    "src/**/*.ts"
+    "src/DataTable/**/*.tsx",
+    "src/DataTable/**/*.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
