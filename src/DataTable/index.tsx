@@ -1,6 +1,6 @@
 import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv, filterCheck } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
@@ -83,14 +83,20 @@ export const DataTable = (props: DataTableProps) => {
     }));
   }, [columnSettings, state.tableWidth]);
 
+
   const filteredData = useMemo(() => {
     let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
       /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
-          const filterValue = state.filterValues[col.column].toLowerCase();
-          const rowValue = String(getDeepValue(row, col.column)).toLowerCase();
-          return rowValue.includes(filterValue);
+          const rowValue = getDeepValue(row, col.column);
+          if (col.filterBy.type === "number-range" || col.filterBy.type === "date-range") {
+            const filterValue = state.filterValues[col.column];
+            return filterCheck(filterValue, rowValue, col.filterBy.type)
+          } else {
+            const filterValue = state.filterValues[col.column]?.toLowerCase() || "";
+            return String(rowValue).toLowerCase().includes(filterValue);
+          }
         }
         return true;
       });

@@ -1,6 +1,32 @@
 import React, { useState } from 'react';
 import { DataTable, exportToCsv } from '../DataTable';
 
+const getRandomBirthdate = () => {
+  const minAge = 18; // Minimum age for generated birthdate
+  const maxAge = 80; // Maximum age for generated birthdate
+
+  // Calculate a random age within the specified range
+  const randomAge = Math.floor(Math.random() * (maxAge - minAge + 1)) + minAge;
+
+  // Calculate birthdate by subtracting the random age from the current date
+  const birthdate = new Date();
+  birthdate.setFullYear(birthdate.getFullYear() - randomAge);
+
+  // Calculate age based on birthdate and current date
+  const today = new Date();
+  let age = today.getFullYear() - birthdate.getFullYear();
+
+  // Adjust age if birthdate hasn't occurred this year yet
+  if (
+    today.getMonth() < birthdate.getMonth() ||
+    (today.getMonth() === birthdate.getMonth() && today.getDate() < birthdate.getDate())
+  ) {
+    age--;
+  }
+
+  return { birthdate, age };
+}
+
 const dataSource = Array(100).fill("").map((_, i) => ({
   userID: `user-id${i}`,
   username: `test-username${i}`,
@@ -9,7 +35,7 @@ const dataSource = Array(100).fill("").map((_, i) => ({
     email: `test${i}@email.com`,
     isAdmin: i % 2 === 0,
     other: `other value${i}`,
-    birthDay: `24-08-199${i}`,
+    birthDay: getRandomBirthdate().birthdate,
     firstName: `John${i}`,
     lastName: `Doe${i}`,
     phoneNumber: `123-456-78${i}0`,
@@ -17,6 +43,7 @@ const dataSource = Array(100).fill("").map((_, i) => ({
     city: 'New York',
     state: 'NY',
     zipCode: `1000${i}`,
+    age: getRandomBirthdate().age
   },
   userAccounts: [
     { account1: `test account1-${i}` },
@@ -33,7 +60,7 @@ const columnSettings = [
     pinned: true,
     filterBy: {
       type: 'text',
-      value: '',
+      // value: "0"
     },
   },
   {
@@ -57,7 +84,6 @@ const columnSettings = [
     pinned: 'none',
     filterBy: {
       type: 'select',
-      value: '',
       options: [{
         text: 'clear',
         value: ''
@@ -79,7 +105,20 @@ const columnSettings = [
     column: 'userDetails.birthDay',
     title: 'Birth Day',
     groupTitle: 'User Details',
-    order: 5
+    order: 5,
+    filterBy: {
+      type: 'date-range',
+    },
+  },
+  {
+    column: 'userDetails.age',
+    title: 'Age',
+    groupTitle: 'User Details',
+    order: 4,
+    filterBy: {
+      type: 'number-range',
+      // value: {min: 10, max: 50}
+    },
   },
   {
     column: 'userDetails.firstName',
@@ -161,23 +200,6 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <DataTable
-        // dataSource={dataSource}
-        fetchConfig={{
-          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
-          // requestData: { someKey: 'someValue' },
-          responseDataPath: "data.dataTableItem",
-          responseTotalDataPath: "data.count"
-        }}
-        columnSettings={columnSettings}
-        onRowClick={handleRowClick}
-        onRowDoubleClick={handleRowDoubleClick}
-        rowKey="userID"
-        selectable
-        collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-        onColumnSettingsChange={handleColumnSettingsChange}
-      />
-      <div style={{height: 200}}/>
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
     <DataTable
       dataSource={dataSource}
@@ -213,6 +235,24 @@ export default () => {
       onPageSizeChange={e => console.log(`Page size: ${e}`)}
       onSelectedRowsChange={rows => setSselectedRow(rows)}
     />
+    <div style={{height: 200}}/>
+    <DataTable
+        // dataSource={dataSource}
+        fetchConfig={{
+          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
+          // requestData: { someKey: 'someValue' },
+          responseDataPath: "data.dataTableItem",
+          responseTotalDataPath: "data.count"
+        }}
+        columnSettings={columnSettings}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID"
+        selectable
+        collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
+        onColumnSettingsChange={handleColumnSettingsChange}
+      />
+      
     </div>
   )
 }

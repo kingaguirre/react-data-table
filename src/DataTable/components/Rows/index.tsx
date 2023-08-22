@@ -109,9 +109,10 @@ export const Rows = () => {
                   pinnedWidth += colWidth;
                 }
 
+                const rowValue = getDeepValue(row, col.column);
                 let cellContent = col.customColumnRenderer
                   ? col.customColumnRenderer(row[col.column], row)
-                  : getDeepValue(row, col.column);
+                  : typeof rowValue === "object" ? JSON.stringify(rowValue) : rowValue;
 
                 if (search) {
                   cellContent = highlightText(cellContent, search);

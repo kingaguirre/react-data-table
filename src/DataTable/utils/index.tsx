@@ -2,7 +2,7 @@ import React from 'react';
 
 export const highlightText = (text: string, highlight: string) => {
   if (typeof text === "string") {
-    // Split text on highlight term, include term itself into parts, ignore case
+    /** Split text on highlight term, include term itself into parts, ignore case  */
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return (
     <span>
@@ -34,27 +34,29 @@ export const useDoubleClick = (onClick, onDoubleClick, delay = 300) => {
   return handleClick;
 };
 
-
 export const getDeepValue = (obj: any, path: string) => {
   const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
 
-  if (typeof value === 'boolean' || typeof value === 'object') {
+  if (value instanceof Date) {
+    return value; // Return date objects as they are
+  } else if (typeof value === 'boolean' || typeof value === 'object') {
     return JSON.stringify(value);
   }
 
   return value;
 };
 
+
 export const sortData = (data: any[] | null, column: string, direction: 'asc' | 'desc') => {
   const compareFunction = (a: any, b: any) => {
     const aVal = String(getDeepValue(a, column));
     const bVal = String(getDeepValue(b, column));
 
-    // Extract numbers from the strings
+    /** Extract numbers from the strings  */
     const aMatches = aVal.match(/\d+/g) || [];
     const bMatches = bVal.match(/\d+/g) || [];
 
-    // If both have numbers, compare as numbers
+    /** If both have numbers, compare as numbers  */
     if (aMatches.length > 0 && bMatches.length > 0) {
       const aNum = parseInt(aMatches.join(''), 10);
       const bNum = parseInt(bMatches.join(''), 10);
@@ -63,7 +65,7 @@ export const sortData = (data: any[] | null, column: string, direction: 'asc' | 
       }
     }
 
-    // If not, or if the numbers are equal, compare as strings
+    /** If not, or if the numbers are equal, compare as strings  */
     return aVal.localeCompare(bVal);
   }
 
@@ -99,12 +101,12 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   csvContent += rows.map(processRow).join('\r\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=ISO-8859-1;' });
-  if ((navigator as any).msSaveBlob) { // IE 10+
+  if ((navigator as any).msSaveBlob) { /** IE 10+  */
     (navigator as any).msSaveBlob(blob, filename);
   } else {
     const link = document.createElement('a');
-    if (link.download !== undefined) { // feature detection
-      // Browsers that support HTML5 download attribute
+    if (link.download !== undefined) { /** feature detection  */
+      /** Browsers that support HTML5 download attribute  */
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
       link.setAttribute('download', filename);
@@ -135,6 +137,22 @@ export const debounce = (func, wait) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
+}
+
+export const filterCheck = (filterValue: any, rowValue: string, filterType: string = "number-range") => {
+  const isNumberRange = filterType === "number-range";
+  const parsedRowValue = isNumberRange ? parseFloat(rowValue) : new Date(rowValue);
+
+  switch (true) {
+    case (!!filterValue && (!filterValue.min || !filterValue.max)):
+    case (!filterValue || (filterValue.min === "" && filterValue.max === "")):
+    case (parsedRowValue >= (isNumberRange ? parseFloat(filterValue.min) : new Date(filterValue.min)) && 
+      parsedRowValue <= (isNumberRange ? parseFloat(filterValue.max) : new Date(filterValue.max))):
+      return true;
+
+    default:
+      return false;
+  }
 }
 
 export * from "./useDragDropManager";

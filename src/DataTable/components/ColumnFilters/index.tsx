@@ -29,6 +29,16 @@ export const ColumnFilters = () => {
     }})
   };
 
+  const handleSetFilterObjValues = (value: any, column: string, isMin: boolean = false) => {
+    setState({ type: SET_FILTER_VALUES, payload: {
+      ...filterValues,
+      [column]: {
+        ...filterValues[column],
+        [isMin ? "min" : "max"]: value,
+      },
+    }})
+  };
+
   return (
     <TableRow>
       <CollapsibleRowColumn/>
@@ -54,13 +64,13 @@ export const ColumnFilters = () => {
               <input
                 className="sm"
                 type="text"
-                value={filterValues[col.column]}
+                value={filterValues[col.column] || ""}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               />
             ) : col.filterBy.type === "select" ? (
               <select
                 className="sm"
-                value={filterValues[col.column]}
+                value={filterValues[col.column] || ""}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               >
                 {col.filterBy.options.map((option, optionIndex) => (
@@ -69,7 +79,41 @@ export const ColumnFilters = () => {
                   </option>
                 ))}
               </select>
-            ) : null : null}
+            ) : col.filterBy.type === "number-range" ? (
+              <div>
+                <input
+                  className="sm"
+                  type="number"
+                  value={filterValues[col.column]?.min || ""}
+                  onChange={e => handleSetFilterObjValues(e.target.value, col.column, true)}
+                  placeholder="Min"
+                />
+                <input
+                  className="sm"
+                  type="number"
+                  value={filterValues[col.column]?.max || ""}
+                  onChange={e => handleSetFilterObjValues(e.target.value, col.column, false)}
+                  placeholder="Max"
+                />
+              </div>
+              ) : col.filterBy.type === "date-range" ? (
+                <div>
+                  <input
+                    className="sm"
+                    type="number"
+                    value={filterValues[col.column]?.min || ""}
+                    onChange={e => handleSetFilterObjValues(e.target.value, col.column, true)}
+                    placeholder="Min"
+                  />
+                  <input
+                    className="sm"
+                    type="number"
+                    value={filterValues[col.column]?.max || ""}
+                    onChange={e => handleSetFilterObjValues(e.target.value, col.column, false)}
+                    placeholder="Max"
+                  />
+                </div>
+              ) : null : null}
             <ColumnDragHighlighter index={index}/>
           </TableCell>
         )

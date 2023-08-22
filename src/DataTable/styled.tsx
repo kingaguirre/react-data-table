@@ -12,7 +12,10 @@ export const TableWrapper = styled.div`
     box-sizing: border-box;
     line-height: 1.2;
   }
-  input[type="text"], select {
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  select {
     border: 1px solid #b8babc;
     border-bottom-color: #939598;
     background-color: white;
