@@ -235,24 +235,7 @@ export default () => {
       onPageSizeChange={e => console.log(`Page size: ${e}`)}
       onSelectedRowsChange={rows => setSselectedRow(rows)}
     />
-    <div style={{height: 200}}/>
-    <DataTable
-        // dataSource={dataSource}
-        fetchConfig={{
-          endpoint: 'http://localhost:3000/custom-items/{pageNumber}/{pageSize}/{sortColumn}/{sortDirection}?searchString={searchString}',
-          // requestData: { someKey: 'someValue' },
-          responseDataPath: "data.dataTableItem",
-          responseTotalDataPath: "data.count"
-        }}
-        columnSettings={columnSettings}
-        onRowClick={handleRowClick}
-        onRowDoubleClick={handleRowDoubleClick}
-        rowKey="userID"
-        selectable
-        collapsibleRowRender={(rowData) => (<div>This is a collapsible row for {JSON.stringify(rowData)}</div>)}
-        onColumnSettingsChange={handleColumnSettingsChange}
-      />
-      
+    
     </div>
   )
 }

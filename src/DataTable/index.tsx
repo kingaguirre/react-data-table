@@ -1,6 +1,6 @@
 import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv, filterCheck } from "./utils";
+import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv, filterCheck, getLocalStorageColumnSettings, setColumnSettings } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
@@ -56,34 +56,6 @@ export const DataTable = (props: DataTableProps) => {
   /** Reducer End */
 
   /** Memos Start */
-  const updatedColumnSettings = useMemo(() => {
-    if (state.tableWidth === null) return columnSettings;
-
-    const columnsWithWidth = columnSettings.filter(col => col.width);
-    const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
-    const remainingWidth = state.tableWidth - totalWidthWithWidth;
-    const columnsWithoutWidth = columnSettings.filter(col => !col.width);
-    const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
-
-    return columnSettings.sort((a, b) => {
-      if (a.order !== undefined && b.order !== undefined) {
-        return a.order - b.order;
-      }
-      if (a.order !== undefined) {
-        return -1;
-      }
-      if (b.order !== undefined) {
-        return 1;
-      }
-      return 0;
-    }).map((col, index) => ({
-      ...col,
-      width: col.width || `${columnWidth}px`,
-      order: index,
-    }));
-  }, [columnSettings, state.tableWidth]);
-
-
   const filteredData = useMemo(() => {
     let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
       /** Filter by column filter */
@@ -206,12 +178,21 @@ export const DataTable = (props: DataTableProps) => {
 
   /** UseEffects Start */
   useEffect(() => {
-    setColumns(updatedColumnSettings);
-  }, [updatedColumnSettings]);
+    const defaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
+    const currentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
+
+    if (!currentColumnSettings.length) {
+      localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
+    }
+    if (!defaultColumnSettings.length) {
+      localStorage.setItem('defaultColumnSettings', JSON.stringify(columnSettings));
+    }
+  }, []);
 
   useEffect(() => {
     if (tableRef && tableRef.current) {
       setTableWidth(tableRef.current.offsetWidth);
+      setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth));
     }
   }, [tableRef]);
 

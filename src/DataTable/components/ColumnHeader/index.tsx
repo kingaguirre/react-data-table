@@ -90,6 +90,7 @@ export const ColumnHeader = () => {
 
                       setState({ type: SET_COLUMNS, payload: newColumns });
                       onColumnSettingsChange?.(newColumns);
+                      localStorage.setItem('currentColumnSettings', JSON.stringify(newColumns));
                     }}
                   >
                     <i className="fa fa-thumb-tack"/>
@@ -112,6 +113,7 @@ export const ColumnHeader = () => {
                     
                       setState({ type: SET_COLUMNS, payload: newColumns });
                       onColumnSettingsChange?.(newColumns);
+                      localStorage.setItem('currentColumnSettings', JSON.stringify(newColumns));
                     }}
                   >
                     <i className={`fa fa-${!col.sorted ? 'sort' : col.sorted === 'asc' ? 'sort-up' : 'sort-down'}`}/>

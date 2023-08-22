@@ -118,6 +118,47 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
   }
 };
 
+export const exportToExcel = (filename: string, rows: any[], columns: any) => {
+  const xmlHeader = '<?xml version="1.0"?>';
+  const workbookHeader = '<workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet">';
+  const workbookFooter = '</workbook>';
+  const worksheetHeader = '<worksheet><table>';
+  const worksheetFooter = '</table></worksheet>';
+
+  const createRow = (cells: string[]) => {
+    return `<row>${cells.map(cell => `<cell><data ss:Type="String">${cell}</data></cell>`).join('')}</row>`;
+  };
+
+  const headerRow = createRow(columns.filter(col => !col.hidden).map(col => col.title));
+
+  const dataRows = rows.map(row => {
+    return createRow(columns.filter(col => !col.hidden).map(col => {
+      const cellValue = col.customColumnRenderer ? col.customColumnRenderer(row[col.column], row) : getDeepValue(row, col.column);
+      return cellValue === null || cellValue === undefined ? '' : cellValue.toString();
+    }));
+  });
+
+  const xml = [
+    xmlHeader,
+    workbookHeader,
+    worksheetHeader,
+    headerRow,
+    ...dataRows,
+    worksheetFooter,
+    workbookFooter
+  ].join('');
+
+  const blob = new Blob([xml], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.xls`; // Excel 2003 format
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export const getPinnedDetails = (col: any, pinnedWidth: number) => {
   const showPinIcon = col.pinned !== 'none';
   const isPinned = col.pinned === true;
@@ -154,6 +195,46 @@ export const filterCheck = (filterValue: any, rowValue: string, filterType: stri
       return false;
   }
 }
+
+export const getLocalStorageColumnSettings = (columnSettings: any) => {
+  const defaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
+  const currentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
+  if (currentColumnSettings.length > 0) {
+    return currentColumnSettings;
+  } else if (defaultColumnSettings.length > 0) {
+    return defaultColumnSettings;
+  } else {
+    return columnSettings;
+  }
+}
+
+export const setColumnSettings = (columnSettings: any, tableWidth: any) => {
+  const colSettings = [...getLocalStorageColumnSettings(columnSettings)];
+  if (tableWidth === null) return colSettings;
+
+  const columnsWithWidth = colSettings.filter(col => col.width);
+  const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
+  const remainingWidth = tableWidth - totalWidthWithWidth;
+  const columnsWithoutWidth = colSettings.filter(col => !col.width);
+  const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
+
+  return colSettings.sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    if (a.order !== undefined) {
+      return -1;
+    }
+    if (b.order !== undefined) {
+      return 1;
+    }
+    return 0;
+  }).map((col, index) => ({
+    ...col,
+    width: col.width || `${columnWidth}px`,
+    order: index,
+  }));
+};
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

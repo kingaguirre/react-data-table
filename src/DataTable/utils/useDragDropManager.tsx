@@ -53,6 +53,7 @@ export const useDragDropManager = (
 
     setColumnSettings(orderedColumnSettings);
     onColumnSettingsChange?.(orderedColumnSettings);
+    localStorage.setItem('currentColumnSettings', JSON.stringify(orderedColumnSettings));
     setDraggedColumnIndex(null);
     setDropTargetIndex(null);
   }, [draggedColumnIndex, columnSettings, setColumnSettings, onColumnSettingsChange]);

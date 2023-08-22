@@ -51,6 +51,7 @@ export const useResizeManager = (
 
       // Trigger onColumnSettingsChange when resizing is done
       onColumnSettingsChange?.(columnSettings);
+      localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
     }
   }, [resizingColumnIndex, columnSettings, onColumnSettingsChange]);
 
