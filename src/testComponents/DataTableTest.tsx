@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DataTable, exportToCsv } from '../DataTable';
+import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -200,6 +201,32 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      
+    <SimpleDataTable
+      dataSource={dataSource}
+      columnSettings={columnSettings}
+      rowKey="userID"
+      selectable
+      collapsibleRowRender={() => (
+        <DataTable
+          dataSource={dataSource}
+          columnSettings={[{
+            column: 'userDetails.birthDay',
+            title: 'Birth Day',
+            order: 5,
+            width: "200px"
+          },
+          {
+            column: 'userDetails.firstName',
+            title: 'First Name',
+            width: "150px"
+          }]}
+          rowKey="userID"
+          clickableRow
+        />
+      )}
+    />
+<div style={{height: 100}}/>
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
     <DataTable
       dataSource={dataSource}
@@ -235,7 +262,6 @@ export default () => {
       onPageSizeChange={e => console.log(`Page size: ${e}`)}
       onSelectedRowsChange={rows => setSselectedRow(rows)}
     />
-    
     </div>
   )
 }
