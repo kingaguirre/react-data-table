@@ -27,13 +27,19 @@ export const Rows = () => {
 
   const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
-    setState({ type: SET_ACTIVE_ROW, payload: activeRow === row[rowKey] ? null : row[rowKey] });
-  }, [onRowClick, activeRow]);
+    setState({ 
+      type: SET_ACTIVE_ROW, 
+      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey) 
+    });
+  }, [onRowClick, activeRow, rowKey]);
 
   const handleRowDoubleClick = useCallback((row: any) => {
     onRowDoubleClick?.(row);
-    setState({ type: SET_ACTIVE_ROW, payload: activeRow === row[rowKey] ? null : row[rowKey] });
-  }, [onRowDoubleClick, activeRow]);
+    setState({ 
+      type: SET_ACTIVE_ROW, 
+      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey) 
+    });
+  }, [onRowDoubleClick, activeRow, rowKey]);
 
   const handleRowClick = useDoubleClick(
     (row) => handleRowSingleClick(row),
@@ -79,11 +85,13 @@ export const Rows = () => {
   return (
     <SC.TableRowsContainer isFetching={isFetching}>
       {rows.map((row, rowIndex) => {
-        const rowKeyValue = row[rowKey];
+        const rowKeyValue = getDeepValue(row, rowKey);
         let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
         const isRowCollapsed = collapsedRows.includes(rowKeyValue);
         const isActiveRow = rowKeyValue === activeRow;
-        const isSelectedRow = !!selectedRows.find(row => row[rowKey] === rowKeyValue) || !!selectedRows.includes(rowKeyValue);
+        const isSelectedRow = 
+          !!selectedRows.find(row => getDeepValue(row, rowKey) === rowKeyValue) || 
+          !!selectedRows.includes(rowKeyValue);
         return (
           <Fragment key={rowIndex}>
             <SC.TableRow
@@ -110,8 +118,8 @@ export const Rows = () => {
                 }
 
                 const rowValue = getDeepValue(row, col.column);
-                let cellContent = col.customColumnRenderer
-                  ? col.customColumnRenderer(row[col.column], row)
+                let cellContent = col.columnCustomRenderer
+                  ? col.columnCustomRenderer(rowValue, row)
                   : typeof rowValue === "object" ? JSON.stringify(rowValue) : rowValue;
 
                 if (search) {

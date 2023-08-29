@@ -9,6 +9,7 @@ export const MainHeader = () => {
     filterAll,
     downloadCSV,
     visibleRows,
+    columnSettings,
     state: { columns, search, selectedRows, tableWidth },
     setState,
     onColumnSettingsChange,
@@ -54,10 +55,9 @@ export const MainHeader = () => {
   }, [columns, onColumnSettingsChange, setState]);
 
   const handleResetClick = () => {
-    const defaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
-    localStorage.setItem('currentColumnSettings', JSON.stringify(defaultColumnSettings));
+    localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
 
-    const currentSettings = setColumnSettings(defaultColumnSettings, tableWidth);
+    const currentSettings = setColumnSettings(columnSettings, tableWidth);
     setState({ type: SET_COLUMNS, payload: currentSettings });
     onResetClick?.(currentSettings);
   };

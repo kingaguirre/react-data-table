@@ -1,6 +1,16 @@
 import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
-import { getDeepValue, useDragDropManager, useResizeManager, sortData, getTableWidth, exportToCsv, filterCheck, getLocalStorageColumnSettings, setColumnSettings } from "./utils";
+import {
+  getDeepValue,
+  useDragDropManager,
+  useResizeManager,
+  sortData,
+  getTableWidth,
+  exportToCsv,
+  filterCheck,
+  serializeColumns,
+  setColumnSettings
+} from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
 import * as SC from "./styled";
@@ -178,16 +188,12 @@ export const DataTable = (props: DataTableProps) => {
 
   /** UseEffects Start */
   useEffect(() => {
-    const defaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
-    const currentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
+    const savedCurrentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
 
-    if (!currentColumnSettings.length) {
-      localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
+    if (!savedCurrentColumnSettings.length) {
+        localStorage.setItem('currentColumnSettings', JSON.stringify(serializeColumns(columnSettings)));
     }
-    if (!defaultColumnSettings.length) {
-      localStorage.setItem('defaultColumnSettings', JSON.stringify(columnSettings));
-    }
-  }, []);
+}, []);
 
   useEffect(() => {
     if (tableRef && tableRef.current) {
@@ -225,6 +231,7 @@ export const DataTable = (props: DataTableProps) => {
         filterAll,
         downloadCSV,
         clickableRow,
+        columnSettings,
         state,
         setState,
         onMouseDown,

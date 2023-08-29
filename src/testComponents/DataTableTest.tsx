@@ -29,7 +29,8 @@ const getRandomBirthdate = () => {
 }
 
 const dataSource = Array(100).fill("").map((_, i) => ({
-  userID: `user-id${i}`,
+  userID: { value: `user-id${i}` },
+  // userID: `user-id${i}`,
   username: `test-username${i}`,
   password: `test-password${i}`,
   userDetails: {
@@ -59,6 +60,8 @@ const columnSettings = [
     title: 'Username',
     align: 'center',
     pinned: true,
+    groupTitle: 'test',
+    order: 0,
     filterBy: {
       type: 'text',
       // value: "0"
@@ -68,20 +71,21 @@ const columnSettings = [
     column: 'password',
     title: 'Password',
     width: '200px',
-    sorted: 'none'
+    sorted: 'none',
+    order: 1,
   },
   {
     column: 'userDetails.email',
     title: 'Email',
     groupTitle: 'User Details',
-    order: 1,
+    order: 3,
     pinned: true
   },
   {
     column: 'userDetails.isAdmin',
     title: 'Is Admin',
     groupTitle: 'User Details',
-    order: 0,
+    order: 2,
     pinned: 'none',
     filterBy: {
       type: 'select',
@@ -114,7 +118,7 @@ const columnSettings = [
   {
     column: 'userDetails.age',
     title: 'Age',
-    groupTitle: 'User Details',
+    groupTitle: 'test Details',
     order: 4,
     filterBy: {
       type: 'number-range',
@@ -172,12 +176,12 @@ const columnSettings = [
     hidden: true
   },
   {
-    column: 'userID',
+    column: 'userID.value',
     title: '#',
     pinned: "none",
     sorted: "none",
     align: "center",
-    customColumnRenderer: (value) => <button onClick={e => {
+    columnCustomRenderer: (value) => <button onClick={e => {
       e.stopPropagation();
       console.log(`button ${value} clicked`)
     }} style={{fontSize: 5}}>Button {value}</button>
@@ -201,6 +205,43 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
+      <DataTable
+      dataSource={dataSource}
+      columnSettings={columnSettings}
+      onRowClick={handleRowClick}
+      onRowDoubleClick={handleRowDoubleClick}
+      rowKey="userID"
+      activeRow="user-id2"
+      // selectedRows={[{"userID": { "value": "user-id0" }}]}
+      // selectedRows={[{"userID": "user-id0"}]}
+      selectedRows={["user-id0"]}
+      selectable
+      downloadCSV
+      collapsibleRowRender={() => (
+        <DataTable
+          dataSource={dataSource}
+          columnSettings={[{
+            column: 'userDetails.birthDay',
+            title: 'Birth Day',
+            order: 5,
+            width: "200px"
+          },
+          {
+            column: 'userDetails.firstName',
+            title: 'First Name',
+            width: "150px"
+          }]}
+          rowKey="userID.value"
+          clickableRow
+        />
+      )}
+      onColumnSettingsChange={handleColumnSettingsChange}
+      onPageIndexChange={e => console.log(`Page index: ${e}`)}
+      onPageSizeChange={e => console.log(`Page size: ${e}`)}
+      onSelectedRowsChange={rows => setSselectedRow(rows)}
+    />
+<div style={{height: 100}}/>
       
     <SimpleDataTable
       dataSource={dataSource}
@@ -226,42 +267,8 @@ export default () => {
         />
       )}
     />
-<div style={{height: 100}}/>
-      <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
-    <DataTable
-      dataSource={dataSource}
-      columnSettings={columnSettings}
-      onRowClick={handleRowClick}
-      onRowDoubleClick={handleRowDoubleClick}
-      rowKey="userID"
-      activeRow="user-id2"
-      // selectedRows={[{"userID": "user-id0"}]}
-      selectedRows={["user-id0"]}
-      selectable
-      downloadCSV
-      collapsibleRowRender={() => (
-        <DataTable
-          dataSource={dataSource}
-          columnSettings={[{
-            column: 'userDetails.birthDay',
-            title: 'Birth Day',
-            order: 5,
-            width: "200px"
-          },
-          {
-            column: 'userDetails.firstName',
-            title: 'First Name',
-            width: "150px"
-          }]}
-          rowKey="userID"
-          clickableRow
-        />
-      )}
-      onColumnSettingsChange={handleColumnSettingsChange}
-      onPageIndexChange={e => console.log(`Page index: ${e}`)}
-      onPageSizeChange={e => console.log(`Page size: ${e}`)}
-      onSelectedRowsChange={rows => setSselectedRow(rows)}
-    />
+
+    
     </div>
   )
 }

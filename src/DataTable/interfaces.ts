@@ -40,6 +40,6 @@ export interface ColumnSettings {
   groupTitle?: string;
   order?: number;
   sorted?: 'asc' | 'desc' | string;
-  customColumnRenderer?: (value: any, rowData: any) => React.ReactNode;
+  columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
 }
 

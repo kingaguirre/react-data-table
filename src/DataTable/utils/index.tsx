@@ -83,7 +83,7 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
     return columns
       .filter(col => !col.hidden)
       .map(col => {
-        let cell = col.customColumnRenderer ? col.customColumnRenderer(row[col.column], row) : getDeepValue(row, col.column);
+        let cell = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
         cell = (cell === null || cell === undefined) ? '' : cell.toString();
         if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
           cell = `"${cell.replace(/"/g, '""')}"`;
@@ -133,7 +133,7 @@ export const exportToExcel = (filename: string, rows: any[], columns: any) => {
 
   const dataRows = rows.map(row => {
     return createRow(columns.filter(col => !col.hidden).map(col => {
-      const cellValue = col.customColumnRenderer ? col.customColumnRenderer(row[col.column], row) : getDeepValue(row, col.column);
+      const cellValue = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
       return cellValue === null || cellValue === undefined ? '' : cellValue.toString();
     }));
   });
@@ -197,12 +197,16 @@ export const filterCheck = (filterValue: any, rowValue: string, filterType: stri
 }
 
 export const getLocalStorageColumnSettings = (columnSettings: any) => {
-  const defaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
-  const currentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
-  if (currentColumnSettings.length > 0) {
-    return currentColumnSettings;
-  } else if (defaultColumnSettings.length > 0) {
-    return defaultColumnSettings;
+  const savedDefaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
+  const savedCurrentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
+
+  const mergedDefaultSettings = mergeColumnSettings(columnSettings, savedDefaultColumnSettings);
+  const mergedCurrentSettings = mergeColumnSettings(columnSettings, savedCurrentColumnSettings);
+
+  if (mergedCurrentSettings.length > 0) {
+    return mergedCurrentSettings;
+  } else if (mergedDefaultSettings.length > 0) {
+    return mergedDefaultSettings;
   } else {
     return columnSettings;
   }
@@ -235,6 +239,20 @@ export const setColumnSettings = (columnSettings: any, tableWidth: any) => {
     order: index,
   }));
 };
+
+export const serializeColumns = (columns) => {
+  return columns.map(({ columnCustomRenderer, ...rest }) => rest);
+}
+
+export const mergeColumnSettings = (originalColumns, savedColumns) => {
+  return originalColumns.map((column) => {
+      const savedColumn = savedColumns.find((sc) => sc.column === column.column); // Assuming 'column' is a unique identifier
+      return {
+          ...column,
+          ...savedColumn,
+      };
+  });
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
