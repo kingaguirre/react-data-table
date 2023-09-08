@@ -211,11 +211,11 @@ export default () => {
       columnSettings={columnSettings}
       onRowClick={handleRowClick}
       onRowDoubleClick={handleRowDoubleClick}
-      rowKey="userID"
+      rowKey="userID.value"
       activeRow="user-id2"
-      // selectedRows={[{"userID": { "value": "user-id0" }}]}
+      selectedRows={[{"userID": { "value": "user-id0" }}]}
       // selectedRows={[{"userID": "user-id0"}]}
-      selectedRows={["user-id0"]}
+      // selectedRows={["user-id0"]}
       selectable
       downloadCSV
       collapsibleRowRender={() => (

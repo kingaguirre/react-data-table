@@ -56,17 +56,19 @@ export const Rows = () => {
   
     const normalizedSelectedRows = normalizeSelectedRows(selectedRows);
   
+    const rowKeyValue = getDeepValue(row, rowKey); // Correctly fetch the deep value
+  
     const isSelectedRow = normalizedSelectedRows.find(
-      (r) => r[rowKey] === row[rowKey]
+      (r) => getDeepValue(r, rowKey) === rowKeyValue // Compare using the deep value
     );
   
     const payload = isSelectedRow
-      ? normalizedSelectedRows.filter((r) => r[rowKey] !== row[rowKey])
+      ? normalizedSelectedRows.filter((r) => getDeepValue(r, rowKey) !== rowKeyValue) // Compare using the deep value
       : [...normalizedSelectedRows, row];
   
     onSelectedRowsChange?.(payload);
     setState({ type: SET_SELECTED_ROWS, payload });
-  }, [selectedRows]);
+  }, [selectedRows, rowKey, onSelectedRowsChange, setState]);
 
   /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
   const isFetching = fetchConfig && fetchedData.fetching;
@@ -90,8 +92,12 @@ export const Rows = () => {
         const isRowCollapsed = collapsedRows.includes(rowKeyValue);
         const isActiveRow = rowKeyValue === activeRow;
         const isSelectedRow = 
-          !!selectedRows.find(row => getDeepValue(row, rowKey) === rowKeyValue) || 
-          !!selectedRows.includes(rowKeyValue);
+          !!selectedRows.find(selectedRow => {
+            // This will get the deep value if it's an object or just return the value if it's a string or number.
+            const selectedRowKeyValue = typeof selectedRow === 'object' ? getDeepValue(selectedRow, rowKey) : selectedRow;
+            return selectedRowKeyValue === rowKeyValue;
+          });
+
         return (
           <Fragment key={rowIndex}>
             <SC.TableRow
