@@ -9,7 +9,7 @@ import {
   exportToCsv,
   filterCheck,
   serializeColumns,
-  setColumnSettings
+  setColumnSettings,
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
@@ -31,11 +31,11 @@ export const DataTable = (props: DataTableProps) => {
   const {
     dataSource,
     columnSettings,
-    pageSize = 5,
-    pageIndex = 0,
+    fetchConfig,
+    pageSize = fetchConfig?.requestData?.pageSize || 5,
+    pageIndex = (fetchConfig?.requestData?.pageNumber !== undefined ? fetchConfig.requestData.pageNumber - 1 : undefined) || 0,
     selectable = false,
     rowKey,
-    fetchConfig,
     collapsibleRowHeight,
     filterAll = true,
     downloadCSV = false,
@@ -58,10 +58,13 @@ export const DataTable = (props: DataTableProps) => {
     selectedRows,
     localPageIndex: pageIndex,
     localPageSize: pageSize,
-    filterValues: columnSettings.reduce((initialValues, col: ColumnSettings) => ({
-      ...initialValues,
-      [col.column]: col.filterBy ? col.filterBy.value : "",
-    }), {})
+    filterValues: {
+      ...columnSettings.reduce((initialValues, col: ColumnSettings) => ({
+        ...initialValues,
+        [col.column]: col.filterBy ? col.filterBy.value : "",
+      }), {}),
+      ...(fetchConfig?.requestData?.filter || {}),
+    }
   } as IReducerState);
   /** Reducer End */
 
@@ -108,7 +111,9 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos End */
 
   /** Callback Start */
-  const fetchWithPagination = useCallback(async (pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none') => {
+  const fetchWithPagination = useCallback(async (
+    pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter
+  ) => {
     if (fetchConfig) {
       /** Keep current data and totalData */
       setState({
@@ -120,25 +125,25 @@ export const DataTable = (props: DataTableProps) => {
 
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
-      const endpointWithPagination = endpoint
-        .replace('{pageNumber}', (pageIndex + 1).toString())
-        .replace('{pageSize}', pageSize.toString())
-        .replace('{searchString}', searchString)
-        .replace('{sortColumn}', sortColumn)
-        .replace('{sortDirection}', sortDirection);
-
       try {
-        const response: any = await fetch(endpointWithPagination, {
-          method: requestData ? 'POST' : 'GET',
+        const requestBody = {
+          ...requestData,
+          pageNumber: pageIndex + 1,
+          pageSize,
+          searchString,
+          sortColumn,
+          sortDirection,
+          filter
+        };
+
+        const response: any = await fetch(endpoint, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch with status ${response.status}`);
-        }
-
-        if (requestData) {
-          response.body = JSON.stringify(requestData)
         }
 
         const data = await response.json();
@@ -149,7 +154,6 @@ export const DataTable = (props: DataTableProps) => {
         setState({
           type: SET_FETCHED_DATA,
           payload: {
-            /** set to null if undefined or null */
             data: fetchedData !== null && fetchedData !== undefined ? fetchedData : null,
             totalData: totalData || state.fetchedData.totalData,
             fetching: false
@@ -164,11 +168,10 @@ export const DataTable = (props: DataTableProps) => {
             fetching: false
           }
         });
-        console.error("There was an issue fetching the endpoint. Please try again later.")
+        console.error(error)
       }
     }
   }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
-
   /** Callback End */
 
   /** Custom Functions Start */
@@ -191,9 +194,9 @@ export const DataTable = (props: DataTableProps) => {
     const savedCurrentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
 
     if (!savedCurrentColumnSettings.length) {
-        localStorage.setItem('currentColumnSettings', JSON.stringify(serializeColumns(columnSettings)));
+      localStorage.setItem('currentColumnSettings', JSON.stringify(serializeColumns(columnSettings)));
     }
-}, []);
+  }, []);
 
   useEffect(() => {
     if (tableRef && tableRef.current) {
@@ -211,10 +214,10 @@ export const DataTable = (props: DataTableProps) => {
         const sortColumn = sortedColumn?.column || 'none';
         const sortDirection = sortedColumn?.sorted || 'none';
 
-        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection);
+        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection, state.filterValues);
       }
     }
-  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, pageIndex, pageSize]);
+  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, state.filterValues, pageIndex, pageSize]);
   /** UseEffects End */
 
   return (

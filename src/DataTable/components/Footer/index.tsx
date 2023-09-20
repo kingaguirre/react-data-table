@@ -37,8 +37,7 @@ export const Footer = () => {
     <SC.TableFooter>
       {totalData > 0 ? (
         <SC.InfoContainer>
-          Displaying <b>{start}</b> to <b>{end}</b> of <b>{totalData}</b> Records
-          {/* | <i className="fa fa-refresh"/> */}
+          Displaying <b>{totalData > start? start : totalData}</b> to <b>{end}</b> of <b>{totalData}</b> Records
         </SC.InfoContainer>
       ) : (
         <SC.InfoContainer>

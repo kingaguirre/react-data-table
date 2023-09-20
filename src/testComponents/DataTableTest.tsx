@@ -205,43 +205,91 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <DataTable
+        fetchConfig={{
+          endpoint: "http://localhost:3001/custom-items",
+          responseTotalDataPath: "data.count",
+          responseDataPath: "data.dataTableItem",
+          requestData: {
+            pageNumber: 1,
+            pageSize: 10,
+            filter: {
+              username: "test-username1",
+            }
+          }
+        }}
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID"
+        activeRow="user-id2"
+        selectedRows={[{"userID": { "value": "user-id0" }}]}
+        // selectedRows={[{"userID": "user-id0"}]}
+        // selectedRows={["user-id0"]}
+        selectable
+        downloadCSV
+        collapsibleRowRender={() => (
+          <DataTable
+            dataSource={dataSource}
+            columnSettings={[{
+              column: 'userDetails.birthDay',
+              title: 'Birth Day',
+              order: 5,
+              width: "200px"
+            },
+            {
+              column: 'userDetails.firstName',
+              title: 'First Name',
+              width: "150px"
+            }]}
+            rowKey="userID.value"
+            clickableRow
+          />
+        )}
+        onColumnSettingsChange={handleColumnSettingsChange}
+        onPageIndexChange={e => console.log(`Page index: ${e}`)}
+        onPageSizeChange={e => console.log(`Page size: ${e}`)}
+        onSelectedRowsChange={rows => setSselectedRow(rows)}
+      />
+      <div style={{height: 100}}/>
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <DataTable
-      dataSource={dataSource}
-      columnSettings={columnSettings}
-      onRowClick={handleRowClick}
-      onRowDoubleClick={handleRowDoubleClick}
-      rowKey="userID.value"
-      activeRow="user-id2"
-      selectedRows={[{"userID": { "value": "user-id0" }}]}
-      // selectedRows={[{"userID": "user-id0"}]}
-      // selectedRows={["user-id0"]}
-      selectable
-      downloadCSV
-      collapsibleRowRender={() => (
-        <DataTable
-          dataSource={dataSource}
-          columnSettings={[{
-            column: 'userDetails.birthDay',
-            title: 'Birth Day',
-            order: 5,
-            width: "200px"
-          },
-          {
-            column: 'userDetails.firstName',
-            title: 'First Name',
-            width: "150px"
-          }]}
-          rowKey="userID.value"
-          clickableRow
-        />
-      )}
-      onColumnSettingsChange={handleColumnSettingsChange}
-      onPageIndexChange={e => console.log(`Page index: ${e}`)}
-      onPageSizeChange={e => console.log(`Page size: ${e}`)}
-      onSelectedRowsChange={rows => setSselectedRow(rows)}
-    />
-<div style={{height: 100}}/>
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID.value"
+        activeRow="user-id2"
+        selectedRows={[{"userID": { "value": "user-id0" }}]}
+        // selectedRows={[{"userID": "user-id0"}]}
+        // selectedRows={["user-id0"]}
+        selectable
+        downloadCSV
+        collapsibleRowRender={() => (
+          <DataTable
+            dataSource={dataSource}
+            columnSettings={[{
+              column: 'userDetails.birthDay',
+              title: 'Birth Day',
+              order: 5,
+              width: "200px"
+            },
+            {
+              column: 'userDetails.firstName',
+              title: 'First Name',
+              width: "150px"
+            }]}
+            rowKey="userID.value"
+            clickableRow
+          />
+        )}
+        onColumnSettingsChange={handleColumnSettingsChange}
+        onPageIndexChange={e => console.log(`Page index: ${e}`)}
+        onPageSizeChange={e => console.log(`Page size: ${e}`)}
+        onSelectedRowsChange={rows => setSselectedRow(rows)}
+      />
+    <div style={{height: 100}}/>
       
     <SimpleDataTable
       dataSource={dataSource}

@@ -254,5 +254,16 @@ export const mergeColumnSettings = (originalColumns, savedColumns) => {
   });
 }
 
+export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, filterValues: { [key: string]: any }): { [key: string]: any } => {
+  const validFilterValues = Object.entries(filterValues)
+      .filter(([, value]) => value !== "")
+      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+      
+  if (defaultFilter) {
+      return { ...defaultFilter, ...validFilterValues };
+  }
+  return validFilterValues;
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

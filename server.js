@@ -5,6 +5,8 @@ const middlewares = jsonServer.defaults();
 
 server.use(middlewares);
 
+server.use(jsonServer.bodyParser);
+
 function deepSearch(obj, searchString) {
   if (typeof obj === 'string' || typeof obj === 'number') {
     return String(obj).toLowerCase().includes(searchString.toLowerCase());
@@ -25,9 +27,8 @@ function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => (acc && acc[part]) ? acc[part] : null, obj);
 }
 
-server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (req, res) => {
-  const { pageNumber, pageSize, sortColumn, sortDirection } = req.params;
-  const searchString = req.query.searchString || '';
+server.post('/custom-items', (req, res) => {
+  const { pageNumber, pageSize, searchString, sortColumn, sortDirection, filter } = req.body;
 
   if (!pageNumber || !pageSize) {
     console.error('Both pageNumber and pageSize parameters are required');
@@ -42,6 +43,26 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
 
   if (searchString) {
     items = items.filter(item => deepSearch(item, searchString));
+  }
+
+  if (filter && typeof filter === 'object') {
+    items = items.filter(item => {
+      return Object.entries(filter).every(([key, value]) => {
+        if (!value) return true; // If filter value is empty, don't apply the filter
+  
+        const itemValue = getNestedValue(item, key);
+        if (itemValue === null || itemValue === undefined) return false; // If the item doesn't have the key, filter it out
+  
+        if (Array.isArray(itemValue) && /\[\d+\]/.test(key)) {
+          // If the key indicates a specific array index, like userAccounts[0], 
+          // then we only want to match against that specific index
+          const arrayIndex = Number(key.match(/(\d+)/)[1]);
+          return String(itemValue[arrayIndex] || '').toLowerCase().includes(String(value).toLowerCase());
+        }
+  
+        return String(itemValue).toLowerCase().includes(String(value).toLowerCase());
+      });
+    });
   }
 
   if (sortColumn !== 'none' && sortDirection !== 'none') {
@@ -67,6 +88,6 @@ server.get('/custom-items/:pageNumber/:pageSize/:sortColumn/:sortDirection', (re
 });
 
 server.use(router);
-server.listen(3000, () => {
+server.listen(3001, () => {
   console.log('JSON Server is running');
 });

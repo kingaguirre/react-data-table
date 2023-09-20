@@ -1,9 +1,18 @@
+interface RequestData {
+  pageNumber: number;
+  pageSize: string | number;
+  sortColumn?: string;
+  sortDirection?: string;
+  filter?: { [key: string]: any }; // Add filter property
+}
+
 interface FetchConfig {
-  endpoint: string; // Endpoint string should have {pageNumber}, {pageSize}, {searchString}
-  requestData?: any;
+  endpoint: string; // Endpoint string
+  requestData?: RequestData;
   responseDataPath?: string; // Path to the array of 'data' from api response.
   responseTotalDataPath?: string; // Path to the 'totalData' from api response.
 }
+
 export interface DataTableProps {
   dataSource?: any[];
   columnSettings: ColumnSettings[];
