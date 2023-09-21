@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
 import { exportToCsv, exportToExcel, setColumnSettings } from "../../utils";
-import { SET_COLUMNS, SET_SEARCH, SET_FILTER_VALUES} from "../../context/actions";
+import { SET_COLUMNS, SET_SEARCH, SET_ADVANCE_FILTER_VALUES} from "../../context/actions";
 import { DataTableContext } from "../../index";
 import FilterComponent from "../FilterComponent";
 import * as SC from "./styled";
@@ -12,7 +12,7 @@ export const MainHeader = () => {
     visibleRows,
     columnSettings,
     filterSettings,
-    state: { columns, search, selectedRows, tableWidth, filterValues },
+    state: { columns, search, selectedRows, tableWidth },
     setState,
     onColumnSettingsChange,
     onResetClick,
@@ -65,7 +65,7 @@ export const MainHeader = () => {
     onResetClick?.(currentSettings);
   };
 
-  const setFilterValues = (values: any) => setState({ type: SET_FILTER_VALUES, payload: {...filterValues, ...values}});
+  const setFilterValues = (values: any) => setState({ type: SET_ADVANCE_FILTER_VALUES, payload: values});
 
   return (
     <SC.MainHeaderWrapper>

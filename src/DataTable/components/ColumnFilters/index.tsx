@@ -100,14 +100,14 @@ export const ColumnFilters = () => {
                 <div>
                   <input
                     className="sm"
-                    type="number"
+                    type="date"
                     value={filterValues[col.column]?.min || ""}
                     onChange={e => handleSetFilterObjValues(e.target.value, col.column, true)}
                     placeholder="Min"
                   />
                   <input
                     className="sm"
-                    type="number"
+                    type="date"
                     value={filterValues[col.column]?.max || ""}
                     onChange={e => handleSetFilterObjValues(e.target.value, col.column, false)}
                     placeholder="Max"

@@ -9,6 +9,7 @@ import {
   SET_SELECTED_ROWS,
   SET_FILTER_VALUES,
   SET_FETCHED_DATA,
+  SET_ADVANCE_FILTER_VALUES,
 } from "./actions";
 
 interface IFetchedData {
@@ -25,6 +26,7 @@ export interface IReducerState {
   activeRow: string | null;
   selectedRows: string[];
   filterValues: any;
+  advanceFilterValues: any;
   fetchedData?: IFetchedData
 }
 
@@ -42,6 +44,7 @@ export const initialState: IReducerState = {
   activeRow: null,
   selectedRows: [],
   filterValues: {},
+  advanceFilterValues: {},
   fetchedData: { data: undefined, totalData: 0, fetching: false },
 }
 const dataTableReducer = (state: IReducerState, action: IAction) => {
@@ -62,6 +65,8 @@ const dataTableReducer = (state: IReducerState, action: IAction) => {
       return { ...state, selectedRows: action.payload };
     case SET_FILTER_VALUES:
       return { ...state, filterValues: action.payload };
+    case SET_ADVANCE_FILTER_VALUES:
+      return { ...state, advanceFilterValues: action.payload };
     case SET_FETCHED_DATA:
       return { ...state, fetchedData: action.payload };
     default:

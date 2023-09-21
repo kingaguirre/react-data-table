@@ -65,8 +65,10 @@ export const DataTable = (props: DataTableProps) => {
         [col.column]: col.filterBy ? col.filterBy.value : "",
       }), {}),
       ...(fetchConfig?.requestData?.filter || {}),
-      ...(getAdvanceFilterSettingsObj(fetchConfig?.filterSettings))
-    }
+    },
+    ...(!!fetchConfig ? {
+      advanceFilterValues: getAdvanceFilterSettingsObj(fetchConfig?.filterSettings)
+    } : {})
   } as IReducerState);
   /** Reducer End */
 
@@ -114,7 +116,7 @@ export const DataTable = (props: DataTableProps) => {
 
   /** Callback Start */
   const fetchWithPagination = useCallback(async (
-    pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter
+    pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter, advanceFilter
   ) => {
     if (fetchConfig) {
       /** Keep current data and totalData */
@@ -135,7 +137,7 @@ export const DataTable = (props: DataTableProps) => {
           searchString,
           sortColumn,
           sortDirection,
-          filter
+          filter: {...filter, ...advanceFilter}
         };
         console.log(requestBody)
 
@@ -217,10 +219,10 @@ export const DataTable = (props: DataTableProps) => {
         const sortColumn = sortedColumn?.column || 'none';
         const sortDirection = sortedColumn?.sorted || 'none';
 
-        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection, state.filterValues);
+        fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection, state.filterValues, state.advanceFilterValues);
       }
     }
-  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, state.filterValues, pageIndex, pageSize]);
+  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, state.filterValues, state.advanceFilterValues, pageIndex, pageSize]);
   /** UseEffects End */
 
   return (

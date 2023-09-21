@@ -18,13 +18,15 @@ const SideMenu = styled.div`
     border-right: 1px solid black;
 `;
 
-const MenuItem = styled.div`
+const MenuItem = styled.div<{ isSelected: boolean }>`
     padding: 10px;
     cursor: pointer;
+    background-color: ${props => props.isSelected ? '#f5f5f5' : 'transparent'};
     &:hover {
         background-color: #f5f5f5;
     }
 `;
+
 
 const Content = styled.div`
     width: 80%;
@@ -85,7 +87,7 @@ export default (props: FilterComponentProps) => {
       if (setting.id === selectedMenu) {
         return {
           ...setting,
-          fields: setting.fields.map(field => 
+          fields: setting.fields.map(field =>
             field.id === id ? { ...field, value: value } : field
           )
         };
@@ -112,12 +114,13 @@ export default (props: FilterComponentProps) => {
   };
 
   const applyChanges = () => {
-    if (defaultSetting) {
-      const defaultValues = defaultSetting.fields.reduce((acc, field) => {
+    const selectedSetting = filterSettings.find(setting => setting.id === selectedMenu);
+    if (selectedSetting) {
+      const selectedValues = selectedSetting.fields.reduce((acc, field) => {
         acc[field.id] = fieldValues[field.id] || field.value;
         return acc;
       }, {} as { [key: string]: string });
-      onApply(defaultValues);
+      onApply(selectedValues);
     }
   };
 
@@ -125,16 +128,17 @@ export default (props: FilterComponentProps) => {
     // Find the currently selected menu
     const selectedSetting = filterSettings.find(setting => setting.id === selectedMenu);
     if (selectedSetting && cloneMenuName) {
-      // Clone the selected menu and update the id and title based on the input
+      // Clone the selected menu and update the id, title, and default value based on the input
       const clonedSetting: Setting = {
         ...selectedSetting,
         id: `${selectedSetting.id}-clone-${Date.now()}`, // Just to make sure it's unique
-        title: cloneMenuName
+        title: cloneMenuName,
+        default: false // Ensure the cloned setting's default value is always false
       };
-
+  
       const updatedSettings = [...filterSettings, clonedSetting];
       setFilterSettings(updatedSettings);
-      
+  
       // Trigger onChange with new settings if provided
       onChange?.(updatedSettings);
     }
@@ -147,6 +151,7 @@ export default (props: FilterComponentProps) => {
           {filterSettings.map(setting => (
             <MenuItem
               key={setting.id}
+              isSelected={setting.id === selectedMenu}
               onClick={() => setSelectedMenu(setting.id)}>
               {setting.title}
             </MenuItem>
