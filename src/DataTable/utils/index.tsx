@@ -265,5 +265,21 @@ export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, 
   return validFilterValues;
 };
 
+export const getAdvanceFilterSettingsObj = (filterSettings: any[]): { [key: string]: string } => {
+  if (!filterSettings) return {};
+
+  // Find the first setting that has default: true
+  const defaultSetting = filterSettings.find(setting => setting.default);
+
+  // If there's no default setting, return an empty object
+  if (!defaultSetting) return {};
+
+  return defaultSetting.fields.reduce((acc, field) => {
+    acc[field.id] = field.value;
+    return acc;
+  }, {} as { [key: string]: string });
+};
+
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

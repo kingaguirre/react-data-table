@@ -11,6 +11,7 @@ interface FetchConfig {
   requestData?: RequestData;
   responseDataPath?: string; // Path to the array of 'data' from api response.
   responseTotalDataPath?: string; // Path to the 'totalData' from api response.
+  filterSettings?: any
 }
 
 export interface DataTableProps {

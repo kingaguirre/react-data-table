@@ -1,7 +1,8 @@
 import React, { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
 import { exportToCsv, exportToExcel, setColumnSettings } from "../../utils";
-import { SET_COLUMNS, SET_SEARCH} from "../../context/actions";
+import { SET_COLUMNS, SET_SEARCH, SET_FILTER_VALUES} from "../../context/actions";
 import { DataTableContext } from "../../index";
+import FilterComponent from "../FilterComponent";
 import * as SC from "./styled";
 
 export const MainHeader = () => {
@@ -10,7 +11,8 @@ export const MainHeader = () => {
     downloadCSV,
     visibleRows,
     columnSettings,
-    state: { columns, search, selectedRows, tableWidth },
+    filterSettings,
+    state: { columns, search, selectedRows, tableWidth, filterValues },
     setState,
     onColumnSettingsChange,
     onResetClick,
@@ -20,6 +22,7 @@ export const MainHeader = () => {
   const toggleButtonRef: any = useRef<any>(null);
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,6 +65,8 @@ export const MainHeader = () => {
     onResetClick?.(currentSettings);
   };
 
+  const setFilterValues = (values: any) => setState({ type: SET_FILTER_VALUES, payload: {...filterValues, ...values}});
+
   return (
     <SC.MainHeaderWrapper>
       {!!filterAll && (
@@ -74,6 +79,18 @@ export const MainHeader = () => {
           />
           <i className="fa fa-search"/>
         </SC.SearchWrapper>
+      )}
+      {!!filterSettings && !!filterSettings.length && (
+        <> 
+          <button onClick={() => setShowFilter(!showFilter)}>Filter</button>
+          {showFilter && (
+            <FilterComponent
+              filterSettings={filterSettings}
+              onApply={(values) => setFilterValues(values)}
+              onChange={(data) => console.log(data)}
+            />
+          )}
+        </>
       )}
       <SC.ControlsWrapper>
         {!!downloadCSV && (

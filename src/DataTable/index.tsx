@@ -10,6 +10,7 @@ import {
   filterCheck,
   serializeColumns,
   setColumnSettings,
+  getAdvanceFilterSettingsObj
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
@@ -64,6 +65,7 @@ export const DataTable = (props: DataTableProps) => {
         [col.column]: col.filterBy ? col.filterBy.value : "",
       }), {}),
       ...(fetchConfig?.requestData?.filter || {}),
+      ...(getAdvanceFilterSettingsObj(fetchConfig?.filterSettings))
     }
   } as IReducerState);
   /** Reducer End */
@@ -135,6 +137,7 @@ export const DataTable = (props: DataTableProps) => {
           sortDirection,
           filter
         };
+        console.log(requestBody)
 
         const response: any = await fetch(endpoint, {
           method: 'POST',
@@ -234,6 +237,7 @@ export const DataTable = (props: DataTableProps) => {
         filterAll,
         downloadCSV,
         clickableRow,
+        filterSettings: fetchConfig?.filterSettings,
         columnSettings,
         state,
         setState,

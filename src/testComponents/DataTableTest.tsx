@@ -216,7 +216,57 @@ export default () => {
             filter: {
               username: "test-username1",
             }
-          }
+          },
+          filterSettings: [{
+            id: "ack-settings",
+            title: "Ack Settings",
+            fields: [{
+                id: "keyID1",
+                type: "text",
+                value: "test"
+            }, {
+                id: "keyID2",
+                type: "select",
+                value: "test-dropdown",
+                options: [{
+                    value: "test-dropdown",
+                    text: "Test Dropdown"
+                }, {
+                    value: "test-dropdown1",
+                    text: "Test Dropdown 1"
+                }, {
+                    value: "test-dropdown2",
+                    text: "Test Dropdown 2"
+                }]
+            }]
+        }, {
+          id: "trn-settings",
+          title: "TRN Settings",
+          default: true,
+          fields: [{
+              id: "keyID11",
+              type: "text",
+              value: "test"
+          }, {
+              id: "keyID21",
+              type: "select",
+              value: "test-dropdown",
+              options: [{
+                  value: "test-dropdown",
+                  text: "Test Dropdown"
+              }, {
+                  value: "test-dropdown1",
+                  text: "Test Dropdown 1"
+              }, {
+                  value: "test-dropdown2",
+                  text: "Test Dropdown 2"
+              }]
+          }, {
+            id: "keyID111",
+            type: "text",
+            value: "testtestest"
+        },]
+      }]
         }}
         dataSource={dataSource}
         columnSettings={columnSettings}

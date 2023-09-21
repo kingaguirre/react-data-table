@@ -49,17 +49,20 @@ server.post('/custom-items', (req, res) => {
     items = items.filter(item => {
       return Object.entries(filter).every(([key, value]) => {
         if (!value) return true; // If filter value is empty, don't apply the filter
-  
+
+        // Check if any item has this key
+        if (!item.hasOwnProperty(key.split('.')[0])) return true; // If the item doesn't have the key, ignore the filter
+
         const itemValue = getNestedValue(item, key);
         if (itemValue === null || itemValue === undefined) return false; // If the item doesn't have the key, filter it out
-  
+
         if (Array.isArray(itemValue) && /\[\d+\]/.test(key)) {
           // If the key indicates a specific array index, like userAccounts[0], 
           // then we only want to match against that specific index
           const arrayIndex = Number(key.match(/(\d+)/)[1]);
           return String(itemValue[arrayIndex] || '').toLowerCase().includes(String(value).toLowerCase());
         }
-  
+
         return String(itemValue).toLowerCase().includes(String(value).toLowerCase());
       });
     });
@@ -69,7 +72,7 @@ server.post('/custom-items', (req, res) => {
     items = items.sort((a, b) => {
       const aValue = String(getNestedValue(a, sortColumn) || ''); // handle undefined values
       const bValue = String(getNestedValue(b, sortColumn) || '');
-      
+
       if (sortDirection === 'asc') {
         return aValue.localeCompare(bValue);
       } else {
@@ -83,7 +86,7 @@ server.post('/custom-items', (req, res) => {
 
   // Simulate a slow API response with a timeout
   // setTimeout(() => {
-    res.json({ data: { dataTableItem: data, count: totalItems } });
+  res.json({ data: { dataTableItem: data, count: totalItems } });
   // }, 1000); // 2-second delay
 });
 
