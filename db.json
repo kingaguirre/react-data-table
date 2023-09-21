@@ -1,21 +1,24 @@
 {
   "items": [
     {
-      "userID": "user-id0",
+      "userID": {
+        "value": "user-id0"
+      },
       "username": "test-username0",
       "password": "test-password0",
       "userDetails": {
         "email": "test0@email.com",
         "isAdmin": true,
         "other": "other value0",
-        "birthDay": "24-08-1990",
+        "birthDay": "1970-09-21T07:48:15.905Z",
         "firstName": "John0",
         "lastName": "Doe0",
         "phoneNumber": "123-456-7800",
         "address": "023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10000"
+        "zipCode": "10000",
+        "age": 49
       },
       "userAccounts": [
         {
@@ -32,21 +35,24 @@
       ]
     },
     {
-      "userID": "user-id1",
+      "userID": {
+        "value": "user-id1"
+      },
       "username": "test-username1",
       "password": "test-password1",
       "userDetails": {
         "email": "test1@email.com",
         "isAdmin": false,
         "other": "other value1",
-        "birthDay": "24-08-1991",
+        "birthDay": "1955-09-21T07:48:15.905Z",
         "firstName": "John1",
         "lastName": "Doe1",
         "phoneNumber": "123-456-7810",
         "address": "123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10001"
+        "zipCode": "10001",
+        "age": 43
       },
       "userAccounts": [
         {
@@ -63,21 +69,24 @@
       ]
     },
     {
-      "userID": "user-id2",
+      "userID": {
+        "value": "user-id2"
+      },
       "username": "test-username2",
       "password": "test-password2",
       "userDetails": {
         "email": "test2@email.com",
         "isAdmin": true,
         "other": "other value2",
-        "birthDay": "24-08-1992",
+        "birthDay": "1966-09-21T07:48:15.905Z",
         "firstName": "John2",
         "lastName": "Doe2",
         "phoneNumber": "123-456-7820",
         "address": "223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10002"
+        "zipCode": "10002",
+        "age": 38
       },
       "userAccounts": [
         {
@@ -94,21 +103,24 @@
       ]
     },
     {
-      "userID": "user-id3",
+      "userID": {
+        "value": "user-id3"
+      },
       "username": "test-username3",
       "password": "test-password3",
       "userDetails": {
         "email": "test3@email.com",
         "isAdmin": false,
         "other": "other value3",
-        "birthDay": "24-08-1993",
+        "birthDay": "1946-09-21T07:48:15.905Z",
         "firstName": "John3",
         "lastName": "Doe3",
         "phoneNumber": "123-456-7830",
         "address": "323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10003"
+        "zipCode": "10003",
+        "age": 65
       },
       "userAccounts": [
         {
@@ -125,21 +137,24 @@
       ]
     },
     {
-      "userID": "user-id4",
+      "userID": {
+        "value": "user-id4"
+      },
       "username": "test-username4",
       "password": "test-password4",
       "userDetails": {
         "email": "test4@email.com",
         "isAdmin": true,
         "other": "other value4",
-        "birthDay": "24-08-1994",
+        "birthDay": "1946-09-21T07:48:15.905Z",
         "firstName": "John4",
         "lastName": "Doe4",
         "phoneNumber": "123-456-7840",
         "address": "423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10004"
+        "zipCode": "10004",
+        "age": 26
       },
       "userAccounts": [
         {
@@ -156,21 +171,24 @@
       ]
     },
     {
-      "userID": "user-id5",
+      "userID": {
+        "value": "user-id5"
+      },
       "username": "test-username5",
       "password": "test-password5",
       "userDetails": {
         "email": "test5@email.com",
         "isAdmin": false,
         "other": "other value5",
-        "birthDay": "24-08-1995",
+        "birthDay": "1966-09-21T07:48:15.905Z",
         "firstName": "John5",
         "lastName": "Doe5",
         "phoneNumber": "123-456-7850",
         "address": "523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10005"
+        "zipCode": "10005",
+        "age": 50
       },
       "userAccounts": [
         {
@@ -187,21 +205,24 @@
       ]
     },
     {
-      "userID": "user-id6",
+      "userID": {
+        "value": "user-id6"
+      },
       "username": "test-username6",
       "password": "test-password6",
       "userDetails": {
         "email": "test6@email.com",
         "isAdmin": true,
         "other": "other value6",
-        "birthDay": "24-08-1996",
+        "birthDay": "1979-09-21T07:48:15.905Z",
         "firstName": "John6",
         "lastName": "Doe6",
         "phoneNumber": "123-456-7860",
         "address": "623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10006"
+        "zipCode": "10006",
+        "age": 51
       },
       "userAccounts": [
         {
@@ -218,21 +239,24 @@
       ]
     },
     {
-      "userID": "user-id7",
+      "userID": {
+        "value": "user-id7"
+      },
       "username": "test-username7",
       "password": "test-password7",
       "userDetails": {
         "email": "test7@email.com",
         "isAdmin": false,
         "other": "other value7",
-        "birthDay": "24-08-1997",
+        "birthDay": "1951-09-21T07:48:15.905Z",
         "firstName": "John7",
         "lastName": "Doe7",
         "phoneNumber": "123-456-7870",
         "address": "723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10007"
+        "zipCode": "10007",
+        "age": 31
       },
       "userAccounts": [
         {
@@ -249,21 +273,24 @@
       ]
     },
     {
-      "userID": "user-id8",
+      "userID": {
+        "value": "user-id8"
+      },
       "username": "test-username8",
       "password": "test-password8",
       "userDetails": {
         "email": "test8@email.com",
         "isAdmin": true,
         "other": "other value8",
-        "birthDay": "24-08-1998",
+        "birthDay": "1987-09-21T07:48:15.905Z",
         "firstName": "John8",
         "lastName": "Doe8",
         "phoneNumber": "123-456-7880",
         "address": "823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10008"
+        "zipCode": "10008",
+        "age": 48
       },
       "userAccounts": [
         {
@@ -280,21 +307,24 @@
       ]
     },
     {
-      "userID": "user-id9",
+      "userID": {
+        "value": "user-id9"
+      },
       "username": "test-username9",
       "password": "test-password9",
       "userDetails": {
         "email": "test9@email.com",
         "isAdmin": false,
         "other": "other value9",
-        "birthDay": "24-08-1999",
+        "birthDay": "1999-09-21T07:48:15.905Z",
         "firstName": "John9",
         "lastName": "Doe9",
         "phoneNumber": "123-456-7890",
         "address": "923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "10009"
+        "zipCode": "10009",
+        "age": 55
       },
       "userAccounts": [
         {
@@ -311,21 +341,24 @@
       ]
     },
     {
-      "userID": "user-id10",
+      "userID": {
+        "value": "user-id10"
+      },
       "username": "test-username10",
       "password": "test-password10",
       "userDetails": {
         "email": "test10@email.com",
         "isAdmin": true,
         "other": "other value10",
-        "birthDay": "24-08-19910",
+        "birthDay": "1967-09-21T07:48:15.905Z",
         "firstName": "John10",
         "lastName": "Doe10",
         "phoneNumber": "123-456-78100",
         "address": "1023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100010"
+        "zipCode": "100010",
+        "age": 65
       },
       "userAccounts": [
         {
@@ -342,21 +375,24 @@
       ]
     },
     {
-      "userID": "user-id11",
+      "userID": {
+        "value": "user-id11"
+      },
       "username": "test-username11",
       "password": "test-password11",
       "userDetails": {
         "email": "test11@email.com",
         "isAdmin": false,
         "other": "other value11",
-        "birthDay": "24-08-19911",
+        "birthDay": "1966-09-21T07:48:15.905Z",
         "firstName": "John11",
         "lastName": "Doe11",
         "phoneNumber": "123-456-78110",
         "address": "1123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100011"
+        "zipCode": "100011",
+        "age": 26
       },
       "userAccounts": [
         {
@@ -373,21 +409,24 @@
       ]
     },
     {
-      "userID": "user-id12",
+      "userID": {
+        "value": "user-id12"
+      },
       "username": "test-username12",
       "password": "test-password12",
       "userDetails": {
         "email": "test12@email.com",
         "isAdmin": true,
         "other": "other value12",
-        "birthDay": "24-08-19912",
+        "birthDay": "1971-09-21T07:48:15.905Z",
         "firstName": "John12",
         "lastName": "Doe12",
         "phoneNumber": "123-456-78120",
         "address": "1223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100012"
+        "zipCode": "100012",
+        "age": 52
       },
       "userAccounts": [
         {
@@ -404,21 +443,24 @@
       ]
     },
     {
-      "userID": "user-id13",
+      "userID": {
+        "value": "user-id13"
+      },
       "username": "test-username13",
       "password": "test-password13",
       "userDetails": {
         "email": "test13@email.com",
         "isAdmin": false,
         "other": "other value13",
-        "birthDay": "24-08-19913",
+        "birthDay": "1949-09-21T07:48:15.905Z",
         "firstName": "John13",
         "lastName": "Doe13",
         "phoneNumber": "123-456-78130",
         "address": "1323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100013"
+        "zipCode": "100013",
+        "age": 36
       },
       "userAccounts": [
         {
@@ -435,21 +477,24 @@
       ]
     },
     {
-      "userID": "user-id14",
+      "userID": {
+        "value": "user-id14"
+      },
       "username": "test-username14",
       "password": "test-password14",
       "userDetails": {
         "email": "test14@email.com",
         "isAdmin": true,
         "other": "other value14",
-        "birthDay": "24-08-19914",
+        "birthDay": "2001-09-21T07:48:15.905Z",
         "firstName": "John14",
         "lastName": "Doe14",
         "phoneNumber": "123-456-78140",
         "address": "1423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100014"
+        "zipCode": "100014",
+        "age": 54
       },
       "userAccounts": [
         {
@@ -466,21 +511,24 @@
       ]
     },
     {
-      "userID": "user-id15",
+      "userID": {
+        "value": "user-id15"
+      },
       "username": "test-username15",
       "password": "test-password15",
       "userDetails": {
         "email": "test15@email.com",
         "isAdmin": false,
         "other": "other value15",
-        "birthDay": "24-08-19915",
+        "birthDay": "1949-09-21T07:48:15.905Z",
         "firstName": "John15",
         "lastName": "Doe15",
         "phoneNumber": "123-456-78150",
         "address": "1523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100015"
+        "zipCode": "100015",
+        "age": 75
       },
       "userAccounts": [
         {
@@ -497,21 +545,24 @@
       ]
     },
     {
-      "userID": "user-id16",
+      "userID": {
+        "value": "user-id16"
+      },
       "username": "test-username16",
       "password": "test-password16",
       "userDetails": {
         "email": "test16@email.com",
         "isAdmin": true,
         "other": "other value16",
-        "birthDay": "24-08-19916",
+        "birthDay": "1947-09-21T07:48:15.905Z",
         "firstName": "John16",
         "lastName": "Doe16",
         "phoneNumber": "123-456-78160",
         "address": "1623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100016"
+        "zipCode": "100016",
+        "age": 19
       },
       "userAccounts": [
         {
@@ -528,21 +579,24 @@
       ]
     },
     {
-      "userID": "user-id17",
+      "userID": {
+        "value": "user-id17"
+      },
       "username": "test-username17",
       "password": "test-password17",
       "userDetails": {
         "email": "test17@email.com",
         "isAdmin": false,
         "other": "other value17",
-        "birthDay": "24-08-19917",
+        "birthDay": "1997-09-21T07:48:15.905Z",
         "firstName": "John17",
         "lastName": "Doe17",
         "phoneNumber": "123-456-78170",
         "address": "1723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100017"
+        "zipCode": "100017",
+        "age": 67
       },
       "userAccounts": [
         {
@@ -559,21 +613,24 @@
       ]
     },
     {
-      "userID": "user-id18",
+      "userID": {
+        "value": "user-id18"
+      },
       "username": "test-username18",
       "password": "test-password18",
       "userDetails": {
         "email": "test18@email.com",
         "isAdmin": true,
         "other": "other value18",
-        "birthDay": "24-08-19918",
+        "birthDay": "1950-09-21T07:48:15.905Z",
         "firstName": "John18",
         "lastName": "Doe18",
         "phoneNumber": "123-456-78180",
         "address": "1823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100018"
+        "zipCode": "100018",
+        "age": 69
       },
       "userAccounts": [
         {
@@ -590,21 +647,24 @@
       ]
     },
     {
-      "userID": "user-id19",
+      "userID": {
+        "value": "user-id19"
+      },
       "username": "test-username19",
       "password": "test-password19",
       "userDetails": {
         "email": "test19@email.com",
         "isAdmin": false,
         "other": "other value19",
-        "birthDay": "24-08-19919",
+        "birthDay": "1947-09-21T07:48:15.905Z",
         "firstName": "John19",
         "lastName": "Doe19",
         "phoneNumber": "123-456-78190",
         "address": "1923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100019"
+        "zipCode": "100019",
+        "age": 42
       },
       "userAccounts": [
         {
@@ -621,21 +681,24 @@
       ]
     },
     {
-      "userID": "user-id20",
+      "userID": {
+        "value": "user-id20"
+      },
       "username": "test-username20",
       "password": "test-password20",
       "userDetails": {
         "email": "test20@email.com",
         "isAdmin": true,
         "other": "other value20",
-        "birthDay": "24-08-19920",
+        "birthDay": "1959-09-21T07:48:15.905Z",
         "firstName": "John20",
         "lastName": "Doe20",
         "phoneNumber": "123-456-78200",
         "address": "2023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100020"
+        "zipCode": "100020",
+        "age": 27
       },
       "userAccounts": [
         {
@@ -652,21 +715,24 @@
       ]
     },
     {
-      "userID": "user-id21",
+      "userID": {
+        "value": "user-id21"
+      },
       "username": "test-username21",
       "password": "test-password21",
       "userDetails": {
         "email": "test21@email.com",
         "isAdmin": false,
         "other": "other value21",
-        "birthDay": "24-08-19921",
+        "birthDay": "1996-09-21T07:48:15.905Z",
         "firstName": "John21",
         "lastName": "Doe21",
         "phoneNumber": "123-456-78210",
         "address": "2123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100021"
+        "zipCode": "100021",
+        "age": 74
       },
       "userAccounts": [
         {
@@ -683,21 +749,24 @@
       ]
     },
     {
-      "userID": "user-id22",
+      "userID": {
+        "value": "user-id22"
+      },
       "username": "test-username22",
       "password": "test-password22",
       "userDetails": {
         "email": "test22@email.com",
         "isAdmin": true,
         "other": "other value22",
-        "birthDay": "24-08-19922",
+        "birthDay": "1995-09-21T07:48:15.905Z",
         "firstName": "John22",
         "lastName": "Doe22",
         "phoneNumber": "123-456-78220",
         "address": "2223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100022"
+        "zipCode": "100022",
+        "age": 40
       },
       "userAccounts": [
         {
@@ -714,21 +783,24 @@
       ]
     },
     {
-      "userID": "user-id23",
+      "userID": {
+        "value": "user-id23"
+      },
       "username": "test-username23",
       "password": "test-password23",
       "userDetails": {
         "email": "test23@email.com",
         "isAdmin": false,
         "other": "other value23",
-        "birthDay": "24-08-19923",
+        "birthDay": "1956-09-21T07:48:15.905Z",
         "firstName": "John23",
         "lastName": "Doe23",
         "phoneNumber": "123-456-78230",
         "address": "2323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100023"
+        "zipCode": "100023",
+        "age": 35
       },
       "userAccounts": [
         {
@@ -745,21 +817,24 @@
       ]
     },
     {
-      "userID": "user-id24",
+      "userID": {
+        "value": "user-id24"
+      },
       "username": "test-username24",
       "password": "test-password24",
       "userDetails": {
         "email": "test24@email.com",
         "isAdmin": true,
         "other": "other value24",
-        "birthDay": "24-08-19924",
+        "birthDay": "1952-09-21T07:48:15.905Z",
         "firstName": "John24",
         "lastName": "Doe24",
         "phoneNumber": "123-456-78240",
         "address": "2423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100024"
+        "zipCode": "100024",
+        "age": 63
       },
       "userAccounts": [
         {
@@ -776,21 +851,24 @@
       ]
     },
     {
-      "userID": "user-id25",
+      "userID": {
+        "value": "user-id25"
+      },
       "username": "test-username25",
       "password": "test-password25",
       "userDetails": {
         "email": "test25@email.com",
         "isAdmin": false,
         "other": "other value25",
-        "birthDay": "24-08-19925",
+        "birthDay": "1967-09-21T07:48:15.905Z",
         "firstName": "John25",
         "lastName": "Doe25",
         "phoneNumber": "123-456-78250",
         "address": "2523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100025"
+        "zipCode": "100025",
+        "age": 62
       },
       "userAccounts": [
         {
@@ -807,21 +885,24 @@
       ]
     },
     {
-      "userID": "user-id26",
+      "userID": {
+        "value": "user-id26"
+      },
       "username": "test-username26",
       "password": "test-password26",
       "userDetails": {
         "email": "test26@email.com",
         "isAdmin": true,
         "other": "other value26",
-        "birthDay": "24-08-19926",
+        "birthDay": "1962-09-21T07:48:15.905Z",
         "firstName": "John26",
         "lastName": "Doe26",
         "phoneNumber": "123-456-78260",
         "address": "2623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100026"
+        "zipCode": "100026",
+        "age": 47
       },
       "userAccounts": [
         {
@@ -838,21 +919,24 @@
       ]
     },
     {
-      "userID": "user-id27",
+      "userID": {
+        "value": "user-id27"
+      },
       "username": "test-username27",
       "password": "test-password27",
       "userDetails": {
         "email": "test27@email.com",
         "isAdmin": false,
         "other": "other value27",
-        "birthDay": "24-08-19927",
+        "birthDay": "1945-09-21T07:48:15.905Z",
         "firstName": "John27",
         "lastName": "Doe27",
         "phoneNumber": "123-456-78270",
         "address": "2723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100027"
+        "zipCode": "100027",
+        "age": 66
       },
       "userAccounts": [
         {
@@ -869,21 +953,24 @@
       ]
     },
     {
-      "userID": "user-id28",
+      "userID": {
+        "value": "user-id28"
+      },
       "username": "test-username28",
       "password": "test-password28",
       "userDetails": {
         "email": "test28@email.com",
         "isAdmin": true,
         "other": "other value28",
-        "birthDay": "24-08-19928",
+        "birthDay": "1977-09-21T07:48:15.905Z",
         "firstName": "John28",
         "lastName": "Doe28",
         "phoneNumber": "123-456-78280",
         "address": "2823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100028"
+        "zipCode": "100028",
+        "age": 76
       },
       "userAccounts": [
         {
@@ -900,21 +987,24 @@
       ]
     },
     {
-      "userID": "user-id29",
+      "userID": {
+        "value": "user-id29"
+      },
       "username": "test-username29",
       "password": "test-password29",
       "userDetails": {
         "email": "test29@email.com",
         "isAdmin": false,
         "other": "other value29",
-        "birthDay": "24-08-19929",
+        "birthDay": "1957-09-21T07:48:15.905Z",
         "firstName": "John29",
         "lastName": "Doe29",
         "phoneNumber": "123-456-78290",
         "address": "2923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100029"
+        "zipCode": "100029",
+        "age": 35
       },
       "userAccounts": [
         {
@@ -931,21 +1021,24 @@
       ]
     },
     {
-      "userID": "user-id30",
+      "userID": {
+        "value": "user-id30"
+      },
       "username": "test-username30",
       "password": "test-password30",
       "userDetails": {
         "email": "test30@email.com",
         "isAdmin": true,
         "other": "other value30",
-        "birthDay": "24-08-19930",
+        "birthDay": "1992-09-21T07:48:15.905Z",
         "firstName": "John30",
         "lastName": "Doe30",
         "phoneNumber": "123-456-78300",
         "address": "3023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100030"
+        "zipCode": "100030",
+        "age": 48
       },
       "userAccounts": [
         {
@@ -962,21 +1055,24 @@
       ]
     },
     {
-      "userID": "user-id31",
+      "userID": {
+        "value": "user-id31"
+      },
       "username": "test-username31",
       "password": "test-password31",
       "userDetails": {
         "email": "test31@email.com",
         "isAdmin": false,
         "other": "other value31",
-        "birthDay": "24-08-19931",
+        "birthDay": "1997-09-21T07:48:15.905Z",
         "firstName": "John31",
         "lastName": "Doe31",
         "phoneNumber": "123-456-78310",
         "address": "3123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100031"
+        "zipCode": "100031",
+        "age": 38
       },
       "userAccounts": [
         {
@@ -993,21 +1089,24 @@
       ]
     },
     {
-      "userID": "user-id32",
+      "userID": {
+        "value": "user-id32"
+      },
       "username": "test-username32",
       "password": "test-password32",
       "userDetails": {
         "email": "test32@email.com",
         "isAdmin": true,
         "other": "other value32",
-        "birthDay": "24-08-19932",
+        "birthDay": "1967-09-21T07:48:15.905Z",
         "firstName": "John32",
         "lastName": "Doe32",
         "phoneNumber": "123-456-78320",
         "address": "3223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100032"
+        "zipCode": "100032",
+        "age": 55
       },
       "userAccounts": [
         {
@@ -1024,21 +1123,24 @@
       ]
     },
     {
-      "userID": "user-id33",
+      "userID": {
+        "value": "user-id33"
+      },
       "username": "test-username33",
       "password": "test-password33",
       "userDetails": {
         "email": "test33@email.com",
         "isAdmin": false,
         "other": "other value33",
-        "birthDay": "24-08-19933",
+        "birthDay": "1964-09-21T07:48:15.905Z",
         "firstName": "John33",
         "lastName": "Doe33",
         "phoneNumber": "123-456-78330",
         "address": "3323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100033"
+        "zipCode": "100033",
+        "age": 19
       },
       "userAccounts": [
         {
@@ -1055,21 +1157,24 @@
       ]
     },
     {
-      "userID": "user-id34",
+      "userID": {
+        "value": "user-id34"
+      },
       "username": "test-username34",
       "password": "test-password34",
       "userDetails": {
         "email": "test34@email.com",
         "isAdmin": true,
         "other": "other value34",
-        "birthDay": "24-08-19934",
+        "birthDay": "2001-09-21T07:48:15.905Z",
         "firstName": "John34",
         "lastName": "Doe34",
         "phoneNumber": "123-456-78340",
         "address": "3423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100034"
+        "zipCode": "100034",
+        "age": 21
       },
       "userAccounts": [
         {
@@ -1086,21 +1191,24 @@
       ]
     },
     {
-      "userID": "user-id35",
+      "userID": {
+        "value": "user-id35"
+      },
       "username": "test-username35",
       "password": "test-password35",
       "userDetails": {
         "email": "test35@email.com",
         "isAdmin": false,
         "other": "other value35",
-        "birthDay": "24-08-19935",
+        "birthDay": "1982-09-21T07:48:15.905Z",
         "firstName": "John35",
         "lastName": "Doe35",
         "phoneNumber": "123-456-78350",
         "address": "3523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100035"
+        "zipCode": "100035",
+        "age": 53
       },
       "userAccounts": [
         {
@@ -1117,21 +1225,24 @@
       ]
     },
     {
-      "userID": "user-id36",
+      "userID": {
+        "value": "user-id36"
+      },
       "username": "test-username36",
       "password": "test-password36",
       "userDetails": {
         "email": "test36@email.com",
         "isAdmin": true,
         "other": "other value36",
-        "birthDay": "24-08-19936",
+        "birthDay": "1981-09-21T07:48:15.905Z",
         "firstName": "John36",
         "lastName": "Doe36",
         "phoneNumber": "123-456-78360",
         "address": "3623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100036"
+        "zipCode": "100036",
+        "age": 40
       },
       "userAccounts": [
         {
@@ -1148,21 +1259,24 @@
       ]
     },
     {
-      "userID": "user-id37",
+      "userID": {
+        "value": "user-id37"
+      },
       "username": "test-username37",
       "password": "test-password37",
       "userDetails": {
         "email": "test37@email.com",
         "isAdmin": false,
         "other": "other value37",
-        "birthDay": "24-08-19937",
+        "birthDay": "2005-09-21T07:48:15.905Z",
         "firstName": "John37",
         "lastName": "Doe37",
         "phoneNumber": "123-456-78370",
         "address": "3723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100037"
+        "zipCode": "100037",
+        "age": 74
       },
       "userAccounts": [
         {
@@ -1179,21 +1293,24 @@
       ]
     },
     {
-      "userID": "user-id38",
+      "userID": {
+        "value": "user-id38"
+      },
       "username": "test-username38",
       "password": "test-password38",
       "userDetails": {
         "email": "test38@email.com",
         "isAdmin": true,
         "other": "other value38",
-        "birthDay": "24-08-19938",
+        "birthDay": "1990-09-21T07:48:15.905Z",
         "firstName": "John38",
         "lastName": "Doe38",
         "phoneNumber": "123-456-78380",
         "address": "3823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100038"
+        "zipCode": "100038",
+        "age": 57
       },
       "userAccounts": [
         {
@@ -1210,21 +1327,24 @@
       ]
     },
     {
-      "userID": "user-id39",
+      "userID": {
+        "value": "user-id39"
+      },
       "username": "test-username39",
       "password": "test-password39",
       "userDetails": {
         "email": "test39@email.com",
         "isAdmin": false,
         "other": "other value39",
-        "birthDay": "24-08-19939",
+        "birthDay": "1995-09-21T07:48:15.905Z",
         "firstName": "John39",
         "lastName": "Doe39",
         "phoneNumber": "123-456-78390",
         "address": "3923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100039"
+        "zipCode": "100039",
+        "age": 68
       },
       "userAccounts": [
         {
@@ -1241,21 +1361,24 @@
       ]
     },
     {
-      "userID": "user-id40",
+      "userID": {
+        "value": "user-id40"
+      },
       "username": "test-username40",
       "password": "test-password40",
       "userDetails": {
         "email": "test40@email.com",
         "isAdmin": true,
         "other": "other value40",
-        "birthDay": "24-08-19940",
+        "birthDay": "1957-09-21T07:48:15.905Z",
         "firstName": "John40",
         "lastName": "Doe40",
         "phoneNumber": "123-456-78400",
         "address": "4023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100040"
+        "zipCode": "100040",
+        "age": 28
       },
       "userAccounts": [
         {
@@ -1272,21 +1395,24 @@
       ]
     },
     {
-      "userID": "user-id41",
+      "userID": {
+        "value": "user-id41"
+      },
       "username": "test-username41",
       "password": "test-password41",
       "userDetails": {
         "email": "test41@email.com",
         "isAdmin": false,
         "other": "other value41",
-        "birthDay": "24-08-19941",
+        "birthDay": "1955-09-21T07:48:15.905Z",
         "firstName": "John41",
         "lastName": "Doe41",
         "phoneNumber": "123-456-78410",
         "address": "4123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100041"
+        "zipCode": "100041",
+        "age": 35
       },
       "userAccounts": [
         {
@@ -1303,21 +1429,24 @@
       ]
     },
     {
-      "userID": "user-id42",
+      "userID": {
+        "value": "user-id42"
+      },
       "username": "test-username42",
       "password": "test-password42",
       "userDetails": {
         "email": "test42@email.com",
         "isAdmin": true,
         "other": "other value42",
-        "birthDay": "24-08-19942",
+        "birthDay": "1992-09-21T07:48:15.905Z",
         "firstName": "John42",
         "lastName": "Doe42",
         "phoneNumber": "123-456-78420",
         "address": "4223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100042"
+        "zipCode": "100042",
+        "age": 78
       },
       "userAccounts": [
         {
@@ -1334,21 +1463,24 @@
       ]
     },
     {
-      "userID": "user-id43",
+      "userID": {
+        "value": "user-id43"
+      },
       "username": "test-username43",
       "password": "test-password43",
       "userDetails": {
         "email": "test43@email.com",
         "isAdmin": false,
         "other": "other value43",
-        "birthDay": "24-08-19943",
+        "birthDay": "1992-09-21T07:48:15.905Z",
         "firstName": "John43",
         "lastName": "Doe43",
         "phoneNumber": "123-456-78430",
         "address": "4323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100043"
+        "zipCode": "100043",
+        "age": 71
       },
       "userAccounts": [
         {
@@ -1365,21 +1497,24 @@
       ]
     },
     {
-      "userID": "user-id44",
+      "userID": {
+        "value": "user-id44"
+      },
       "username": "test-username44",
       "password": "test-password44",
       "userDetails": {
         "email": "test44@email.com",
         "isAdmin": true,
         "other": "other value44",
-        "birthDay": "24-08-19944",
+        "birthDay": "1995-09-21T07:48:15.905Z",
         "firstName": "John44",
         "lastName": "Doe44",
         "phoneNumber": "123-456-78440",
         "address": "4423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100044"
+        "zipCode": "100044",
+        "age": 37
       },
       "userAccounts": [
         {
@@ -1396,21 +1531,24 @@
       ]
     },
     {
-      "userID": "user-id45",
+      "userID": {
+        "value": "user-id45"
+      },
       "username": "test-username45",
       "password": "test-password45",
       "userDetails": {
         "email": "test45@email.com",
         "isAdmin": false,
         "other": "other value45",
-        "birthDay": "24-08-19945",
+        "birthDay": "1946-09-21T07:48:15.905Z",
         "firstName": "John45",
         "lastName": "Doe45",
         "phoneNumber": "123-456-78450",
         "address": "4523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100045"
+        "zipCode": "100045",
+        "age": 31
       },
       "userAccounts": [
         {
@@ -1427,21 +1565,24 @@
       ]
     },
     {
-      "userID": "user-id46",
+      "userID": {
+        "value": "user-id46"
+      },
       "username": "test-username46",
       "password": "test-password46",
       "userDetails": {
         "email": "test46@email.com",
         "isAdmin": true,
         "other": "other value46",
-        "birthDay": "24-08-19946",
+        "birthDay": "1950-09-21T07:48:15.905Z",
         "firstName": "John46",
         "lastName": "Doe46",
         "phoneNumber": "123-456-78460",
         "address": "4623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100046"
+        "zipCode": "100046",
+        "age": 64
       },
       "userAccounts": [
         {
@@ -1458,21 +1599,24 @@
       ]
     },
     {
-      "userID": "user-id47",
+      "userID": {
+        "value": "user-id47"
+      },
       "username": "test-username47",
       "password": "test-password47",
       "userDetails": {
         "email": "test47@email.com",
         "isAdmin": false,
         "other": "other value47",
-        "birthDay": "24-08-19947",
+        "birthDay": "1990-09-21T07:48:15.905Z",
         "firstName": "John47",
         "lastName": "Doe47",
         "phoneNumber": "123-456-78470",
         "address": "4723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100047"
+        "zipCode": "100047",
+        "age": 34
       },
       "userAccounts": [
         {
@@ -1489,21 +1633,24 @@
       ]
     },
     {
-      "userID": "user-id48",
+      "userID": {
+        "value": "user-id48"
+      },
       "username": "test-username48",
       "password": "test-password48",
       "userDetails": {
         "email": "test48@email.com",
         "isAdmin": true,
         "other": "other value48",
-        "birthDay": "24-08-19948",
+        "birthDay": "1995-09-21T07:48:15.905Z",
         "firstName": "John48",
         "lastName": "Doe48",
         "phoneNumber": "123-456-78480",
         "address": "4823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100048"
+        "zipCode": "100048",
+        "age": 68
       },
       "userAccounts": [
         {
@@ -1520,21 +1667,24 @@
       ]
     },
     {
-      "userID": "user-id49",
+      "userID": {
+        "value": "user-id49"
+      },
       "username": "test-username49",
       "password": "test-password49",
       "userDetails": {
         "email": "test49@email.com",
         "isAdmin": false,
         "other": "other value49",
-        "birthDay": "24-08-19949",
+        "birthDay": "1986-09-21T07:48:15.905Z",
         "firstName": "John49",
         "lastName": "Doe49",
         "phoneNumber": "123-456-78490",
         "address": "4923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100049"
+        "zipCode": "100049",
+        "age": 54
       },
       "userAccounts": [
         {
@@ -1551,21 +1701,24 @@
       ]
     },
     {
-      "userID": "user-id50",
+      "userID": {
+        "value": "user-id50"
+      },
       "username": "test-username50",
       "password": "test-password50",
       "userDetails": {
         "email": "test50@email.com",
         "isAdmin": true,
         "other": "other value50",
-        "birthDay": "24-08-19950",
+        "birthDay": "1977-09-21T07:48:15.905Z",
         "firstName": "John50",
         "lastName": "Doe50",
         "phoneNumber": "123-456-78500",
         "address": "5023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100050"
+        "zipCode": "100050",
+        "age": 18
       },
       "userAccounts": [
         {
@@ -1582,21 +1735,24 @@
       ]
     },
     {
-      "userID": "user-id51",
+      "userID": {
+        "value": "user-id51"
+      },
       "username": "test-username51",
       "password": "test-password51",
       "userDetails": {
         "email": "test51@email.com",
         "isAdmin": false,
         "other": "other value51",
-        "birthDay": "24-08-19951",
+        "birthDay": "2001-09-21T07:48:15.905Z",
         "firstName": "John51",
         "lastName": "Doe51",
         "phoneNumber": "123-456-78510",
         "address": "5123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100051"
+        "zipCode": "100051",
+        "age": 59
       },
       "userAccounts": [
         {
@@ -1613,21 +1769,24 @@
       ]
     },
     {
-      "userID": "user-id52",
+      "userID": {
+        "value": "user-id52"
+      },
       "username": "test-username52",
       "password": "test-password52",
       "userDetails": {
         "email": "test52@email.com",
         "isAdmin": true,
         "other": "other value52",
-        "birthDay": "24-08-19952",
+        "birthDay": "1951-09-21T07:48:15.905Z",
         "firstName": "John52",
         "lastName": "Doe52",
         "phoneNumber": "123-456-78520",
         "address": "5223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100052"
+        "zipCode": "100052",
+        "age": 36
       },
       "userAccounts": [
         {
@@ -1644,21 +1803,24 @@
       ]
     },
     {
-      "userID": "user-id53",
+      "userID": {
+        "value": "user-id53"
+      },
       "username": "test-username53",
       "password": "test-password53",
       "userDetails": {
         "email": "test53@email.com",
         "isAdmin": false,
         "other": "other value53",
-        "birthDay": "24-08-19953",
+        "birthDay": "1969-09-21T07:48:15.905Z",
         "firstName": "John53",
         "lastName": "Doe53",
         "phoneNumber": "123-456-78530",
         "address": "5323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100053"
+        "zipCode": "100053",
+        "age": 79
       },
       "userAccounts": [
         {
@@ -1675,21 +1837,24 @@
       ]
     },
     {
-      "userID": "user-id54",
+      "userID": {
+        "value": "user-id54"
+      },
       "username": "test-username54",
       "password": "test-password54",
       "userDetails": {
         "email": "test54@email.com",
         "isAdmin": true,
         "other": "other value54",
-        "birthDay": "24-08-19954",
+        "birthDay": "1967-09-21T07:48:15.905Z",
         "firstName": "John54",
         "lastName": "Doe54",
         "phoneNumber": "123-456-78540",
         "address": "5423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100054"
+        "zipCode": "100054",
+        "age": 57
       },
       "userAccounts": [
         {
@@ -1706,21 +1871,24 @@
       ]
     },
     {
-      "userID": "user-id55",
+      "userID": {
+        "value": "user-id55"
+      },
       "username": "test-username55",
       "password": "test-password55",
       "userDetails": {
         "email": "test55@email.com",
         "isAdmin": false,
         "other": "other value55",
-        "birthDay": "24-08-19955",
+        "birthDay": "1961-09-21T07:48:15.905Z",
         "firstName": "John55",
         "lastName": "Doe55",
         "phoneNumber": "123-456-78550",
         "address": "5523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100055"
+        "zipCode": "100055",
+        "age": 69
       },
       "userAccounts": [
         {
@@ -1737,21 +1905,24 @@
       ]
     },
     {
-      "userID": "user-id56",
+      "userID": {
+        "value": "user-id56"
+      },
       "username": "test-username56",
       "password": "test-password56",
       "userDetails": {
         "email": "test56@email.com",
         "isAdmin": true,
         "other": "other value56",
-        "birthDay": "24-08-19956",
+        "birthDay": "1964-09-21T07:48:15.905Z",
         "firstName": "John56",
         "lastName": "Doe56",
         "phoneNumber": "123-456-78560",
         "address": "5623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100056"
+        "zipCode": "100056",
+        "age": 26
       },
       "userAccounts": [
         {
@@ -1768,21 +1939,24 @@
       ]
     },
     {
-      "userID": "user-id57",
+      "userID": {
+        "value": "user-id57"
+      },
       "username": "test-username57",
       "password": "test-password57",
       "userDetails": {
         "email": "test57@email.com",
         "isAdmin": false,
         "other": "other value57",
-        "birthDay": "24-08-19957",
+        "birthDay": "1944-09-21T06:48:15.905Z",
         "firstName": "John57",
         "lastName": "Doe57",
         "phoneNumber": "123-456-78570",
         "address": "5723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100057"
+        "zipCode": "100057",
+        "age": 19
       },
       "userAccounts": [
         {
@@ -1799,21 +1973,24 @@
       ]
     },
     {
-      "userID": "user-id58",
+      "userID": {
+        "value": "user-id58"
+      },
       "username": "test-username58",
       "password": "test-password58",
       "userDetails": {
         "email": "test58@email.com",
         "isAdmin": true,
         "other": "other value58",
-        "birthDay": "24-08-19958",
+        "birthDay": "1992-09-21T07:48:15.905Z",
         "firstName": "John58",
         "lastName": "Doe58",
         "phoneNumber": "123-456-78580",
         "address": "5823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100058"
+        "zipCode": "100058",
+        "age": 54
       },
       "userAccounts": [
         {
@@ -1830,21 +2007,24 @@
       ]
     },
     {
-      "userID": "user-id59",
+      "userID": {
+        "value": "user-id59"
+      },
       "username": "test-username59",
       "password": "test-password59",
       "userDetails": {
         "email": "test59@email.com",
         "isAdmin": false,
         "other": "other value59",
-        "birthDay": "24-08-19959",
+        "birthDay": "1977-09-21T07:48:15.905Z",
         "firstName": "John59",
         "lastName": "Doe59",
         "phoneNumber": "123-456-78590",
         "address": "5923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100059"
+        "zipCode": "100059",
+        "age": 43
       },
       "userAccounts": [
         {
@@ -1861,21 +2041,24 @@
       ]
     },
     {
-      "userID": "user-id60",
+      "userID": {
+        "value": "user-id60"
+      },
       "username": "test-username60",
       "password": "test-password60",
       "userDetails": {
         "email": "test60@email.com",
         "isAdmin": true,
         "other": "other value60",
-        "birthDay": "24-08-19960",
+        "birthDay": "1973-09-21T07:48:15.905Z",
         "firstName": "John60",
         "lastName": "Doe60",
         "phoneNumber": "123-456-78600",
         "address": "6023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100060"
+        "zipCode": "100060",
+        "age": 79
       },
       "userAccounts": [
         {
@@ -1892,21 +2075,24 @@
       ]
     },
     {
-      "userID": "user-id61",
+      "userID": {
+        "value": "user-id61"
+      },
       "username": "test-username61",
       "password": "test-password61",
       "userDetails": {
         "email": "test61@email.com",
         "isAdmin": false,
         "other": "other value61",
-        "birthDay": "24-08-19961",
+        "birthDay": "1968-09-21T07:48:15.905Z",
         "firstName": "John61",
         "lastName": "Doe61",
         "phoneNumber": "123-456-78610",
         "address": "6123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100061"
+        "zipCode": "100061",
+        "age": 46
       },
       "userAccounts": [
         {
@@ -1923,21 +2109,24 @@
       ]
     },
     {
-      "userID": "user-id62",
+      "userID": {
+        "value": "user-id62"
+      },
       "username": "test-username62",
       "password": "test-password62",
       "userDetails": {
         "email": "test62@email.com",
         "isAdmin": true,
         "other": "other value62",
-        "birthDay": "24-08-19962",
+        "birthDay": "1976-09-21T07:48:15.905Z",
         "firstName": "John62",
         "lastName": "Doe62",
         "phoneNumber": "123-456-78620",
         "address": "6223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100062"
+        "zipCode": "100062",
+        "age": 28
       },
       "userAccounts": [
         {
@@ -1954,21 +2143,24 @@
       ]
     },
     {
-      "userID": "user-id63",
+      "userID": {
+        "value": "user-id63"
+      },
       "username": "test-username63",
       "password": "test-password63",
       "userDetails": {
         "email": "test63@email.com",
         "isAdmin": false,
         "other": "other value63",
-        "birthDay": "24-08-19963",
+        "birthDay": "1975-09-21T07:48:15.905Z",
         "firstName": "John63",
         "lastName": "Doe63",
         "phoneNumber": "123-456-78630",
         "address": "6323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100063"
+        "zipCode": "100063",
+        "age": 32
       },
       "userAccounts": [
         {
@@ -1985,21 +2177,24 @@
       ]
     },
     {
-      "userID": "user-id64",
+      "userID": {
+        "value": "user-id64"
+      },
       "username": "test-username64",
       "password": "test-password64",
       "userDetails": {
         "email": "test64@email.com",
         "isAdmin": true,
         "other": "other value64",
-        "birthDay": "24-08-19964",
+        "birthDay": "1956-09-21T07:48:15.905Z",
         "firstName": "John64",
         "lastName": "Doe64",
         "phoneNumber": "123-456-78640",
         "address": "6423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100064"
+        "zipCode": "100064",
+        "age": 46
       },
       "userAccounts": [
         {
@@ -2016,21 +2211,24 @@
       ]
     },
     {
-      "userID": "user-id65",
+      "userID": {
+        "value": "user-id65"
+      },
       "username": "test-username65",
       "password": "test-password65",
       "userDetails": {
         "email": "test65@email.com",
         "isAdmin": false,
         "other": "other value65",
-        "birthDay": "24-08-19965",
+        "birthDay": "1978-09-21T07:48:15.905Z",
         "firstName": "John65",
         "lastName": "Doe65",
         "phoneNumber": "123-456-78650",
         "address": "6523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100065"
+        "zipCode": "100065",
+        "age": 70
       },
       "userAccounts": [
         {
@@ -2047,21 +2245,24 @@
       ]
     },
     {
-      "userID": "user-id66",
+      "userID": {
+        "value": "user-id66"
+      },
       "username": "test-username66",
       "password": "test-password66",
       "userDetails": {
         "email": "test66@email.com",
         "isAdmin": true,
         "other": "other value66",
-        "birthDay": "24-08-19966",
+        "birthDay": "1962-09-21T07:48:15.905Z",
         "firstName": "John66",
         "lastName": "Doe66",
         "phoneNumber": "123-456-78660",
         "address": "6623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100066"
+        "zipCode": "100066",
+        "age": 67
       },
       "userAccounts": [
         {
@@ -2078,21 +2279,24 @@
       ]
     },
     {
-      "userID": "user-id67",
+      "userID": {
+        "value": "user-id67"
+      },
       "username": "test-username67",
       "password": "test-password67",
       "userDetails": {
         "email": "test67@email.com",
         "isAdmin": false,
         "other": "other value67",
-        "birthDay": "24-08-19967",
+        "birthDay": "1964-09-21T07:48:15.905Z",
         "firstName": "John67",
         "lastName": "Doe67",
         "phoneNumber": "123-456-78670",
         "address": "6723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100067"
+        "zipCode": "100067",
+        "age": 44
       },
       "userAccounts": [
         {
@@ -2109,21 +2313,24 @@
       ]
     },
     {
-      "userID": "user-id68",
+      "userID": {
+        "value": "user-id68"
+      },
       "username": "test-username68",
       "password": "test-password68",
       "userDetails": {
         "email": "test68@email.com",
         "isAdmin": true,
         "other": "other value68",
-        "birthDay": "24-08-19968",
+        "birthDay": "1988-09-21T07:48:15.905Z",
         "firstName": "John68",
         "lastName": "Doe68",
         "phoneNumber": "123-456-78680",
         "address": "6823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100068"
+        "zipCode": "100068",
+        "age": 32
       },
       "userAccounts": [
         {
@@ -2140,21 +2347,24 @@
       ]
     },
     {
-      "userID": "user-id69",
+      "userID": {
+        "value": "user-id69"
+      },
       "username": "test-username69",
       "password": "test-password69",
       "userDetails": {
         "email": "test69@email.com",
         "isAdmin": false,
         "other": "other value69",
-        "birthDay": "24-08-19969",
+        "birthDay": "1974-09-21T07:48:15.905Z",
         "firstName": "John69",
         "lastName": "Doe69",
         "phoneNumber": "123-456-78690",
         "address": "6923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100069"
+        "zipCode": "100069",
+        "age": 38
       },
       "userAccounts": [
         {
@@ -2171,21 +2381,24 @@
       ]
     },
     {
-      "userID": "user-id70",
+      "userID": {
+        "value": "user-id70"
+      },
       "username": "test-username70",
       "password": "test-password70",
       "userDetails": {
         "email": "test70@email.com",
         "isAdmin": true,
         "other": "other value70",
-        "birthDay": "24-08-19970",
+        "birthDay": "1947-09-21T07:48:15.905Z",
         "firstName": "John70",
         "lastName": "Doe70",
         "phoneNumber": "123-456-78700",
         "address": "7023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100070"
+        "zipCode": "100070",
+        "age": 46
       },
       "userAccounts": [
         {
@@ -2202,21 +2415,24 @@
       ]
     },
     {
-      "userID": "user-id71",
+      "userID": {
+        "value": "user-id71"
+      },
       "username": "test-username71",
       "password": "test-password71",
       "userDetails": {
         "email": "test71@email.com",
         "isAdmin": false,
         "other": "other value71",
-        "birthDay": "24-08-19971",
+        "birthDay": "1961-09-21T07:48:15.905Z",
         "firstName": "John71",
         "lastName": "Doe71",
         "phoneNumber": "123-456-78710",
         "address": "7123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100071"
+        "zipCode": "100071",
+        "age": 32
       },
       "userAccounts": [
         {
@@ -2233,21 +2449,24 @@
       ]
     },
     {
-      "userID": "user-id72",
+      "userID": {
+        "value": "user-id72"
+      },
       "username": "test-username72",
       "password": "test-password72",
       "userDetails": {
         "email": "test72@email.com",
         "isAdmin": true,
         "other": "other value72",
-        "birthDay": "24-08-19972",
+        "birthDay": "1943-09-21T06:48:15.905Z",
         "firstName": "John72",
         "lastName": "Doe72",
         "phoneNumber": "123-456-78720",
         "address": "7223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100072"
+        "zipCode": "100072",
+        "age": 76
       },
       "userAccounts": [
         {
@@ -2264,21 +2483,24 @@
       ]
     },
     {
-      "userID": "user-id73",
+      "userID": {
+        "value": "user-id73"
+      },
       "username": "test-username73",
       "password": "test-password73",
       "userDetails": {
         "email": "test73@email.com",
         "isAdmin": false,
         "other": "other value73",
-        "birthDay": "24-08-19973",
+        "birthDay": "1972-09-21T07:48:15.905Z",
         "firstName": "John73",
         "lastName": "Doe73",
         "phoneNumber": "123-456-78730",
         "address": "7323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100073"
+        "zipCode": "100073",
+        "age": 20
       },
       "userAccounts": [
         {
@@ -2295,21 +2517,24 @@
       ]
     },
     {
-      "userID": "user-id74",
+      "userID": {
+        "value": "user-id74"
+      },
       "username": "test-username74",
       "password": "test-password74",
       "userDetails": {
         "email": "test74@email.com",
         "isAdmin": true,
         "other": "other value74",
-        "birthDay": "24-08-19974",
+        "birthDay": "1983-09-21T07:48:15.905Z",
         "firstName": "John74",
         "lastName": "Doe74",
         "phoneNumber": "123-456-78740",
         "address": "7423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100074"
+        "zipCode": "100074",
+        "age": 33
       },
       "userAccounts": [
         {
@@ -2326,21 +2551,24 @@
       ]
     },
     {
-      "userID": "user-id75",
+      "userID": {
+        "value": "user-id75"
+      },
       "username": "test-username75",
       "password": "test-password75",
       "userDetails": {
         "email": "test75@email.com",
         "isAdmin": false,
         "other": "other value75",
-        "birthDay": "24-08-19975",
+        "birthDay": "1999-09-21T07:48:15.905Z",
         "firstName": "John75",
         "lastName": "Doe75",
         "phoneNumber": "123-456-78750",
         "address": "7523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100075"
+        "zipCode": "100075",
+        "age": 28
       },
       "userAccounts": [
         {
@@ -2357,21 +2585,24 @@
       ]
     },
     {
-      "userID": "user-id76",
+      "userID": {
+        "value": "user-id76"
+      },
       "username": "test-username76",
       "password": "test-password76",
       "userDetails": {
         "email": "test76@email.com",
         "isAdmin": true,
         "other": "other value76",
-        "birthDay": "24-08-19976",
+        "birthDay": "1991-09-21T07:48:15.905Z",
         "firstName": "John76",
         "lastName": "Doe76",
         "phoneNumber": "123-456-78760",
         "address": "7623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100076"
+        "zipCode": "100076",
+        "age": 43
       },
       "userAccounts": [
         {
@@ -2388,21 +2619,24 @@
       ]
     },
     {
-      "userID": "user-id77",
+      "userID": {
+        "value": "user-id77"
+      },
       "username": "test-username77",
       "password": "test-password77",
       "userDetails": {
         "email": "test77@email.com",
         "isAdmin": false,
         "other": "other value77",
-        "birthDay": "24-08-19977",
+        "birthDay": "1946-09-21T07:48:15.905Z",
         "firstName": "John77",
         "lastName": "Doe77",
         "phoneNumber": "123-456-78770",
         "address": "7723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100077"
+        "zipCode": "100077",
+        "age": 73
       },
       "userAccounts": [
         {
@@ -2419,21 +2653,24 @@
       ]
     },
     {
-      "userID": "user-id78",
+      "userID": {
+        "value": "user-id78"
+      },
       "username": "test-username78",
       "password": "test-password78",
       "userDetails": {
         "email": "test78@email.com",
         "isAdmin": true,
         "other": "other value78",
-        "birthDay": "24-08-19978",
+        "birthDay": "1987-09-21T07:48:15.905Z",
         "firstName": "John78",
         "lastName": "Doe78",
         "phoneNumber": "123-456-78780",
         "address": "7823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100078"
+        "zipCode": "100078",
+        "age": 74
       },
       "userAccounts": [
         {
@@ -2450,21 +2687,24 @@
       ]
     },
     {
-      "userID": "user-id79",
+      "userID": {
+        "value": "user-id79"
+      },
       "username": "test-username79",
       "password": "test-password79",
       "userDetails": {
         "email": "test79@email.com",
         "isAdmin": false,
         "other": "other value79",
-        "birthDay": "24-08-19979",
+        "birthDay": "1971-09-21T07:48:15.905Z",
         "firstName": "John79",
         "lastName": "Doe79",
         "phoneNumber": "123-456-78790",
         "address": "7923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100079"
+        "zipCode": "100079",
+        "age": 61
       },
       "userAccounts": [
         {
@@ -2481,21 +2721,24 @@
       ]
     },
     {
-      "userID": "user-id80",
+      "userID": {
+        "value": "user-id80"
+      },
       "username": "test-username80",
       "password": "test-password80",
       "userDetails": {
         "email": "test80@email.com",
         "isAdmin": true,
         "other": "other value80",
-        "birthDay": "24-08-19980",
+        "birthDay": "1970-09-21T07:48:15.905Z",
         "firstName": "John80",
         "lastName": "Doe80",
         "phoneNumber": "123-456-78800",
         "address": "8023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100080"
+        "zipCode": "100080",
+        "age": 72
       },
       "userAccounts": [
         {
@@ -2512,21 +2755,24 @@
       ]
     },
     {
-      "userID": "user-id81",
+      "userID": {
+        "value": "user-id81"
+      },
       "username": "test-username81",
       "password": "test-password81",
       "userDetails": {
         "email": "test81@email.com",
         "isAdmin": false,
         "other": "other value81",
-        "birthDay": "24-08-19981",
+        "birthDay": "1999-09-21T07:48:15.905Z",
         "firstName": "John81",
         "lastName": "Doe81",
         "phoneNumber": "123-456-78810",
         "address": "8123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100081"
+        "zipCode": "100081",
+        "age": 72
       },
       "userAccounts": [
         {
@@ -2543,21 +2789,24 @@
       ]
     },
     {
-      "userID": "user-id82",
+      "userID": {
+        "value": "user-id82"
+      },
       "username": "test-username82",
       "password": "test-password82",
       "userDetails": {
         "email": "test82@email.com",
         "isAdmin": true,
         "other": "other value82",
-        "birthDay": "24-08-19982",
+        "birthDay": "1976-09-21T07:48:15.905Z",
         "firstName": "John82",
         "lastName": "Doe82",
         "phoneNumber": "123-456-78820",
         "address": "8223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100082"
+        "zipCode": "100082",
+        "age": 75
       },
       "userAccounts": [
         {
@@ -2574,21 +2823,24 @@
       ]
     },
     {
-      "userID": "user-id83",
+      "userID": {
+        "value": "user-id83"
+      },
       "username": "test-username83",
       "password": "test-password83",
       "userDetails": {
         "email": "test83@email.com",
         "isAdmin": false,
         "other": "other value83",
-        "birthDay": "24-08-19983",
+        "birthDay": "1952-09-21T07:48:15.905Z",
         "firstName": "John83",
         "lastName": "Doe83",
         "phoneNumber": "123-456-78830",
         "address": "8323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100083"
+        "zipCode": "100083",
+        "age": 58
       },
       "userAccounts": [
         {
@@ -2605,21 +2857,24 @@
       ]
     },
     {
-      "userID": "user-id84",
+      "userID": {
+        "value": "user-id84"
+      },
       "username": "test-username84",
       "password": "test-password84",
       "userDetails": {
         "email": "test84@email.com",
         "isAdmin": true,
         "other": "other value84",
-        "birthDay": "24-08-19984",
+        "birthDay": "1945-09-21T07:48:15.905Z",
         "firstName": "John84",
         "lastName": "Doe84",
         "phoneNumber": "123-456-78840",
         "address": "8423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100084"
+        "zipCode": "100084",
+        "age": 30
       },
       "userAccounts": [
         {
@@ -2636,21 +2891,24 @@
       ]
     },
     {
-      "userID": "user-id85",
+      "userID": {
+        "value": "user-id85"
+      },
       "username": "test-username85",
       "password": "test-password85",
       "userDetails": {
         "email": "test85@email.com",
         "isAdmin": false,
         "other": "other value85",
-        "birthDay": "24-08-19985",
+        "birthDay": "1982-09-21T07:48:15.905Z",
         "firstName": "John85",
         "lastName": "Doe85",
         "phoneNumber": "123-456-78850",
         "address": "8523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100085"
+        "zipCode": "100085",
+        "age": 67
       },
       "userAccounts": [
         {
@@ -2667,21 +2925,24 @@
       ]
     },
     {
-      "userID": "user-id86",
+      "userID": {
+        "value": "user-id86"
+      },
       "username": "test-username86",
       "password": "test-password86",
       "userDetails": {
         "email": "test86@email.com",
         "isAdmin": true,
         "other": "other value86",
-        "birthDay": "24-08-19986",
+        "birthDay": "1996-09-21T07:48:15.905Z",
         "firstName": "John86",
         "lastName": "Doe86",
         "phoneNumber": "123-456-78860",
         "address": "8623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100086"
+        "zipCode": "100086",
+        "age": 34
       },
       "userAccounts": [
         {
@@ -2698,21 +2959,24 @@
       ]
     },
     {
-      "userID": "user-id87",
+      "userID": {
+        "value": "user-id87"
+      },
       "username": "test-username87",
       "password": "test-password87",
       "userDetails": {
         "email": "test87@email.com",
         "isAdmin": false,
         "other": "other value87",
-        "birthDay": "24-08-19987",
+        "birthDay": "1983-09-21T07:48:15.905Z",
         "firstName": "John87",
         "lastName": "Doe87",
         "phoneNumber": "123-456-78870",
         "address": "8723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100087"
+        "zipCode": "100087",
+        "age": 22
       },
       "userAccounts": [
         {
@@ -2729,21 +2993,24 @@
       ]
     },
     {
-      "userID": "user-id88",
+      "userID": {
+        "value": "user-id88"
+      },
       "username": "test-username88",
       "password": "test-password88",
       "userDetails": {
         "email": "test88@email.com",
         "isAdmin": true,
         "other": "other value88",
-        "birthDay": "24-08-19988",
+        "birthDay": "1991-09-21T07:48:15.905Z",
         "firstName": "John88",
         "lastName": "Doe88",
         "phoneNumber": "123-456-78880",
         "address": "8823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100088"
+        "zipCode": "100088",
+        "age": 22
       },
       "userAccounts": [
         {
@@ -2760,21 +3027,24 @@
       ]
     },
     {
-      "userID": "user-id89",
+      "userID": {
+        "value": "user-id89"
+      },
       "username": "test-username89",
       "password": "test-password89",
       "userDetails": {
         "email": "test89@email.com",
         "isAdmin": false,
         "other": "other value89",
-        "birthDay": "24-08-19989",
+        "birthDay": "1946-09-21T07:48:15.905Z",
         "firstName": "John89",
         "lastName": "Doe89",
         "phoneNumber": "123-456-78890",
         "address": "8923 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100089"
+        "zipCode": "100089",
+        "age": 30
       },
       "userAccounts": [
         {
@@ -2791,21 +3061,24 @@
       ]
     },
     {
-      "userID": "user-id90",
+      "userID": {
+        "value": "user-id90"
+      },
       "username": "test-username90",
       "password": "test-password90",
       "userDetails": {
         "email": "test90@email.com",
         "isAdmin": true,
         "other": "other value90",
-        "birthDay": "24-08-19990",
+        "birthDay": "1949-09-21T07:48:15.905Z",
         "firstName": "John90",
         "lastName": "Doe90",
         "phoneNumber": "123-456-78900",
         "address": "9023 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100090"
+        "zipCode": "100090",
+        "age": 50
       },
       "userAccounts": [
         {
@@ -2822,21 +3095,24 @@
       ]
     },
     {
-      "userID": "user-id91",
+      "userID": {
+        "value": "user-id91"
+      },
       "username": "test-username91",
       "password": "test-password91",
       "userDetails": {
         "email": "test91@email.com",
         "isAdmin": false,
         "other": "other value91",
-        "birthDay": "24-08-19991",
+        "birthDay": "1986-09-21T07:48:15.905Z",
         "firstName": "John91",
         "lastName": "Doe91",
         "phoneNumber": "123-456-78910",
         "address": "9123 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100091"
+        "zipCode": "100091",
+        "age": 33
       },
       "userAccounts": [
         {
@@ -2853,21 +3129,24 @@
       ]
     },
     {
-      "userID": "user-id92",
+      "userID": {
+        "value": "user-id92"
+      },
       "username": "test-username92",
       "password": "test-password92",
       "userDetails": {
         "email": "test92@email.com",
         "isAdmin": true,
         "other": "other value92",
-        "birthDay": "24-08-19992",
+        "birthDay": "1987-09-21T07:48:15.905Z",
         "firstName": "John92",
         "lastName": "Doe92",
         "phoneNumber": "123-456-78920",
         "address": "9223 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100092"
+        "zipCode": "100092",
+        "age": 24
       },
       "userAccounts": [
         {
@@ -2884,21 +3163,24 @@
       ]
     },
     {
-      "userID": "user-id93",
+      "userID": {
+        "value": "user-id93"
+      },
       "username": "test-username93",
       "password": "test-password93",
       "userDetails": {
         "email": "test93@email.com",
         "isAdmin": false,
         "other": "other value93",
-        "birthDay": "24-08-19993",
+        "birthDay": "1980-09-21T07:48:15.905Z",
         "firstName": "John93",
         "lastName": "Doe93",
         "phoneNumber": "123-456-78930",
         "address": "9323 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100093"
+        "zipCode": "100093",
+        "age": 54
       },
       "userAccounts": [
         {
@@ -2915,21 +3197,24 @@
       ]
     },
     {
-      "userID": "user-id94",
+      "userID": {
+        "value": "user-id94"
+      },
       "username": "test-username94",
       "password": "test-password94",
       "userDetails": {
         "email": "test94@email.com",
         "isAdmin": true,
         "other": "other value94",
-        "birthDay": "24-08-19994",
+        "birthDay": "1969-09-21T07:48:15.905Z",
         "firstName": "John94",
         "lastName": "Doe94",
         "phoneNumber": "123-456-78940",
         "address": "9423 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100094"
+        "zipCode": "100094",
+        "age": 72
       },
       "userAccounts": [
         {
@@ -2946,21 +3231,24 @@
       ]
     },
     {
-      "userID": "user-id95",
+      "userID": {
+        "value": "user-id95"
+      },
       "username": "test-username95",
       "password": "test-password95",
       "userDetails": {
         "email": "test95@email.com",
         "isAdmin": false,
         "other": "other value95",
-        "birthDay": "24-08-19995",
+        "birthDay": "1954-09-21T07:48:15.905Z",
         "firstName": "John95",
         "lastName": "Doe95",
         "phoneNumber": "123-456-78950",
         "address": "9523 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100095"
+        "zipCode": "100095",
+        "age": 70
       },
       "userAccounts": [
         {
@@ -2977,21 +3265,24 @@
       ]
     },
     {
-      "userID": "user-id96",
+      "userID": {
+        "value": "user-id96"
+      },
       "username": "test-username96",
       "password": "test-password96",
       "userDetails": {
         "email": "test96@email.com",
         "isAdmin": true,
         "other": "other value96",
-        "birthDay": "24-08-19996",
+        "birthDay": "1991-09-21T07:48:15.905Z",
         "firstName": "John96",
         "lastName": "Doe96",
         "phoneNumber": "123-456-78960",
         "address": "9623 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100096"
+        "zipCode": "100096",
+        "age": 51
       },
       "userAccounts": [
         {
@@ -3008,21 +3299,24 @@
       ]
     },
     {
-      "userID": "user-id97",
+      "userID": {
+        "value": "user-id97"
+      },
       "username": "test-username97",
       "password": "test-password97",
       "userDetails": {
         "email": "test97@email.com",
         "isAdmin": false,
         "other": "other value97",
-        "birthDay": "24-08-19997",
+        "birthDay": "1959-09-21T07:48:15.905Z",
         "firstName": "John97",
         "lastName": "Doe97",
         "phoneNumber": "123-456-78970",
         "address": "9723 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100097"
+        "zipCode": "100097",
+        "age": 79
       },
       "userAccounts": [
         {
@@ -3039,21 +3333,24 @@
       ]
     },
     {
-      "userID": "user-id98",
+      "userID": {
+        "value": "user-id98"
+      },
       "username": "test-username98",
       "password": "test-password98",
       "userDetails": {
         "email": "test98@email.com",
         "isAdmin": true,
         "other": "other value98",
-        "birthDay": "24-08-19998",
+        "birthDay": "1960-09-21T07:48:15.905Z",
         "firstName": "John98",
         "lastName": "Doe98",
         "phoneNumber": "123-456-78980",
         "address": "9823 Main St",
         "city": "New York",
         "state": "NY",
-        "zipCode": "100098"
+        "zipCode": "100098",
+        "age": 40
       },
       "userAccounts": [
         {
@@ -3065,6 +3362,1332 @@
         {
           "account3": {
             "accountNumber": "test account number 3-98"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id99"
+      },
+      "username": "test-username99",
+      "password": "test-password99",
+      "userDetails": {
+        "email": "test99@email.com",
+        "isAdmin": false,
+        "other": "other value99",
+        "birthDay": "1961-09-21T07:48:15.905Z",
+        "firstName": "John99",
+        "lastName": "Doe99",
+        "phoneNumber": "123-456-78990",
+        "address": "9923 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "100099",
+        "age": 76
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-99"
+        },
+        {
+          "account2": "test account2-99"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-99"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id100"
+      },
+      "username": "test-username100",
+      "password": "test-password100",
+      "userDetails": {
+        "email": "test100@email.com",
+        "isAdmin": true,
+        "other": "other value100",
+        "birthDay": "1958-09-21T07:48:15.905Z",
+        "firstName": "John100",
+        "lastName": "Doe100",
+        "phoneNumber": "123-456-781000",
+        "address": "10023 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000100",
+        "age": 77
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-100"
+        },
+        {
+          "account2": "test account2-100"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-100"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id101"
+      },
+      "username": "test-username101",
+      "password": "test-password101",
+      "userDetails": {
+        "email": "test101@email.com",
+        "isAdmin": false,
+        "other": "other value101",
+        "birthDay": "1986-09-21T07:48:15.905Z",
+        "firstName": "John101",
+        "lastName": "Doe101",
+        "phoneNumber": "123-456-781010",
+        "address": "10123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000101",
+        "age": 54
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-101"
+        },
+        {
+          "account2": "test account2-101"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-101"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id102"
+      },
+      "username": "test-username102",
+      "password": "test-password102",
+      "userDetails": {
+        "email": "test102@email.com",
+        "isAdmin": true,
+        "other": "other value102",
+        "birthDay": "1953-09-21T07:48:15.905Z",
+        "firstName": "John102",
+        "lastName": "Doe102",
+        "phoneNumber": "123-456-781020",
+        "address": "10223 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000102",
+        "age": 39
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-102"
+        },
+        {
+          "account2": "test account2-102"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-102"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id103"
+      },
+      "username": "test-username103",
+      "password": "test-password103",
+      "userDetails": {
+        "email": "test103@email.com",
+        "isAdmin": false,
+        "other": "other value103",
+        "birthDay": "1944-09-21T06:48:15.905Z",
+        "firstName": "John103",
+        "lastName": "Doe103",
+        "phoneNumber": "123-456-781030",
+        "address": "10323 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000103",
+        "age": 23
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-103"
+        },
+        {
+          "account2": "test account2-103"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-103"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id104"
+      },
+      "username": "test-username104",
+      "password": "test-password104",
+      "userDetails": {
+        "email": "test104@email.com",
+        "isAdmin": true,
+        "other": "other value104",
+        "birthDay": "1969-09-21T07:48:15.905Z",
+        "firstName": "John104",
+        "lastName": "Doe104",
+        "phoneNumber": "123-456-781040",
+        "address": "10423 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000104",
+        "age": 62
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-104"
+        },
+        {
+          "account2": "test account2-104"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-104"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id105"
+      },
+      "username": "test-username105",
+      "password": "test-password105",
+      "userDetails": {
+        "email": "test105@email.com",
+        "isAdmin": false,
+        "other": "other value105",
+        "birthDay": "1980-09-21T07:48:15.905Z",
+        "firstName": "John105",
+        "lastName": "Doe105",
+        "phoneNumber": "123-456-781050",
+        "address": "10523 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000105",
+        "age": 21
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-105"
+        },
+        {
+          "account2": "test account2-105"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-105"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id106"
+      },
+      "username": "test-username106",
+      "password": "test-password106",
+      "userDetails": {
+        "email": "test106@email.com",
+        "isAdmin": true,
+        "other": "other value106",
+        "birthDay": "1948-09-21T07:48:15.905Z",
+        "firstName": "John106",
+        "lastName": "Doe106",
+        "phoneNumber": "123-456-781060",
+        "address": "10623 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000106",
+        "age": 54
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-106"
+        },
+        {
+          "account2": "test account2-106"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-106"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id107"
+      },
+      "username": "test-username107",
+      "password": "test-password107",
+      "userDetails": {
+        "email": "test107@email.com",
+        "isAdmin": false,
+        "other": "other value107",
+        "birthDay": "1954-09-21T07:48:15.905Z",
+        "firstName": "John107",
+        "lastName": "Doe107",
+        "phoneNumber": "123-456-781070",
+        "address": "10723 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000107",
+        "age": 35
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-107"
+        },
+        {
+          "account2": "test account2-107"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-107"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id108"
+      },
+      "username": "test-username108",
+      "password": "test-password108",
+      "userDetails": {
+        "email": "test108@email.com",
+        "isAdmin": true,
+        "other": "other value108",
+        "birthDay": "2004-09-21T07:48:15.905Z",
+        "firstName": "John108",
+        "lastName": "Doe108",
+        "phoneNumber": "123-456-781080",
+        "address": "10823 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000108",
+        "age": 38
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-108"
+        },
+        {
+          "account2": "test account2-108"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-108"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id109"
+      },
+      "username": "test-username109",
+      "password": "test-password109",
+      "userDetails": {
+        "email": "test109@email.com",
+        "isAdmin": false,
+        "other": "other value109",
+        "birthDay": "1956-09-21T07:48:15.905Z",
+        "firstName": "John109",
+        "lastName": "Doe109",
+        "phoneNumber": "123-456-781090",
+        "address": "10923 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000109",
+        "age": 27
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-109"
+        },
+        {
+          "account2": "test account2-109"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-109"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id110"
+      },
+      "username": "test-username110",
+      "password": "test-password110",
+      "userDetails": {
+        "email": "test110@email.com",
+        "isAdmin": true,
+        "other": "other value110",
+        "birthDay": "2004-09-21T07:48:15.905Z",
+        "firstName": "John110",
+        "lastName": "Doe110",
+        "phoneNumber": "123-456-781100",
+        "address": "11023 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000110",
+        "age": 58
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-110"
+        },
+        {
+          "account2": "test account2-110"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-110"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id111"
+      },
+      "username": "test-username111",
+      "password": "test-password111",
+      "userDetails": {
+        "email": "test111@email.com",
+        "isAdmin": false,
+        "other": "other value111",
+        "birthDay": "1959-09-21T07:48:15.905Z",
+        "firstName": "John111",
+        "lastName": "Doe111",
+        "phoneNumber": "123-456-781110",
+        "address": "11123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000111",
+        "age": 78
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-111"
+        },
+        {
+          "account2": "test account2-111"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-111"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id112"
+      },
+      "username": "test-username112",
+      "password": "test-password112",
+      "userDetails": {
+        "email": "test112@email.com",
+        "isAdmin": true,
+        "other": "other value112",
+        "birthDay": "1998-09-21T07:48:15.905Z",
+        "firstName": "John112",
+        "lastName": "Doe112",
+        "phoneNumber": "123-456-781120",
+        "address": "11223 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000112",
+        "age": 46
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-112"
+        },
+        {
+          "account2": "test account2-112"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-112"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id113"
+      },
+      "username": "test-username113",
+      "password": "test-password113",
+      "userDetails": {
+        "email": "test113@email.com",
+        "isAdmin": false,
+        "other": "other value113",
+        "birthDay": "1971-09-21T07:48:15.905Z",
+        "firstName": "John113",
+        "lastName": "Doe113",
+        "phoneNumber": "123-456-781130",
+        "address": "11323 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000113",
+        "age": 36
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-113"
+        },
+        {
+          "account2": "test account2-113"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-113"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id114"
+      },
+      "username": "test-username114",
+      "password": "test-password114",
+      "userDetails": {
+        "email": "test114@email.com",
+        "isAdmin": true,
+        "other": "other value114",
+        "birthDay": "1980-09-21T07:48:15.905Z",
+        "firstName": "John114",
+        "lastName": "Doe114",
+        "phoneNumber": "123-456-781140",
+        "address": "11423 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000114",
+        "age": 61
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-114"
+        },
+        {
+          "account2": "test account2-114"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-114"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id115"
+      },
+      "username": "test-username115",
+      "password": "test-password115",
+      "userDetails": {
+        "email": "test115@email.com",
+        "isAdmin": false,
+        "other": "other value115",
+        "birthDay": "1948-09-21T07:48:15.905Z",
+        "firstName": "John115",
+        "lastName": "Doe115",
+        "phoneNumber": "123-456-781150",
+        "address": "11523 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000115",
+        "age": 54
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-115"
+        },
+        {
+          "account2": "test account2-115"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-115"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id116"
+      },
+      "username": "test-username116",
+      "password": "test-password116",
+      "userDetails": {
+        "email": "test116@email.com",
+        "isAdmin": true,
+        "other": "other value116",
+        "birthDay": "1972-09-21T07:48:15.905Z",
+        "firstName": "John116",
+        "lastName": "Doe116",
+        "phoneNumber": "123-456-781160",
+        "address": "11623 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000116",
+        "age": 62
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-116"
+        },
+        {
+          "account2": "test account2-116"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-116"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id117"
+      },
+      "username": "test-username117",
+      "password": "test-password117",
+      "userDetails": {
+        "email": "test117@email.com",
+        "isAdmin": false,
+        "other": "other value117",
+        "birthDay": "1966-09-21T07:48:15.905Z",
+        "firstName": "John117",
+        "lastName": "Doe117",
+        "phoneNumber": "123-456-781170",
+        "address": "11723 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000117",
+        "age": 26
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-117"
+        },
+        {
+          "account2": "test account2-117"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-117"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id118"
+      },
+      "username": "test-username118",
+      "password": "test-password118",
+      "userDetails": {
+        "email": "test118@email.com",
+        "isAdmin": true,
+        "other": "other value118",
+        "birthDay": "1974-09-21T07:48:15.905Z",
+        "firstName": "John118",
+        "lastName": "Doe118",
+        "phoneNumber": "123-456-781180",
+        "address": "11823 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000118",
+        "age": 77
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-118"
+        },
+        {
+          "account2": "test account2-118"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-118"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id119"
+      },
+      "username": "test-username119",
+      "password": "test-password119",
+      "userDetails": {
+        "email": "test119@email.com",
+        "isAdmin": false,
+        "other": "other value119",
+        "birthDay": "1965-09-21T07:48:15.905Z",
+        "firstName": "John119",
+        "lastName": "Doe119",
+        "phoneNumber": "123-456-781190",
+        "address": "11923 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000119",
+        "age": 49
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-119"
+        },
+        {
+          "account2": "test account2-119"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-119"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id120"
+      },
+      "username": "test-username120",
+      "password": "test-password120",
+      "userDetails": {
+        "email": "test120@email.com",
+        "isAdmin": true,
+        "other": "other value120",
+        "birthDay": "1974-09-21T07:48:15.905Z",
+        "firstName": "John120",
+        "lastName": "Doe120",
+        "phoneNumber": "123-456-781200",
+        "address": "12023 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000120",
+        "age": 39
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-120"
+        },
+        {
+          "account2": "test account2-120"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-120"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id121"
+      },
+      "username": "test-username121",
+      "password": "test-password121",
+      "userDetails": {
+        "email": "test121@email.com",
+        "isAdmin": false,
+        "other": "other value121",
+        "birthDay": "1988-09-21T07:48:15.905Z",
+        "firstName": "John121",
+        "lastName": "Doe121",
+        "phoneNumber": "123-456-781210",
+        "address": "12123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000121",
+        "age": 35
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-121"
+        },
+        {
+          "account2": "test account2-121"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-121"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id122"
+      },
+      "username": "test-username122",
+      "password": "test-password122",
+      "userDetails": {
+        "email": "test122@email.com",
+        "isAdmin": true,
+        "other": "other value122",
+        "birthDay": "1990-09-21T07:48:15.905Z",
+        "firstName": "John122",
+        "lastName": "Doe122",
+        "phoneNumber": "123-456-781220",
+        "address": "12223 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000122",
+        "age": 24
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-122"
+        },
+        {
+          "account2": "test account2-122"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-122"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id123"
+      },
+      "username": "test-username123",
+      "password": "test-password123",
+      "userDetails": {
+        "email": "test123@email.com",
+        "isAdmin": false,
+        "other": "other value123",
+        "birthDay": "1970-09-21T07:48:15.905Z",
+        "firstName": "John123",
+        "lastName": "Doe123",
+        "phoneNumber": "123-456-781230",
+        "address": "12323 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000123",
+        "age": 62
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-123"
+        },
+        {
+          "account2": "test account2-123"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-123"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id124"
+      },
+      "username": "test-username124",
+      "password": "test-password124",
+      "userDetails": {
+        "email": "test124@email.com",
+        "isAdmin": true,
+        "other": "other value124",
+        "birthDay": "1960-09-21T07:48:15.905Z",
+        "firstName": "John124",
+        "lastName": "Doe124",
+        "phoneNumber": "123-456-781240",
+        "address": "12423 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000124",
+        "age": 64
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-124"
+        },
+        {
+          "account2": "test account2-124"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-124"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id125"
+      },
+      "username": "test-username125",
+      "password": "test-password125",
+      "userDetails": {
+        "email": "test125@email.com",
+        "isAdmin": false,
+        "other": "other value125",
+        "birthDay": "2000-09-21T07:48:15.905Z",
+        "firstName": "John125",
+        "lastName": "Doe125",
+        "phoneNumber": "123-456-781250",
+        "address": "12523 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000125",
+        "age": 44
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-125"
+        },
+        {
+          "account2": "test account2-125"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-125"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id126"
+      },
+      "username": "test-username126",
+      "password": "test-password126",
+      "userDetails": {
+        "email": "test126@email.com",
+        "isAdmin": true,
+        "other": "other value126",
+        "birthDay": "1978-09-21T07:48:15.905Z",
+        "firstName": "John126",
+        "lastName": "Doe126",
+        "phoneNumber": "123-456-781260",
+        "address": "12623 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000126",
+        "age": 67
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-126"
+        },
+        {
+          "account2": "test account2-126"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-126"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id127"
+      },
+      "username": "test-username127",
+      "password": "test-password127",
+      "userDetails": {
+        "email": "test127@email.com",
+        "isAdmin": false,
+        "other": "other value127",
+        "birthDay": "1956-09-21T07:48:15.905Z",
+        "firstName": "John127",
+        "lastName": "Doe127",
+        "phoneNumber": "123-456-781270",
+        "address": "12723 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000127",
+        "age": 50
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-127"
+        },
+        {
+          "account2": "test account2-127"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-127"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id128"
+      },
+      "username": "test-username128",
+      "password": "test-password128",
+      "userDetails": {
+        "email": "test128@email.com",
+        "isAdmin": true,
+        "other": "other value128",
+        "birthDay": "1971-09-21T07:48:15.905Z",
+        "firstName": "John128",
+        "lastName": "Doe128",
+        "phoneNumber": "123-456-781280",
+        "address": "12823 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000128",
+        "age": 44
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-128"
+        },
+        {
+          "account2": "test account2-128"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-128"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id129"
+      },
+      "username": "test-username129",
+      "password": "test-password129",
+      "userDetails": {
+        "email": "test129@email.com",
+        "isAdmin": false,
+        "other": "other value129",
+        "birthDay": "1974-09-21T07:48:15.905Z",
+        "firstName": "John129",
+        "lastName": "Doe129",
+        "phoneNumber": "123-456-781290",
+        "address": "12923 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000129",
+        "age": 77
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-129"
+        },
+        {
+          "account2": "test account2-129"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-129"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id130"
+      },
+      "username": "test-username130",
+      "password": "test-password130",
+      "userDetails": {
+        "email": "test130@email.com",
+        "isAdmin": true,
+        "other": "other value130",
+        "birthDay": "1983-09-21T07:48:15.905Z",
+        "firstName": "John130",
+        "lastName": "Doe130",
+        "phoneNumber": "123-456-781300",
+        "address": "13023 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000130",
+        "age": 65
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-130"
+        },
+        {
+          "account2": "test account2-130"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-130"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id131"
+      },
+      "username": "test-username131",
+      "password": "test-password131",
+      "userDetails": {
+        "email": "test131@email.com",
+        "isAdmin": false,
+        "other": "other value131",
+        "birthDay": "1972-09-21T07:48:15.905Z",
+        "firstName": "John131",
+        "lastName": "Doe131",
+        "phoneNumber": "123-456-781310",
+        "address": "13123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000131",
+        "age": 52
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-131"
+        },
+        {
+          "account2": "test account2-131"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-131"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id132"
+      },
+      "username": "test-username132",
+      "password": "test-password132",
+      "userDetails": {
+        "email": "test132@email.com",
+        "isAdmin": true,
+        "other": "other value132",
+        "birthDay": "1962-09-21T07:48:15.905Z",
+        "firstName": "John132",
+        "lastName": "Doe132",
+        "phoneNumber": "123-456-781320",
+        "address": "13223 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000132",
+        "age": 72
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-132"
+        },
+        {
+          "account2": "test account2-132"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-132"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id133"
+      },
+      "username": "test-username133",
+      "password": "test-password133",
+      "userDetails": {
+        "email": "test133@email.com",
+        "isAdmin": false,
+        "other": "other value133",
+        "birthDay": "1977-09-21T07:48:15.905Z",
+        "firstName": "John133",
+        "lastName": "Doe133",
+        "phoneNumber": "123-456-781330",
+        "address": "13323 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000133",
+        "age": 53
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-133"
+        },
+        {
+          "account2": "test account2-133"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-133"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id134"
+      },
+      "username": "test-username134",
+      "password": "test-password134",
+      "userDetails": {
+        "email": "test134@email.com",
+        "isAdmin": true,
+        "other": "other value134",
+        "birthDay": "1948-09-21T07:48:15.905Z",
+        "firstName": "John134",
+        "lastName": "Doe134",
+        "phoneNumber": "123-456-781340",
+        "address": "13423 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000134",
+        "age": 29
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-134"
+        },
+        {
+          "account2": "test account2-134"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-134"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id135"
+      },
+      "username": "test-username135",
+      "password": "test-password135",
+      "userDetails": {
+        "email": "test135@email.com",
+        "isAdmin": false,
+        "other": "other value135",
+        "birthDay": "1975-09-21T07:48:15.905Z",
+        "firstName": "John135",
+        "lastName": "Doe135",
+        "phoneNumber": "123-456-781350",
+        "address": "13523 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000135",
+        "age": 55
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-135"
+        },
+        {
+          "account2": "test account2-135"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-135"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id136"
+      },
+      "username": "test-username136",
+      "password": "test-password136",
+      "userDetails": {
+        "email": "test136@email.com",
+        "isAdmin": true,
+        "other": "other value136",
+        "birthDay": "1992-09-21T07:48:15.905Z",
+        "firstName": "John136",
+        "lastName": "Doe136",
+        "phoneNumber": "123-456-781360",
+        "address": "13623 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000136",
+        "age": 47
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-136"
+        },
+        {
+          "account2": "test account2-136"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-136"
+          }
+        }
+      ]
+    },
+    {
+      "userID": {
+        "value": "user-id137"
+      },
+      "username": "test-username137",
+      "password": "test-password137",
+      "userDetails": {
+        "email": "test137@email.com",
+        "isAdmin": false,
+        "other": "other value137",
+        "birthDay": "1986-09-21T07:48:15.905Z",
+        "firstName": "John137",
+        "lastName": "Doe137",
+        "phoneNumber": "123-456-781370",
+        "address": "13723 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "1000137",
+        "age": 49
+      },
+      "userAccounts": [
+        {
+          "account1": "test account1-137"
+        },
+        {
+          "account2": "test account2-137"
+        },
+        {
+          "account3": {
+            "accountNumber": "test account number 3-137"
           }
         }
       ]
