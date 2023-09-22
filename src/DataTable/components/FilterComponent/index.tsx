@@ -135,10 +135,10 @@ export default (props: FilterComponentProps) => {
         title: cloneMenuName,
         default: false // Ensure the cloned setting's default value is always false
       };
-  
+
       const updatedSettings = [...filterSettings, clonedSetting];
       setFilterSettings(updatedSettings);
-  
+
       // Trigger onChange with new settings if provided
       onChange?.(updatedSettings);
     }
@@ -162,37 +162,51 @@ export default (props: FilterComponentProps) => {
           {filterSettings
             .filter(setting => setting.id === selectedMenu)
             .map(setting => (
-              setting.fields.map(field => {
-                if (field.type === "text") {
-                  return (
-                    <input
-                      key={field.id}
-                      type="text"
-                      defaultValue={field.value}
-                      onChange={e => handleInputChange(field.id, e.target.value)}
-                    />
-                  );
-                }
-                if (field.type === "select" && field.options) {
-                  return (
-                    <select
-                      key={field.id}
-                      defaultValue={field.value}
-                      onChange={e => handleInputChange(field.id, e.target.value)}
-                    >
-                      {field.options.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.text}
-                        </option>
-                      ))}
-                    </select>
-                  );
-                }
-                return null;
-              })
+              <>
+                {/* Checkbox moved here */}
+                <label key={setting.id}>
+                  Default:
+                  <input
+                    type="checkbox"
+                    checked={defaultSetting?.id === setting.id}
+                    onChange={() => handleDefaultChange(setting)}
+                  />
+                </label>
+
+                {/* The setting fields */}
+                {setting.fields.map(field => {
+                  if (field.type === "text") {
+                    return (
+                      <input
+                        key={field.id}
+                        type="text"
+                        defaultValue={field.value}
+                        onChange={e => handleInputChange(field.id, e.target.value)}
+                      />
+                    );
+                  }
+                  if (field.type === "select" && field.options) {
+                    return (
+                      <select
+                        key={field.id}
+                        defaultValue={field.value}
+                        onChange={e => handleInputChange(field.id, e.target.value)}
+                      >
+                        {field.options.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.text}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  }
+                  return null;
+                })}
+              </>
             ))}
         </Content>
       </ContentWrapper>
+
       <Footer>
         <div>
           <input
@@ -202,16 +216,6 @@ export default (props: FilterComponentProps) => {
           />
           <button onClick={handleClone}>Clone</button>
         </div>
-        {filterSettings.map(setting => (
-          <label key={setting.id}>
-            {setting.title}
-            <input
-              type="checkbox"
-              checked={defaultSetting?.id === setting.id}
-              onChange={() => handleDefaultChange(setting)}
-            />
-          </label>
-        ))}
         <button onClick={applyChanges}>Apply</button>
       </Footer>
     </Container>
