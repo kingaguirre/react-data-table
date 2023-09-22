@@ -27,6 +27,15 @@ function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => (acc && acc[part]) ? acc[part] : null, obj);
 }
 
+function isValidDate(dateString) {
+  const regEx = /^\d{4}-\d{2}-\d{2}$/;
+  if(!dateString.match(regEx)) return false;  // Invalid format
+  const d = new Date(dateString);
+  const dNum = d.getTime();
+  if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+  return d.toISOString().slice(0,10) === dateString;
+}
+
 server.post('/custom-items', (req, res) => {
   const { pageNumber, pageSize, searchString, sortColumn, sortDirection, filter } = req.body;
 
@@ -62,6 +71,9 @@ server.post('/custom-items', (req, res) => {
           const numericMin = parseFloat(value.min);
           const numericMax = parseFloat(value.max);
     
+          // If min and max is not defined
+          if (!numericMax && numericMin) return true;
+
           // If max is less than min, don't apply the filter for this key
           if (numericMax < numericMin) return true;
     
@@ -71,6 +83,21 @@ server.post('/custom-items', (req, res) => {
     
           if (value.max !== undefined && numericItemValue > numericMax) {
             return false; // Item value is above specified maximum
+          }
+
+          // Handle date-range filtering
+          if (isValidDate(value.min) && isValidDate(value.max)) {
+            const dateItemValue = new Date(itemValue);
+            const dateMin = new Date(value.min);
+            const dateMax = new Date(value.max);
+
+            if (isNaN(dateItemValue.getTime())) return false; // If the item's date value is not valid, filter it out
+            
+            if (dateItemValue < dateMin || dateItemValue > dateMax) {
+              return false; // Item date is outside of specified range
+            }
+
+            return true; // Item date is within specified range
           }
     
           return true; // Item value is within specified range
