@@ -137,7 +137,18 @@ export const DataTable = (props: DataTableProps) => {
           searchString,
           sortColumn,
           sortDirection,
-          filter: {...filter, ...advanceFilter}
+          /** Remove keys without undefined, null and empty string value */
+          filter: {
+            ...Object.entries({...filter, ...advanceFilter}).reduce((acc, [key, value]) => {
+              if (
+                  (typeof value === "number" && value === 0) ||
+                  (value !== null && value !== undefined && value !== "")
+              ) {
+                acc[key] = value;
+              }
+              return acc;
+            }, {}),
+          }
         };
         console.log(requestBody)
 
