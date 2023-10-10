@@ -3,6 +3,7 @@ interface RequestData {
   pageSize: string | number;
   sortColumn?: string;
   sortDirection?: string;
+  method?: string;
   filter?: { [key: string]: any }; // Add filter property
 }
 

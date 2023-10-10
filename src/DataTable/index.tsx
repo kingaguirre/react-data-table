@@ -10,7 +10,8 @@ import {
   filterCheck,
   serializeColumns,
   setColumnSettings,
-  getAdvanceFilterSettingsObj
+  getAdvanceFilterSettingsObj,
+  serialize
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
@@ -129,33 +130,54 @@ export const DataTable = (props: DataTableProps) => {
 
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
-      try {
-        const requestBody = {
+      let url = endpoint;
+      let body: any = null;
+      let method = 'GET';
+
+      if (requestData!.method === "post") {
+        method = 'POST';
+        body = JSON.stringify({
           ...requestData,
           pageNumber: pageIndex + 1,
           pageSize,
           searchString,
           sortColumn,
           sortDirection,
-          /** Remove keys without undefined, null and empty string value */
           filter: {
-            ...Object.entries({...filter, ...advanceFilter}).reduce((acc, [key, value]) => {
-              if (
-                  (typeof value === "number" && value === 0) ||
-                  (value !== null && value !== undefined && value !== "")
-              ) {
-                acc[key] = value;
-              }
-              return acc;
-            }, {}),
+            ...filter,
+            ...advanceFilter
           }
+        });
+      } else {
+        const queryObj = {
+          ...requestData,
+          ...requestData!.filter,
+          pageNumber: pageIndex + 1,
+          pageSize,
+          searchString,
+          sortColumn,
+          sortDirection,
+          ...filter,
+          ...advanceFilter
         };
-        console.log(requestBody)
+        delete queryObj.filter;
 
-        const response: any = await fetch(endpoint, {
-          method: 'POST',
+        // Ensure all undefined values in queryObj are replaced with an empty string
+        for (let key in queryObj) {
+          if (queryObj[key] === undefined) {
+            queryObj[key] = '';
+          }
+        }
+
+        const queryString = serialize(queryObj);
+        url = `${endpoint}?${queryString}`;
+      }
+
+      try {
+        const response: any = await fetch(url, {
+          method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          body
         });
 
         if (!response.ok) {
@@ -188,6 +210,7 @@ export const DataTable = (props: DataTableProps) => {
       }
     }
   }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+
   /** Callback End */
 
   /** Custom Functions Start */

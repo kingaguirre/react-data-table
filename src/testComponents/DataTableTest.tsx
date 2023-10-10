@@ -56,10 +56,20 @@ const dataSource = Array(138).fill("").map((_, i) => ({
 
 const columnSettings = [
   {
+    column: 'acknowledgementNumber',
+    title: 'Acknowledgement Number',
+    align: 'center',
+    pinned: true,
+    groupTitle: 'test',
+    order: 0,
+    filterBy: {
+      type: 'text',
+    },
+  },
+  {
     column: 'username',
     title: 'Username',
     align: 'center',
-    pinned: true,
     groupTitle: 'test',
     order: 0,
     filterBy: {
@@ -188,6 +198,43 @@ const columnSettings = [
   },
 ];
 
+const generateRandomTransactions = (num = 100) => {
+  const transactionWorkflowStages = ["AWMFR", "CMPCL", "DABCK", "DABCM", "DABMK", "DABBK", "EXDAB", "EXECA", "EXECR", "EXENC", "EXECK", "EXEMK", "FDRCK", "FDRMK", "IMBCA", "IMBCR", "IMBRI", "PDCMP", "IMBCK", "IMBMK", "PDPRC", "PDREF", "PDRWB", "PDRRM", "PDRTO", "PREXE", "PRXCK", "PRXMK", "PPRCA", "PPRCR", "PPRMK", "PRPRC", "PPRCK", "PRINP", "REPRQ", "REFRJ", "REGCL", "REGFL", "REGIN", "RELPG", "SPLCP", "STWFC", "STWFS", "STREJ", "TXPCK", "TXPCR", "TXPMK", "TWFIN"];
+  const txBookingLocations = ["SG02", "SG01"];
+  const txpersonas = ["CRRC", "STDU", "CLMO", "HTOP", "CTOP", "REMR"];
+  
+  function getRandomFromArray(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  return Array(num).fill("").map((_, i) => ({
+    transactionReference: "transactionReference_" + Math.random().toString(36).substring(2, 10),
+    transactionWorkflowId: "transactionWorkflowId_" + Math.random().toString(36).substring(2, 10),
+    transactionWorkflowStage: getRandomFromArray(transactionWorkflowStages),
+    txBookingLocation: getRandomFromArray(txBookingLocations),
+    acknowledgementNumber: "acknowledgementNumber_" + Math.random().toString(36).substring(2, 10),
+    submissionMode: "submissionMode_" + Math.random().toString(36).substring(2, 10),
+    fromDate: new Date().toISOString(),
+    toDate: new Date().toISOString(),
+    product: "product_" + Math.random().toString(36).substring(2, 10),
+    step: "step_" + Math.random().toString(36).substring(2, 10),
+    customerID: "customerID_" + Math.random().toString(36).substring(2, 10),
+    txpersonas: getRandomFromArray(txpersonas),
+    amlStatus: "amlStatus_" + Math.random().toString(36).substring(2, 10),
+    lliStatus: "lliStatus_" + Math.random().toString(36).substring(2, 10),
+    callbackStatus: "callbackStatus_" + Math.random().toString(36).substring(2, 10),
+    sanctionStatus: "sanctionStatus_" + Math.random().toString(36).substring(2, 10),
+    clientReference: "clientReference_" + Math.random().toString(36).substring(2, 10),
+    urgentFlag: Math.random() >= 0.5,
+    segment: "segment_" + Math.random().toString(36).substring(2, 10),
+    subStep: "subStep_" + Math.random().toString(36).substring(2, 10),
+    countryCode: "countryCode_" + Math.random().toString(36).substring(2, 2 + Math.floor(Math.random() * 4)),
+  }))
+}
+
+console.log(generateRandomTransactions());
+
+
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
 
@@ -207,10 +254,109 @@ export default () => {
     <div style={{padding: 16}}>
       <DataTable
         fetchConfig={{
+          endpoint: "http://localhost:3002/custom-items",
+          responseTotalDataPath: "data.count",
+          responseDataPath: "data.dataTableItem",
+          requestData: {
+            pageNumber: 1,
+            pageSize: 10,
+            filter: {
+              username: "test-username1",
+            }
+          },
+          filterSettings: [{
+            id: "ack-settings",
+            title: "Ack Settings",
+            fields: [{
+                id: "keyID1",
+                type: "text",
+                value: "test"
+            }, {
+                id: "keyID2",
+                type: "select",
+                value: "test-dropdown",
+                options: [{
+                    value: "test-dropdown",
+                    text: "Test Dropdown"
+                }, {
+                    value: "test-dropdown1",
+                    text: "Test Dropdown 1"
+                }, {
+                    value: "test-dropdown2",
+                    text: "Test Dropdown 2"
+                }]
+            }]
+        }, {
+          id: "trn-settings",
+          title: "TRN Settings",
+          default: true,
+          fields: [{
+              id: "keyID11",
+              type: "text",
+              value: "test"
+          }, {
+              id: "keyID21",
+              type: "select",
+              value: "test-dropdown",
+              options: [{
+                  value: "test-dropdown",
+                  text: "Test Dropdown"
+              }, {
+                  value: "test-dropdown1",
+                  text: "Test Dropdown 1"
+              }, {
+                  value: "test-dropdown2",
+                  text: "Test Dropdown 2"
+              }]
+          }, {
+            id: "keyID111",
+            type: "text",
+            value: "testtestest"
+        },]
+      }]
+        }}
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        onRowClick={handleRowClick}
+        onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID"
+        activeRow="user-id2"
+        selectedRows={[{"userID": { "value": "user-id0" }}]}
+        // selectedRows={[{"userID": "user-id0"}]}
+        // selectedRows={["user-id0"]}
+        selectable
+        downloadCSV
+        collapsibleRowRender={() => (
+          <DataTable
+            dataSource={dataSource}
+            columnSettings={[{
+              column: 'userDetails.birthDay',
+              title: 'Birth Day',
+              order: 5,
+              width: "200px"
+            },
+            {
+              column: 'userDetails.firstName',
+              title: 'First Name',
+              width: "150px"
+            }]}
+            rowKey="userID.value"
+            clickableRow
+          />
+        )}
+        onColumnSettingsChange={handleColumnSettingsChange}
+        onPageIndexChange={e => console.log(`Page index: ${e}`)}
+        onPageSizeChange={e => console.log(`Page size: ${e}`)}
+        onSelectedRowsChange={rows => setSselectedRow(rows)}
+      />
+      <div style={{height: 100}}/>
+      <DataTable
+        fetchConfig={{
           endpoint: "http://localhost:3001/custom-items",
           responseTotalDataPath: "data.count",
           responseDataPath: "data.dataTableItem",
           requestData: {
+            method: "post",
             pageNumber: 1,
             pageSize: 10,
             filter: {

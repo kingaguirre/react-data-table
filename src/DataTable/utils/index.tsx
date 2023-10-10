@@ -280,6 +280,15 @@ export const getAdvanceFilterSettingsObj = (filterSettings: any[]): { [key: stri
   }, {} as { [key: string]: string });
 };
 
+// Serialize object to query string
+export const serialize = obj => {
+  const str = [];
+  for (let p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+};
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
