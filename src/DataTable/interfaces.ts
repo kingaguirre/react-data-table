@@ -15,6 +15,19 @@ interface FetchConfig {
   filterSettings?: any
 }
 
+interface CustomRowSettings {
+  column: string;
+  value: string;
+  showColumn?: boolean;
+  width?: string;
+  styles?: {
+    backgroundColor?: string;
+    textDecoration?: string;
+    color?: string;
+    fontWeight?: string;
+  }
+}
+
 export interface DataTableProps {
   dataSource?: any[];
   columnSettings: ColumnSettings[];
@@ -30,6 +43,7 @@ export interface DataTableProps {
   activeRow?: string;
   selectedRows?: any[];
   clickableRow?: boolean;
+  customRowSettings?: CustomRowSettings[];
   onRowClick?: (rowData: any) => void;
   onRowDoubleClick?: (rowData: any) => void;
   onColumnSettingsChange?: (newColumnSettings: ColumnSettings[]) => void;
@@ -51,6 +65,7 @@ export interface ColumnSettings {
   groupTitle?: string;
   order?: number;
   sorted?: 'asc' | 'desc' | string;
+  draggable?: boolean;
   columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
 }
 

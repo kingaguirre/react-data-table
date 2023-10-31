@@ -44,6 +44,7 @@ export const DataTable = (props: DataTableProps) => {
     activeRow = null,
     selectedRows = [],
     clickableRow = true,
+    customRowSettings,
     onColumnSettingsChange,
     onRowClick,
     onRowDoubleClick,
@@ -154,17 +155,17 @@ export const DataTable = (props: DataTableProps) => {
           ...requestData!.filter,
           pageNumber: pageIndex + 1,
           pageSize,
-          searchString,
           sortColumn,
           sortDirection,
           ...filter,
-          ...advanceFilter
+          ...advanceFilter,
+          acknowledgementNumber: searchString,
         };
         delete queryObj.filter;
 
         // Ensure all undefined values in queryObj are replaced with an empty string
         for (let key in queryObj) {
-          if (queryObj[key] === undefined) {
+          if (queryObj[key] === undefined || queryObj[key] === null) {
             queryObj[key] = '';
           }
         }
@@ -240,23 +241,25 @@ export const DataTable = (props: DataTableProps) => {
   useEffect(() => {
     if (tableRef && tableRef.current) {
       setTableWidth(tableRef.current.offsetWidth);
-      setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth));
+      setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings));
     }
   }, [tableRef]);
 
   useEffect(() => {
-    if (state.columns.length > 0 && !!fetchConfig) {
-      const hasStateChanged = state.localPageIndex !== pageIndex || state.localPageSize !== pageSize || state.columns.some(col => col.sorted && col.sorted !== 'none') || state.search !== null;
-
+    if (!!fetchConfig) {
+      const hasStateChanged = state.localPageIndex !== pageIndex 
+        || state.localPageSize !== pageSize 
+        || state.search !== null;
+  
       if (hasStateChanged) {
         const sortedColumn = state.columns.find(col => col.sorted && col.sorted !== 'none');
         const sortColumn = sortedColumn?.column || 'none';
         const sortDirection = sortedColumn?.sorted || 'none';
-
+  
         fetchWithPagination(state.localPageIndex, state.localPageSize, state.search, sortColumn, sortDirection, state.filterValues, state.advanceFilterValues);
       }
     }
-  }, [state.search, state.localPageIndex, state.localPageSize, state.columns, state.filterValues, state.advanceFilterValues, pageIndex, pageSize]);
+  }, [state.search, state.localPageIndex, state.localPageSize, state.filterValues, state.advanceFilterValues, pageIndex, pageSize, fetchConfig]);
   /** UseEffects End */
 
   return (
@@ -275,6 +278,7 @@ export const DataTable = (props: DataTableProps) => {
         clickableRow,
         filterSettings: fetchConfig?.filterSettings,
         columnSettings,
+        customRowSettings,
         state,
         setState,
         onMouseDown,

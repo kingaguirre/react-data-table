@@ -1,10 +1,10 @@
 import styled from 'styled-components';
 
-export const TitleWrapper = styled.div`
-  width: 100%;
+export const TitleWrapper = styled.div<{hasControls?: boolean, align?: string}>`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: ${({hasControls, align}) => !!hasControls ? "space-between" : !!align ? align === 'right' ? 'flex-end' : 'flex-start' : 'center'};
+  ${({hasControls}) => !!hasControls ? `width: 100%;` : ""}
 `
 
 export const TitleContainer = styled.div<{isDraggedOver?: boolean, hasControls?: boolean, align?: string}>`

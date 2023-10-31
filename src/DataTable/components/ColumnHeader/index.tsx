@@ -54,6 +54,9 @@ export const ColumnHeader = () => {
           pinnedWidth += colWidth;
         }
 
+        const isDraggable = col.draggable !== false;
+        const hasControls = showPinIcon || showSortIcon;
+
         return (
           <TableCell
             key={index}
@@ -62,21 +65,28 @@ export const ColumnHeader = () => {
             align={col.align}
             isPinned={isPinned}
             style={pinnedStyle}
-            onDragOver={(e) => onDragOver(e, index)}
-            onDrop={(e) => onDrop(e, index)}
+            {...(isDraggable ? {
+              onDragOver: (e) => onDragOver(e, index),
+              onDrop: (e) => onDrop(e, index)
+            } : {})}
           >
-            <SC.TitleWrapper>
-              <SC.TitleContainer
-                isDraggedOver={index === dropTargetIndex}
-                hasControls={showPinIcon || showSortIcon}
-                align={col.align}
-                draggable
-                onDragStart={(e: any) => onDragStart(e, index)}
-              >
-                <CellContent>{col.title}</CellContent>
-              </SC.TitleContainer>
-              
-              <SC.TitleControlsContainer>
+            <SC.TitleWrapper hasControls={hasControls} align={col.align}>
+              {isDraggable ? (
+                <SC.TitleContainer
+                  hasControls={hasControls}
+                  align={col.align}
+                  {...(isDraggable ? {
+                    isDraggedOver: index === dropTargetIndex,
+                    draggable: true,
+                    onDragStart: (e: any) => onDragStart(e, index)
+                  } : {})}
+                >
+                  <CellContent>{col.title}</CellContent>
+                </SC.TitleContainer>
+              ) : <CellContent>{col.title}</CellContent>}
+
+              {hasControls && (
+                <SC.TitleControlsContainer>
                 {showPinIcon && (
                   <SC.PinContainer
                     isPinned={isPinned}
@@ -120,10 +130,15 @@ export const ColumnHeader = () => {
                   </SC.SortContainer>
                 )}
               </SC.TitleControlsContainer>
+              )}
             </SC.TitleWrapper>
 
-            <ColumnDragHighlighter index={index}/>
-            <ResizeHandle onMouseDown={onMouseDown(index)} />
+            {isDraggable && (
+              <>
+                <ColumnDragHighlighter index={index}/>
+                <ResizeHandle onMouseDown={onMouseDown(index)} />
+              </>
+            )}
           </TableCell>
         );
       })}

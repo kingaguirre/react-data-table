@@ -212,8 +212,23 @@ export const getLocalStorageColumnSettings = (columnSettings: any) => {
   }
 }
 
-export const setColumnSettings = (columnSettings: any, tableWidth: any) => {
-  const colSettings = [...getLocalStorageColumnSettings(columnSettings)];
+export const setColumnSettings = (
+  columnSettings: any,
+  tableWidth: any,
+  customRowSettings: any
+) => {
+  const customColumns = (!!customRowSettings && customRowSettings.length > 0) ? customRowSettings.filter(i => i.showColumn !== false).map(i => ({
+    column: i.column,
+    title: "#",
+    align: "center",
+    order: 0,
+    pinned: "none",
+    sorted: "none",
+    width: i.width || "40px",
+    draggable: false
+  })) : [];
+
+  const colSettings = [...customColumns, ...getLocalStorageColumnSettings(columnSettings)];
   if (tableWidth === null) return colSettings;
 
   const columnsWithWidth = colSettings.filter(col => col.width);
@@ -281,13 +296,29 @@ export const getAdvanceFilterSettingsObj = (filterSettings: any[]): { [key: stri
 };
 
 // Serialize object to query string
-export const serialize = obj => {
-  const str = [];
-  for (let p in obj)
-    if (obj.hasOwnProperty(p)) {
+export const serialize = (obj: { [key: string]: any }): string => {
+  const str: string[] = [];
+  for (let p in obj) {
+    if (obj.hasOwnProperty(p) && obj[p] !== undefined && obj[p] !== null) {
       str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
     }
+  }
   return str.join("&");
+};
+
+export const mergeCustomStylesForRow = (rowValue, customRowSettings) => {
+  let mergedStyles = {};
+
+  // Loop through each customRowSetting
+  customRowSettings.forEach((setting) => {
+    const valueAtPath = getDeepValue(rowValue, setting.column);
+    if (valueAtPath !== undefined && valueAtPath === setting.value) {
+      // Merge the styles if the condition is true
+      mergedStyles = { ...mergedStyles, ...setting.styles };
+    }
+  });
+
+  return mergedStyles;
 };
 
 export * from "./useDragDropManager";

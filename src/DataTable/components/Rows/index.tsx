@@ -1,5 +1,5 @@
 import React, { useContext, useState, useCallback, Fragment } from "react";
-import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails } from "../../utils"
+import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
@@ -14,13 +14,14 @@ export const Rows = () => {
     collapsibleRowHeight,
     fetchConfig,
     selectable,
+    customRowSettings,
     state: { selectedRows, activeRow, columns, search, fetchedData },
     setState,
     onMouseDown,
     onRowClick,
     onRowDoubleClick,
     collapsibleRowRender,
-    onSelectedRowsChange
+    onSelectedRowsChange,
   } = useContext(DataTableContext);
 
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
@@ -98,6 +99,8 @@ export const Rows = () => {
             return selectedRowKeyValue === rowKeyValue;
           });
 
+        const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
+      
         return (
           <Fragment key={rowIndex}>
             <SC.TableRow
@@ -131,6 +134,7 @@ export const Rows = () => {
                 if (search) {
                   cellContent = highlightText(cellContent, search);
                 }
+
                 return (
                   <SC.TableCell
                     key={index}
@@ -138,7 +142,7 @@ export const Rows = () => {
                     minWidth={col.minWidth}
                     align={col.align}
                     isPinned={isPinned}
-                    style={pinnedStyle}
+                    style={{...customRowStyle, ...pinnedStyle}}
                   >
                     <SC.CellContent
                       className="cell-content"
