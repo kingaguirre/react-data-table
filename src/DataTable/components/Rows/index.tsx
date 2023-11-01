@@ -1,5 +1,5 @@
-import React, { useContext, useState, useCallback, Fragment } from "react";
-import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow } from "../../utils"
+import React, { useEffect, useContext, useState, useCallback, Fragment } from "react";
+import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
@@ -15,6 +15,8 @@ export const Rows = () => {
     fetchConfig,
     selectable,
     customRowSettings,
+    editable,
+    onChange,
     state: { selectedRows, activeRow, columns, search, fetchedData },
     setState,
     onMouseDown,
@@ -25,6 +27,44 @@ export const Rows = () => {
   } = useContext(DataTableContext);
 
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
+  const [editingCell, setEditingCell] = useState<{ rowIndex: number; columnIndex: number; value: string } | null>(null);
+
+  const handleCellDoubleClick = useCallback((rowIndex: number, columnIndex: number, value: string) => {
+    const columnEditable = columns[columnIndex].editable;
+  
+    if (columnEditable !== false && editable) { // This checks if editable is not explicitly set to false
+      setEditingCell({ rowIndex, columnIndex, value });
+    }
+  }, [editable, columns]);
+
+  const handleCellChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (editingCell) {
+      const newValue = e.target.value;
+      setEditingCell(prev => ({ ...prev!, value: newValue }));
+    }
+  };
+  
+  const handleStopEditing = (e: any) => {
+    if (editingCell && e.target instanceof HTMLElement && !e.target.closest('input')) {
+      // Only handle the update if the target of the click isn't an input
+      if (onChange) {
+        const updatedData = [...rows];
+        const columnKey = columns[editingCell.columnIndex].column;
+        setDeepValue(updatedData[editingCell.rowIndex], columnKey, editingCell.value);
+        onChange(updatedData);
+      }
+      setEditingCell(null);
+    }
+  };
+
+  useEffect(() => {
+    if (editingCell) {
+      window.addEventListener('click', handleStopEditing);
+      return () => {
+        window.removeEventListener('click', handleStopEditing);
+      };
+    }
+  }, [editingCell, handleStopEditing]);
 
   const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
@@ -135,6 +175,38 @@ export const Rows = () => {
                   cellContent = highlightText(cellContent, search);
                 }
 
+                if (editingCell && editingCell.rowIndex === rowIndex && editingCell.columnIndex === index) {
+                  const columnEditable = columns[editingCell.columnIndex].editable;
+                
+                  if (columnEditable?.type === "select") {
+                    cellContent = (
+                      <select
+                        value={editingCell.value}
+                        onChange={handleCellChange}
+                        onBlur={handleStopEditing}
+                        autoFocus
+                      >
+                        {columnEditable.options.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.text}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  } else {
+                    // Assuming type "text" for now, but you can add more types
+                    cellContent = (
+                      <input
+                        type="text"
+                        value={editingCell.value}
+                        onChange={handleCellChange}
+                        onBlur={handleStopEditing}
+                        autoFocus
+                      />
+                    );
+                  }
+                }
+
                 return (
                   <SC.TableCell
                     key={index}
@@ -143,6 +215,12 @@ export const Rows = () => {
                     align={col.align}
                     isPinned={isPinned}
                     style={{...customRowStyle, ...pinnedStyle}}
+                    onDoubleClick={() => handleCellDoubleClick(rowIndex, index, rowValue)}
+                    onClick={(e) => {
+                      if (editingCell && editingCell.rowIndex === rowIndex && editingCell.columnIndex === index) {
+                        e.stopPropagation(); // Stop event propagation
+                      }
+                    }}
                   >
                     <SC.CellContent
                       className="cell-content"

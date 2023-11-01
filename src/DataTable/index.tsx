@@ -45,6 +45,8 @@ export const DataTable = (props: DataTableProps) => {
     selectedRows = [],
     clickableRow = true,
     customRowSettings,
+    editable = false,
+    onChange,
     onColumnSettingsChange,
     onRowClick,
     onRowDoubleClick,
@@ -279,6 +281,7 @@ export const DataTable = (props: DataTableProps) => {
         filterSettings: fetchConfig?.filterSettings,
         columnSettings,
         customRowSettings,
+        editable,
         state,
         setState,
         onMouseDown,
@@ -293,6 +296,7 @@ export const DataTable = (props: DataTableProps) => {
         onPageSizeChange,
         onPageIndexChange,
         onSelectedRowsChange,
+        onChange
       }}
     >
       <SC.TableWrapper>

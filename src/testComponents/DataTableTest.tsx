@@ -35,7 +35,7 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(138).fill("").map((_, i) => ({
+const dataSource = Array(1).fill("").map((_, i) => ({
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
   username: `test-username${i}`,
@@ -73,6 +73,14 @@ const columnSettings = [
     filterBy: {
       type: 'text',
     },
+    editable: {
+      type: "select",
+      value: "option2",
+      options: [
+        { value: "option1", text: "Option 1" },
+        { value: "option2", text: "Option 2" },
+      ]
+    }
   },
   {
     column: 'username',
@@ -80,6 +88,7 @@ const columnSettings = [
     align: 'center',
     groupTitle: 'test',
     order: 0,
+    editable: false,
     filterBy: {
       type: 'text',
       // value: "0"
@@ -273,6 +282,8 @@ export default () => {
         // selectedRows={["user-id0"]}
         selectable
         downloadCSV
+        editable
+        onChange={v => console.log(v)}
         customRowSettings={[
           {
             column: "intentAction",
