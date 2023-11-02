@@ -44,10 +44,10 @@ export const Rows = () => {
     }
   };
   
-  const handleStopEditing = (e: any) => {
-    if (editingCell && e.target instanceof HTMLElement && !e.target.closest('input')) {
-      // Only handle the update if the target of the click isn't an input
-      if (onChange) {
+  const handleStopEditing = (e: any, saveChanges = true) => {
+    if (editingCell) {
+      // Only handle the update if the target of the click isn't an input or if saveChanges is true
+      if (saveChanges && onChange) {
         const updatedData = [...rows];
         const columnKey = columns[editingCell.columnIndex].column;
         setDeepValue(updatedData[editingCell.rowIndex], columnKey, editingCell.value);
@@ -55,6 +55,17 @@ export const Rows = () => {
       }
       setEditingCell(null);
     }
+  };
+
+  // New function to handle the key down events
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (editingCell) {
+          if (e.key === "Enter") {
+              handleStopEditing(e);
+          } else if (e.key === "Escape") {
+              handleStopEditing(e, false);  // Do not save changes
+          }
+      }
   };
 
   useEffect(() => {
@@ -184,6 +195,7 @@ export const Rows = () => {
                         value={editingCell.value}
                         onChange={handleCellChange}
                         onBlur={handleStopEditing}
+                        onKeyDown={handleKeyDown}
                         autoFocus
                       >
                         {columnEditable.options.map(opt => (
@@ -201,6 +213,7 @@ export const Rows = () => {
                         value={editingCell.value}
                         onChange={handleCellChange}
                         onBlur={handleStopEditing}
+                        onKeyDown={handleKeyDown}
                         autoFocus
                       />
                     );
