@@ -12,6 +12,7 @@
     "build-app": "vite build --outDir dist/app"
   },
   "dependencies": {
+    "ajv": "^8.12.0",
     "font-awesome": "^4.7.0"
   },
   "devDependencies": {
@@ -32,11 +33,11 @@
     "json-server": "^0.17.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "styled-components": "^5.1.26",
     "react-is": "^18.2.0",
     "rollup": "^3.28.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "storybook": "^7.0.13",
+    "styled-components": "^5.1.26",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",
     "vite-plugin-dts": "^3.5.2",

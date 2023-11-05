@@ -47,18 +47,19 @@ export const getDeepValue = (obj: any, path: string) => {
 };
 
 export const setDeepValue = (obj: any, path: string, value: any) => {
+  const newObj = { ...obj }; // Create a shallow copy
   const keys = path.split(/[\.\[\]]+/).filter(Boolean);
 
   keys.reduce((acc, part, index) => {
     if (index === keys.length - 1) {
-      // If we are at the last key, set the value
       acc[part] = value;
     } else if (!acc[part] || typeof acc[part] !== 'object') {
-      // If the next key doesn't exist, or isn't an object, create an empty object
-      acc[part] = {};
+      acc[part] = Array.isArray(acc) && !isNaN(Number(part)) ? [] : {};
     }
     return acc[part];
-  }, obj);
+  }, newObj);
+
+  return newObj;
 };
 
 export const sortData = (data: any[] | null, column: string, direction: 'asc' | 'desc') => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DataTable, exportToCsv } from '../DataTable';
+import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 
 const getRandomBirthdate = () => {
@@ -35,12 +36,12 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(1).fill("").map((_, i) => ({
+const dataSource = Array(4).fill("").map((_, i) => ({
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
   username: `test-username${i}`,
   password: `test-password${i}`,
-  intentAction: selectRandomString(["O", "U", "R"]),
+  intentAction: i !== 0 ? selectRandomString(["O", "U", "R"]) : "",
   userDetails: {
     email: `test${i}@email.com`,
     isAdmin: i % 2 === 0,
@@ -61,6 +62,71 @@ const dataSource = Array(1).fill("").map((_, i) => ({
     { account3: { accountNumber: `test account number 3-${i}` } },
   ],
 }));
+
+const FORM_MENU_FIELD_SETTINGS = {
+  menuColumn: "userDetails.email",
+  fields: [
+    {
+      column: "username",
+      label: "Username",
+      placeholder: "Enter Username",
+      size: {
+        xs: 24,
+        sm: 24,
+        md: 12,
+        lg: 8
+      },
+      schema: {
+        type: "string",
+        minLength: 1
+      }
+    },
+    {
+      column: "intentAction",
+      label: "Intent Action",
+      placeholder: "Enter IntentAction",
+      schema: {
+        type: "string",
+        maxLength: 1,
+        minLength: 1,
+        pattern: "^[a-zA-Z]$"
+      }
+    },
+    {
+      column: "userDetails.email",
+      label: "Email",
+      placeholder: "Enter Email",
+    },
+    {
+      column: "userDetails.address",
+      label: "Address",
+      placeholder: "Enter Address",
+      type: "textarea",
+      size: {
+        xs: 24,
+        sm: 24,
+        md: 24,
+        lg: 24
+      }
+    },
+    {
+      column: "userDetails.birthDay",
+      label: "BirthDay",
+      placeholder: "Enter BirthDay",
+      type: "date"
+    },
+    {
+      column: "userDetails.isAdmin",
+      label: "Admin",
+      placeholder: "Select BirthDay",
+      type: "select",
+      options: [
+        {value: true, text: "Admin"},
+        {value: false, text: "Not Admin"},
+      ]
+    },
+  ]
+}
 
 const columnSettings = [
   {
@@ -249,11 +315,16 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
-console.log(generateRandomTransactions());
-
-
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
+  const menuFormRef = React.createRef<any>();
+
+  const handleClick = () => {
+    if (menuFormRef.current) {
+      const isValid = menuFormRef.current.validate();
+      console.log("Form is valid:", isValid);
+    }
+  };
 
   const handleRowClick = (rowData: any) => {
     console.log("Clicked row:", rowData);
@@ -269,6 +340,13 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <button onClick={handleClick}>Validate</button>
+      <MenuForm
+        ref={menuFormRef}
+        formSettings={FORM_MENU_FIELD_SETTINGS}
+        dataSource={dataSource}
+        onChange={v => console.log(v)}
+      />
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <DataTable
         dataSource={dataSource}

@@ -2,6 +2,7 @@ import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffe
 import { DataTableProps, ColumnSettings } from "./interfaces";
 import {
   getDeepValue,
+  setDeepValue,
   useDragDropManager,
   useResizeManager,
   sortData,
@@ -319,4 +320,4 @@ export const DataTable = (props: DataTableProps) => {
   );
 }
 
-export { getDeepValue, exportToCsv };
+export { getDeepValue, setDeepValue, exportToCsv };
