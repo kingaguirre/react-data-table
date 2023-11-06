@@ -119,20 +119,24 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(props.selectedMenu || 0);
   const [invalidCounts, setInvalidCounts] = useState<number[]>(new Array(data.length).fill(0));
 
-  const getInvalidFieldCountForDatum = (datum: any): number => {
-    let count = 0;
-    formSettings.fields.forEach((field) => {
-      const value = getDeepValue(datum, field.column);
-      const schema = field.schema;
-      if (schema && !ajv.validate(schema, value)) {
-        count++;
-      }
-    });
-    return count;
-  };
-  
   const validateForm = () => {
-    const newInvalidCounts = data.map(datum => getInvalidFieldCountForDatum(datum));
+    const newInvalidCounts: number[] = new Array(data.length).fill(0);
+
+    data.forEach((datum, index) => {
+      formSettings.fields.forEach((field, fieldIndex) => {
+        const value = getDeepValue(datum, field.column);
+        const schema = field.schema ? field.schema : undefined;
+        if (schema && !ajv.validate(schema, value)) {
+          newInvalidCounts[index]++;
+          if (index === selectedItemIndex) {
+            inputRefs.current[fieldIndex].current.classList.add('invalid');
+          }
+        } else if (index === selectedItemIndex) {
+          inputRefs.current[fieldIndex].current.classList.remove('invalid');
+        }
+      });
+    });
+
     setInvalidCounts(newInvalidCounts);
     return !newInvalidCounts.some(count => count > 0);
   };
@@ -142,18 +146,26 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     validate: validateForm
   }));
 
+  const getInvalidCountForDatum = (datum: any): number => {
+    return formSettings.fields.reduce((acc, field) => {
+      const value = getDeepValue(datum, field.column);
+      const schema = field.schema ? field.schema : undefined;
+      if (schema && !ajv.validate(schema, value)) {
+        acc++;
+      }
+      return acc;
+    }, 0);
+  };
+  
   const validateField = (field: FieldType, value: any, index: number) => {
     const schema = field.schema ? field.schema : undefined;
     if (schema && !ajv.validate(schema, value)) {
-      // Update the invalid counts for that specific datum
-      setInvalidCounts(currentCounts => {
-        const newCounts = [...currentCounts];
-        if (newCounts[index] === 0 || (inputRefs.current[index].current.classList.contains('invalid') && value === "")) {
-          newCounts[index]++;
-        }
-        return newCounts;
-      });
+      if (selectedItemIndex === index) {
+        inputRefs.current[index].current.classList.add('invalid');
+      }
       return false;
+    } else if (selectedItemIndex === index) {
+      inputRefs.current[index].current.classList.remove('invalid');
     }
     return true;
   };
@@ -175,39 +187,54 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     }, 0);
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, field: FieldType) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, field: FieldType, fieldIndex: number) => {
     const newValue = event.target.value;
     const newData = [...data];
     const dataToUpdate = { ...newData[selectedItemIndex] };
     newData[selectedItemIndex] = setDeepValue(dataToUpdate, field.column, newValue);
     setData(newData);
   
+    const isCurrentFieldValid = validateField(field, newValue, selectedItemIndex);
+    
     // Update the invalid counts for the current data item being edited
-    const currentInvalidCount = getInvalidFieldCountForDatum(newData[selectedItemIndex]);
     setInvalidCounts(currentCounts => {
       const newCounts = [...currentCounts];
-      newCounts[selectedItemIndex] = currentInvalidCount;
+      newCounts[selectedItemIndex] = validateAllFieldsForDatum(newData[selectedItemIndex]);
       return newCounts;
     });
   
-    // Trigger the onChange if the field is valid
-    const isCurrentFieldValid = validateField(field, newValue, selectedItemIndex);
     if (isCurrentFieldValid) {
       onChange?.(newData);
+    } else {
+      inputRefs.current[fieldIndex].current.classList.add('invalid');
     }
   };
 
   const renderInputField = (field: FieldType, index: number) => {
     const fieldValue = getDeepValue(data[selectedItemIndex], field.column);
-
+    const isInvalid = invalidCounts[selectedItemIndex] > 0 && !validateField(field, fieldValue, selectedItemIndex);
+  
+    const InputComponent = isInvalid ? InvalidInput : "input";
+  
     switch (field.type) {
       case 'textarea':
-        return <textarea ref={inputRefs.current[index]} placeholder={field.placeholder} value={fieldValue || ''} onChange={(e) => handleChange(e, field)} />;
+        return (
+          <textarea ref={inputRefs.current[index]} placeholder={field.placeholder} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)} />
+        );
       case 'date':
-        return <input ref={inputRefs.current[index]} type="date" placeholder={field.placeholder} value={fieldValue || ''} onChange={(e) => handleChange(e, field)} />;
+        return (
+          <input
+          type="date"
+          ref={inputRefs.current[index]}
+          placeholder={field.placeholder}
+          value={fieldValue || ''}
+          onChange={(e) => handleChange(e, field, index)}
+          className={isInvalid ? 'invalid' : ""}
+        />
+        );
       case 'select':
         return (
-          <select ref={inputRefs.current[index]} value={fieldValue || ''} onChange={(e) => handleChange(e, field)}>
+          <select ref={inputRefs.current[index]} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)}>
             {field.options?.map((option, idx) => (
               <option key={idx} value={option.value}>
                 {option.text}
@@ -216,7 +243,14 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
           </select>
         );
       default:
-        return <input ref={inputRefs.current[index]} type="text" placeholder={field.placeholder} value={fieldValue || ''} onChange={(e) => handleChange(e, field)} />;
+        return <input
+          type="text"
+          ref={inputRefs.current[index]}
+          placeholder={field.placeholder}
+          value={fieldValue || ''}
+          onChange={(e) => handleChange(e, field, index)}
+          className={isInvalid ? 'invalid' : ""}
+        />
     }
   };
 
