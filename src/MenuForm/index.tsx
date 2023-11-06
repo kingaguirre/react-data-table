@@ -119,24 +119,20 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(props.selectedMenu || 0);
   const [invalidCounts, setInvalidCounts] = useState<number[]>(new Array(data.length).fill(0));
 
-  const validateForm = () => {
-    const newInvalidCounts: number[] = new Array(data.length).fill(0);
-
-    data.forEach((datum, index) => {
-      formSettings.fields.forEach((field, fieldIndex) => {
-        const value = getDeepValue(datum, field.column);
-        const schema = field.schema ? field.schema : undefined;
-        if (schema && !ajv.validate(schema, value)) {
-          newInvalidCounts[index]++;
-          if (index === selectedItemIndex) {
-            inputRefs.current[fieldIndex].current.classList.add('invalid');
-          }
-        } else if (index === selectedItemIndex) {
-          inputRefs.current[fieldIndex].current.classList.remove('invalid');
-        }
-      });
+  const getInvalidFieldCountForDatum = (datum: any): number => {
+    let count = 0;
+    formSettings.fields.forEach((field) => {
+      const value = getDeepValue(datum, field.column);
+      const schema = field.schema;
+      if (schema && !ajv.validate(schema, value)) {
+        count++;
+      }
     });
-
+    return count;
+  };
+  
+  const validateForm = () => {
+    const newInvalidCounts = data.map(datum => getInvalidFieldCountForDatum(datum));
     setInvalidCounts(newInvalidCounts);
     return !newInvalidCounts.some(count => count > 0);
   };
@@ -185,14 +181,15 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     const dataToUpdate = { ...newData[selectedItemIndex] };
     newData[selectedItemIndex] = setDeepValue(dataToUpdate, field.column, newValue);
     setData(newData);
-
+  
     // Update the invalid counts for the current data item being edited
+    const currentInvalidCount = getInvalidFieldCountForDatum(newData[selectedItemIndex]);
     setInvalidCounts(currentCounts => {
       const newCounts = [...currentCounts];
-      newCounts[selectedItemIndex] = validateAllFieldsForDatum(newData[selectedItemIndex]);
+      newCounts[selectedItemIndex] = currentInvalidCount;
       return newCounts;
     });
-
+  
     // Trigger the onChange if the field is valid
     const isCurrentFieldValid = validateField(field, newValue, selectedItemIndex);
     if (isCurrentFieldValid) {
