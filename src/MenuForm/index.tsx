@@ -10,6 +10,8 @@ type SizeType = {
   lg?: number;
 };
 
+type DisabledType = boolean | ((data: any) => boolean);
+
 type FieldType = {
   column: string;
   label: string;
@@ -18,6 +20,8 @@ type FieldType = {
   size?: SizeType;
   options?: { value: any; text: string }[];
   schema?: any;
+  disabled?: DisabledType;
+  required?: DisabledType;
 };
 
 type SettingsType = {
@@ -83,11 +87,10 @@ export const FieldDiv = styled.div<{ size: SizeType }>`
   ${(props) => getResponsiveWidth(props.size)}
   > * {
     width: 100%;
+    &.invalid {
+      border: 1px solid red;
+    }
   }
-`;
-
-export const InvalidInput = styled.input`
-  border: 1px solid red;
 `;
 
 export const MenuItem = styled.div<{ isSelected: boolean, isInvalid: boolean }>`
@@ -123,18 +126,26 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     const newInvalidCounts: number[] = new Array(data.length).fill(0);
 
     data.forEach((datum, index) => {
-      formSettings.fields.forEach((field, fieldIndex) => {
-        const value = getDeepValue(datum, field.column);
-        const schema = field.schema ? field.schema : undefined;
-        if (schema && !ajv.validate(schema, value)) {
-          newInvalidCounts[index]++;
-          if (index === selectedItemIndex) {
-            inputRefs.current[fieldIndex].current.classList.add('invalid');
-          }
-        } else if (index === selectedItemIndex) {
-          inputRefs.current[fieldIndex].current.classList.remove('invalid');
-        }
-      });
+        formSettings.fields.forEach((field) => {
+            const value = getDeepValue(datum, field.column);
+
+            // Required validation
+            const isRequired = field.required !== undefined 
+            ? (typeof field.required === 'function' 
+                ? field.required(data[index]) 
+                : field.required)
+            : false;
+            
+            const isValueEmpty = value === undefined || value === '';
+            const isRequiredInvalid = isRequired && isValueEmpty;
+
+            const schema = field.schema ? field.schema : undefined;
+            const isSchemaInvalid = schema && !ajv.validate(schema, value);
+            
+            if (isSchemaInvalid || isRequiredInvalid) {
+                newInvalidCounts[index]++;
+            }
+        });
     });
 
     setInvalidCounts(newInvalidCounts);
@@ -145,43 +156,29 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   React.useImperativeHandle(ref, () => ({
     validate: validateForm
   }));
-
-  const getInvalidCountForDatum = (datum: any): number => {
-    return formSettings.fields.reduce((acc, field) => {
-      const value = getDeepValue(datum, field.column);
-      const schema = field.schema ? field.schema : undefined;
-      if (schema && !ajv.validate(schema, value)) {
-        acc++;
-      }
-      return acc;
-    }, 0);
-  };
   
   const validateField = (field: FieldType, value: any, index: number) => {
+    // Existing schema validation
     const schema = field.schema ? field.schema : undefined;
-    if (schema && !ajv.validate(schema, value)) {
-      if (selectedItemIndex === index) {
-        inputRefs.current[index].current.classList.add('invalid');
-      }
-      return false;
-    } else if (selectedItemIndex === index) {
-      inputRefs.current[index].current.classList.remove('invalid');
-    }
-    return true;
+    const schemaValid = !(schema && !ajv.validate(schema, value));
+
+    // Required validation
+    const isRequired = field.required !== undefined 
+    ? (typeof field.required === 'function' 
+        ? field.required(data[selectedItemIndex]) 
+        : field.required)
+    : false;
+    const requiredValid = !(isRequired && (value === undefined || value === ''));
+
+    return schemaValid && requiredValid;
   };
   
   // This function validates all fields for a specific datum and returns the count of invalid fields
   const validateAllFieldsForDatum = (datum: any): number => {
-    return formSettings.fields.reduce((acc, field, fieldIndex) => {
+    return formSettings.fields.reduce((acc, field) => {
       const value = getDeepValue(datum, field.column);
-      const schema = field.schema ? field.schema : undefined;
-      if (schema && !ajv.validate(schema, value)) {
-        if (selectedItemIndex === datum) {
-          inputRefs.current[fieldIndex].current.classList.add('invalid');
-        }
+      if (!validateField(field, value, selectedItemIndex)) {
         acc++;
-      } else if (selectedItemIndex === datum) {
-        inputRefs.current[fieldIndex].current.classList.remove('invalid');
       }
       return acc;
     }, 0);
@@ -205,21 +202,37 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   
     if (isCurrentFieldValid) {
       onChange?.(newData);
-    } else {
-      inputRefs.current[fieldIndex].current.classList.add('invalid');
     }
   };
 
   const renderInputField = (field: FieldType, index: number) => {
     const fieldValue = getDeepValue(data[selectedItemIndex], field.column);
     const isInvalid = invalidCounts[selectedItemIndex] > 0 && !validateField(field, fieldValue, selectedItemIndex);
-  
-    const InputComponent = isInvalid ? InvalidInput : "input";
-  
+
+    const isDisabled = field.disabled !== undefined 
+    ? (typeof field.disabled === 'function' 
+        ? field.disabled(data[selectedItemIndex]) 
+        : field.disabled)
+    : false;
+    
+    const isRequired = field.required !== undefined 
+    ? (typeof field.required === 'function' 
+        ? field.required(data[selectedItemIndex]) 
+        : field.required)
+    : false;
+
     switch (field.type) {
       case 'textarea':
         return (
-          <textarea ref={inputRefs.current[index]} placeholder={field.placeholder} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)} />
+          <textarea
+          ref={inputRefs.current[index]}
+          placeholder={field.placeholder}
+          value={fieldValue || ''}
+          onChange={(e) => handleChange(e, field, index)}
+          className={isInvalid ? 'invalid' : ""}
+          disabled={isDisabled}
+          required={isRequired}
+          />
         );
       case 'date':
         return (
@@ -230,6 +243,7 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
           value={fieldValue || ''}
           onChange={(e) => handleChange(e, field, index)}
           className={isInvalid ? 'invalid' : ""}
+          disabled={isDisabled}
         />
         );
       case 'select':
@@ -250,6 +264,8 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
           value={fieldValue || ''}
           onChange={(e) => handleChange(e, field, index)}
           className={isInvalid ? 'invalid' : ""}
+          disabled={isDisabled}
+          required={isRequired}
         />
     }
   };

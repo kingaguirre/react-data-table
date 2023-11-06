@@ -44,7 +44,7 @@ const dataSource = Array(4).fill("").map((_, i) => ({
   intentAction: i !== 0 ? selectRandomString(["O", "U", "R"]) : "",
   userDetails: {
     email: `test${i}@email.com`,
-    isAdmin: i % 2 === 0,
+    isAdmin: (i % 2 === 0).toString(),
     other: `other value${i}`,
     birthDay: getRandomBirthdate().birthdate,
     firstName: `John${i}`,
@@ -56,6 +56,7 @@ const dataSource = Array(4).fill("").map((_, i) => ({
     zipCode: `1000${i}`,
     age: getRandomBirthdate().age
   },
+  remarks: "",
   userAccounts: [
     { account1: `test account1-${i}` },
     { account2: `test account2-${i}` },
@@ -121,9 +122,25 @@ const FORM_MENU_FIELD_SETTINGS = {
       placeholder: "Select BirthDay",
       type: "select",
       options: [
-        {value: true, text: "Admin"},
-        {value: false, text: "Not Admin"},
+        {value: "true", text: "Admin"},
+        {value: "false", text: "Not Admin"},
       ]
+    },
+    {
+      column: "remarks",
+      label: "Remarks",
+      placeholder: "Enter remarks",
+      type: "textarea",
+      required: (data) => {
+        const { userDetails } = data;
+        return userDetails?.isAdmin === "true";
+      },
+      size: {
+        xs: 24,
+        sm: 24,
+        md: 24,
+        lg: 24
+      }
     },
   ]
 }
