@@ -121,6 +121,7 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
 
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(props.selectedMenu || 0);
   const [invalidCounts, setInvalidCounts] = useState<number[]>(new Array(data.length).fill(0));
+  const [touchedFields, setTouchedFields] = useState<boolean[]>(new Array(formSettings.fields.length).fill(false));
 
   const validateForm = () => {
     const newInvalidCounts: number[] = new Array(data.length).fill(0);
@@ -149,6 +150,8 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     });
 
     setInvalidCounts(newInvalidCounts);
+    // Mark all fields as touched
+    setTouchedFields(new Array(formSettings.fields.length).fill(true));
     return !newInvalidCounts.some(count => count > 0);
   };
 
@@ -157,7 +160,7 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     validate: validateForm
   }));
   
-  const validateField = (field: FieldType, value: any, index: number) => {
+  const validateField = (field: FieldType, value: any) => {
     // Existing schema validation
     const schema = field.schema ? field.schema : undefined;
     const schemaValid = !(schema && !ajv.validate(schema, value));
@@ -177,7 +180,7 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   const validateAllFieldsForDatum = (datum: any): number => {
     return formSettings.fields.reduce((acc, field) => {
       const value = getDeepValue(datum, field.column);
-      if (!validateField(field, value, selectedItemIndex)) {
+      if (!validateField(field, value)) {
         acc++;
       }
       return acc;
@@ -191,7 +194,7 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     newData[selectedItemIndex] = setDeepValue(dataToUpdate, field.column, newValue);
     setData(newData);
   
-    const isCurrentFieldValid = validateField(field, newValue, selectedItemIndex);
+    const isCurrentFieldValid = validateField(field, newValue);
     
     // Update the invalid counts for the current data item being edited
     setInvalidCounts(currentCounts => {
@@ -203,11 +206,42 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     if (isCurrentFieldValid) {
       onChange?.(newData);
     }
+
+    // Mark the field as touched
+    setTouchedFields(prev => {
+      const newTouchedFields = [...prev];
+      newTouchedFields[fieldIndex] = true;
+      return newTouchedFields;
+    });
+  };
+
+  const getValidationError = (field: FieldType, value: any): string | null => {
+    // Required validation
+    const isRequired = field.required !== undefined 
+      ? (typeof field.required === 'function' 
+          ? field.required(data[selectedItemIndex]) 
+          : field.required)
+      : false;
+  
+    const isValueEmpty = value === undefined || value === '';
+  
+    if (isRequired && isValueEmpty) {
+      return `${field.label} is required`;
+    }
+  
+    // Schema validation
+    const schema = field.schema ? field.schema : undefined;
+    if (schema && !ajv.validate(schema, value)) {
+      return `${field.label} ${ajv.errorsText(ajv.errors)}`;
+    }
+  
+    return null;
   };
 
   const renderInputField = (field: FieldType, index: number) => {
     const fieldValue = getDeepValue(data[selectedItemIndex], field.column);
-    const isInvalid = invalidCounts[selectedItemIndex] > 0 && !validateField(field, fieldValue, selectedItemIndex);
+    const errorText = touchedFields[index] ? getValidationError(field, fieldValue) : null;
+    const isInvalid = invalidCounts[selectedItemIndex] > 0 && !validateField(field, fieldValue);
 
     const isDisabled = field.disabled !== undefined 
     ? (typeof field.disabled === 'function' 
@@ -224,6 +258,8 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     switch (field.type) {
       case 'textarea':
         return (
+          <div>
+          <span>{field.label}</span>
           <textarea
           ref={inputRefs.current[index]}
           placeholder={field.placeholder}
@@ -233,21 +269,29 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
           disabled={isDisabled}
           required={isRequired}
           />
+          {errorText && <span style={{color: "red"}}>{errorText}</span>}
+          </div>
         );
       case 'date':
         return (
+          <div>
+          <span>{field.label}</span>
           <input
-          type="date"
-          ref={inputRefs.current[index]}
-          placeholder={field.placeholder}
-          value={fieldValue || ''}
-          onChange={(e) => handleChange(e, field, index)}
-          className={isInvalid ? 'invalid' : ""}
-          disabled={isDisabled}
-        />
+            type="date"
+            ref={inputRefs.current[index]}
+            placeholder={field.placeholder}
+            value={fieldValue || ''}
+            onChange={(e) => handleChange(e, field, index)}
+            className={isInvalid ? 'invalid' : ""}
+            disabled={isDisabled}
+          />
+          {errorText && <span style={{color: "red"}}>{errorText}</span>}
+        </div>
         );
       case 'select':
         return (
+          <div>
+          <span>{field.label}</span>
           <select ref={inputRefs.current[index]} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)}>
             {field.options?.map((option, idx) => (
               <option key={idx} value={option.value}>
@@ -255,9 +299,14 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
               </option>
             ))}
           </select>
+          {errorText && <span style={{color: "red"}}>{errorText}</span>}
+          </div>
         );
       default:
-        return <input
+        return (
+          <div>
+          <span>{field.label}</span>
+        <input
           type="text"
           ref={inputRefs.current[index]}
           placeholder={field.placeholder}
@@ -267,6 +316,8 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
           disabled={isDisabled}
           required={isRequired}
         />
+        {errorText && <span style={{color: "red"}}>{errorText}</span>}
+        </div>)
     }
   };
 
