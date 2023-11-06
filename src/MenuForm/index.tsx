@@ -56,8 +56,31 @@ export const FieldsContainer = styled.div`
   justify-content: flex-start;
 `;
 
+const getResponsiveWidth = (size: SizeType) => {
+  const xs = size.xs ? `${(size.xs / 24) * 100}%` : undefined;
+  const sm = size.sm ? `${(size.sm / 24) * 100}%` : xs;
+  const md = size.md ? `${(size.md / 24) * 100}%` : sm;
+  const lg = size.lg ? `${(size.lg / 24) * 100}%` : md;
+
+  return `
+    width: ${xs};
+    
+    @media (min-width: 576px) {
+      width: ${sm};
+    }
+    
+    @media (min-width: 768px) {
+      width: ${md};
+    }
+    
+    @media (min-width: 992px) {
+      width: ${lg};
+    }
+  `;
+};
+
 export const FieldDiv = styled.div<{ size: SizeType }>`
-  width: ${(props) => (props.size.md ? `${(props.size.md / 24) * 100}%` : "50%")};
+  ${(props) => getResponsiveWidth(props.size)}
   > * {
     width: 100%;
   }
