@@ -28,6 +28,15 @@ interface CustomRowSettings {
   }
 }
 
+export enum Actions {
+  ADD = "ADD",
+  EDIT = "EDIT",
+  DELETE = "DELETE",
+  DUPLICATE = "DUPLICATE",
+  COPY = "COPY",
+  PASTE = "PASTE",
+}
+
 export interface DataTableProps {
   dataSource?: any[];
   columnSettings: ColumnSettings[];
@@ -45,6 +54,7 @@ export interface DataTableProps {
   clickableRow?: boolean;
   customRowSettings?: CustomRowSettings[];
   editable?: boolean;
+  actions?: Actions | Actions[];
   onChange?: (updatedData: any[]) => void;
   onRowClick?: (rowData: any) => void;
   onRowDoubleClick?: (rowData: any) => void;

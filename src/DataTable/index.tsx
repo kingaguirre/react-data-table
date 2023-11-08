@@ -15,7 +15,7 @@ import {
   serialize
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
-import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA } from "./context/actions";
+import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
 import * as SC from "./styled";
 import { Rows } from "./components/Rows";
 import { LoadingPanel } from "./components/Rows/styled";
@@ -47,6 +47,7 @@ export const DataTable = (props: DataTableProps) => {
     clickableRow = true,
     customRowSettings,
     editable = false,
+    actions,
     onChange,
     onColumnSettingsChange,
     onRowClick,
@@ -79,7 +80,7 @@ export const DataTable = (props: DataTableProps) => {
 
   /** Memos Start */
   const filteredData = useMemo(() => {
-    let filtered = !!dataSource && !!dataSource.length ? dataSource.filter(row => {
+    let filtered = !!state.localData && !!state.localData.length ? state.localData.filter(row => {
       /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
         if (col.filterBy) {
@@ -112,7 +113,7 @@ export const DataTable = (props: DataTableProps) => {
     }
 
     return filtered;
-  }, [dataSource, state.columns, state.filterValues, state.search]);
+  }, [state.localData, state.columns, state.filterValues, state.search]);
 
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
@@ -120,13 +121,62 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos End */
 
   /** Callback Start */
+  const onAddRow = useCallback((data, fetchConfig) => {
+    try {
+      const parsedData = !!data && typeof data === "string" ? JSON.parse(data) : {};
+      const rowKeyValue = getDeepValue(parsedData, rowKey);
+
+      if (!!rowKeyValue) {
+        const newRowKey = `${rowKeyValue}_copy_${new Date().getTime()}`;
+        const newData = setDeepValue(parsedData, rowKey, newRowKey);
+
+        if (fetchConfig) {
+          const newFetchedData = [newData, ...(state.localData || [])];
+          setState({
+            type: SET_FETCHED_DATA,
+            payload: { ...state.fetchedData, data: newFetchedData }
+          });
+          onChange?.(newFetchedData);
+        } else {
+          const newLocalData = [newData, ...(state.localData || [])];
+          setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+          onChange?.(newLocalData);
+        }
+      } else {
+        console.error("Invalid data.");
+      }
+    } catch (error) {
+      console.error("Invalid data.");
+    }
+  }, [state.localData, state.fetchedData.data]);
+
+  const onDeleteRow = useCallback((data, fetchConfig) => {
+    const parsedNewData = !!data ? JSON.parse(data) : [];
+    const newRowKey = `${getDeepValue(parsedNewData, rowKey)}_copy_${new Date().getTime()}`;
+    const newData = setDeepValue(parsedNewData, rowKey, newRowKey);
+
+    if (fetchConfig) {
+      const newFetchedData = [newData, ...(state.localData || [])];
+      setState({
+        type: SET_FETCHED_DATA,
+        payload: { ...state.fetchedData, data: newFetchedData }
+      });
+      onChange?.(newFetchedData);
+    } else {
+      const newLocalData = [newData, ...(state.localData || [])];
+      setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+      onChange?.(newLocalData);
+    }
+  }, [state.localData, state.fetchedData.data]);
+
   const fetchWithPagination = useCallback(async (
     pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter, advanceFilter
   ) => {
     if (fetchConfig) {
       /** Keep current data and totalData */
       setState({
-        type: SET_FETCHED_DATA, payload: {
+        type: SET_FETCHED_DATA,
+        payload: {
           ...state.fetchedData,
           fetching: true
         }
@@ -214,7 +264,6 @@ export const DataTable = (props: DataTableProps) => {
       }
     }
   }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
-
   /** Callback End */
 
   /** Custom Functions Start */
@@ -234,6 +283,10 @@ export const DataTable = (props: DataTableProps) => {
 
   /** UseEffects Start */
   useEffect(() => {
+    setState({ type: SET_LOCAL_DATA, payload: dataSource });
+  }, [dataSource]);
+
+  useEffect(() => {
     const savedCurrentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
 
     if (!savedCurrentColumnSettings.length) {
@@ -244,9 +297,9 @@ export const DataTable = (props: DataTableProps) => {
   useEffect(() => {
     if (tableRef && tableRef.current) {
       setTableWidth(tableRef.current.offsetWidth);
-      setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings));
+      setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings, actions));
     }
-  }, [tableRef]);
+  }, [tableRef, customRowSettings, actions]);
 
   useEffect(() => {
     if (!!fetchConfig) {
@@ -283,6 +336,7 @@ export const DataTable = (props: DataTableProps) => {
         columnSettings,
         customRowSettings,
         editable,
+        actions,
         state,
         setState,
         onMouseDown,
@@ -297,7 +351,9 @@ export const DataTable = (props: DataTableProps) => {
         onPageSizeChange,
         onPageIndexChange,
         onSelectedRowsChange,
-        onChange
+        onChange,
+        onAddRow,
+        onDeleteRow
       }}
     >
       <SC.TableWrapper>

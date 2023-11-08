@@ -10,6 +10,7 @@ import {
   SET_FILTER_VALUES,
   SET_FETCHED_DATA,
   SET_ADVANCE_FILTER_VALUES,
+  SET_LOCAL_DATA
 } from "./actions";
 
 interface IFetchedData {
@@ -28,6 +29,7 @@ export interface IReducerState {
   filterValues: any;
   advanceFilterValues: any;
   fetchedData?: IFetchedData
+  localData: any[] | null;
 }
 
 interface IAction {
@@ -46,6 +48,7 @@ export const initialState: IReducerState = {
   filterValues: {},
   advanceFilterValues: {},
   fetchedData: { data: undefined, totalData: 0, fetching: false },
+  localData: null,
 }
 const dataTableReducer = (state: IReducerState, action: IAction) => {
   switch (action.type) {
@@ -69,6 +72,8 @@ const dataTableReducer = (state: IReducerState, action: IAction) => {
       return { ...state, advanceFilterValues: action.payload };
     case SET_FETCHED_DATA:
       return { ...state, fetchedData: action.payload };
+    case SET_LOCAL_DATA:
+      return { ...state, localData: Array.isArray(action.payload) ? [...action.payload] : [] };
     default:
       throw new Error(`Unhandled action type: ${action.type}`);
   }

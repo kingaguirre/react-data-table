@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { DataTable, exportToCsv } from '../DataTable';
+import { Actions } from "../DataTable/interfaces";
+import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 
@@ -36,7 +38,7 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(4).fill("").map((_, i) => ({
+const dataSource = Array(100).fill("").map((_, i) => ({
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
   username: `test-username${i}`,
@@ -357,15 +359,16 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <button onClick={handleClick}>Validate</button>
+      {/* <button onClick={handleClick}>Validate</button>
       <MenuForm
         ref={menuFormRef}
         formSettings={FORM_MENU_FIELD_SETTINGS}
         dataSource={dataSource}
         onChange={v => console.log(v)}
-      />
+      /> */}
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <DataTable
+        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE]}
         dataSource={dataSource}
         columnSettings={columnSettings}
         onRowClick={handleRowClick}
@@ -383,7 +386,7 @@ export default () => {
           {
             column: "intentAction",
             value: "R",
-            showColumn: false,
+            showColumn: true,
             styles: {
               backgroundColor: "red",
               textDecoration: "line-through"
@@ -392,7 +395,7 @@ export default () => {
           {
             column: "intentAction",
             value: "U",
-            showColumn: false,
+            showColumn: true,
             styles: {
               backgroundColor: "orange",
             }
@@ -430,9 +433,10 @@ export default () => {
         onSelectedRowsChange={rows => setSselectedRow(rows)}
       />
     <div style={{height: 100}}/>
-      {/* <DataTable
+      <DataTable
         fetchConfig={{
-          endpoint: "http://localhost:3002/custom-items",
+          // endpoint: "http://localhost:3002/custom-items",
+          endpoint: replaceLocalhostWithDomain("http://localhost:3002/custom-items", "http://localhost:3002"),
           responseTotalDataPath: "data.count",
           responseDataPath: "data.dataTableItem",
           requestData: {
@@ -528,7 +532,7 @@ export default () => {
         onSelectedRowsChange={rows => setSselectedRow(rows)}
       />
       <div style={{height: 100}}/>
-      <DataTable
+      {/* <DataTable
         fetchConfig={{
           endpoint: "http://localhost:3001/custom-items",
           responseTotalDataPath: "data.count",
@@ -625,9 +629,9 @@ export default () => {
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
-      />
+      /> */}
       <div style={{height: 100}}/>
-      
+{/*       
     <SimpleDataTable
       dataSource={dataSource}
       columnSettings={columnSettings}

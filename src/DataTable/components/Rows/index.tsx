@@ -31,7 +31,7 @@ export const Rows = () => {
 
   const handleCellDoubleClick = useCallback((rowIndex: number, columnIndex: number, value: string) => {
     const columnEditable = columns[columnIndex].editable;
-  
+
     if (columnEditable !== false && editable) { // This checks if editable is not explicitly set to false
       setEditingCell({ rowIndex, columnIndex, value });
     }
@@ -43,8 +43,8 @@ export const Rows = () => {
       setEditingCell(prev => ({ ...prev!, value: newValue }));
     }
   };
-  
-  const handleStopEditing = (e: any, saveChanges = true) => {
+
+  const handleStopEditing = (saveChanges = true) => {
     if (editingCell) {
       // Only handle the update if the target of the click isn't an input or if saveChanges is true
       if (saveChanges && onChange) {
@@ -59,37 +59,37 @@ export const Rows = () => {
 
   // New function to handle the key down events
   const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (editingCell) {
-          if (e.key === "Enter") {
-              handleStopEditing(e);
-          } else if (e.key === "Escape") {
-              handleStopEditing(e, false);  // Do not save changes
-          }
+    if (editingCell) {
+      if (e.key === "Enter") {
+        handleStopEditing();
+      } else if (e.key === "Escape") {
+        handleStopEditing(false);  // Do not save changes
       }
+    }
   };
 
   useEffect(() => {
     if (editingCell) {
-      window.addEventListener('click', handleStopEditing);
+      window.addEventListener('click', () => handleStopEditing());
       return () => {
-        window.removeEventListener('click', handleStopEditing);
+        window.removeEventListener('click', () => handleStopEditing());
       };
     }
   }, [editingCell, handleStopEditing]);
 
   const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
-    setState({ 
-      type: SET_ACTIVE_ROW, 
-      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey) 
+    setState({
+      type: SET_ACTIVE_ROW,
+      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
     });
   }, [onRowClick, activeRow, rowKey]);
 
   const handleRowDoubleClick = useCallback((row: any) => {
     onRowDoubleClick?.(row);
-    setState({ 
-      type: SET_ACTIVE_ROW, 
-      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey) 
+    setState({
+      type: SET_ACTIVE_ROW,
+      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
     });
   }, [onRowDoubleClick, activeRow, rowKey]);
 
@@ -105,19 +105,19 @@ export const Rows = () => {
   const toggleRowSelection = useCallback((row: any) => {
     const normalizeSelectedRows = (rows: any[]) =>
       rows.map((r) => (typeof r === 'string' ? { [rowKey]: r } : r));
-  
+
     const normalizedSelectedRows = normalizeSelectedRows(selectedRows);
-  
+
     const rowKeyValue = getDeepValue(row, rowKey); // Correctly fetch the deep value
-  
+
     const isSelectedRow = normalizedSelectedRows.find(
       (r) => getDeepValue(r, rowKey) === rowKeyValue // Compare using the deep value
     );
-  
+
     const payload = isSelectedRow
       ? normalizedSelectedRows.filter((r) => getDeepValue(r, rowKey) !== rowKeyValue) // Compare using the deep value
       : [...normalizedSelectedRows, row];
-  
+
     onSelectedRowsChange?.(payload);
     setState({ type: SET_SELECTED_ROWS, payload });
   }, [selectedRows, rowKey, onSelectedRowsChange, setState]);
@@ -143,7 +143,7 @@ export const Rows = () => {
         let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
         const isRowCollapsed = collapsedRows.includes(rowKeyValue);
         const isActiveRow = rowKeyValue === activeRow;
-        const isSelectedRow = 
+        const isSelectedRow =
           !!selectedRows.find(selectedRow => {
             // This will get the deep value if it's an object or just return the value if it's a string or number.
             const selectedRowKeyValue = typeof selectedRow === 'object' ? getDeepValue(selectedRow, rowKey) : selectedRow;
@@ -151,7 +151,7 @@ export const Rows = () => {
           });
 
         const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
-      
+
         return (
           <Fragment key={rowIndex}>
             <SC.TableRow
@@ -188,13 +188,13 @@ export const Rows = () => {
 
                 if (editingCell && editingCell.rowIndex === rowIndex && editingCell.columnIndex === index) {
                   const columnEditable = columns[editingCell.columnIndex].editable;
-                
+
                   if (columnEditable?.type === "select") {
                     cellContent = (
                       <select
                         value={editingCell.value}
                         onChange={handleCellChange}
-                        onBlur={handleStopEditing}
+                        onBlur={() => handleStopEditing()}
                         onKeyDown={handleKeyDown}
                         autoFocus
                       >
@@ -212,7 +212,7 @@ export const Rows = () => {
                         type="text"
                         value={editingCell.value}
                         onChange={handleCellChange}
-                        onBlur={handleStopEditing}
+                        onBlur={() => handleStopEditing()}
                         onKeyDown={handleKeyDown}
                         autoFocus
                       />
@@ -227,7 +227,7 @@ export const Rows = () => {
                     minWidth={col.minWidth}
                     align={col.align}
                     isPinned={isPinned}
-                    style={{...customRowStyle, ...pinnedStyle}}
+                    style={{ ...customRowStyle, ...pinnedStyle }}
                     onDoubleClick={() => handleCellDoubleClick(rowIndex, index, rowValue)}
                     onClick={(e) => {
                       if (editingCell && editingCell.rowIndex === rowIndex && editingCell.columnIndex === index) {
@@ -241,7 +241,7 @@ export const Rows = () => {
                     >
                       {cellContent}
                     </SC.CellContent>
-                    <ColumnDragHighlighter index={index}/>
+                    <ColumnDragHighlighter index={index} />
                     <SC.ResizeHandle onMouseDown={onMouseDown(index)} />
                   </SC.TableCell>
                 );
@@ -272,6 +272,6 @@ export const ColumnDragHighlighter = (props: IColumnDragHighlighter) => {
   } = useContext(DataTableContext);
 
   return (dropTargetIndex === index || draggedColumnIndex === index) ? (
-    <SC.ColumnDragHighlighter className="column-drag-highlighter" isDraggedColumn={draggedColumnIndex === index}/>
+    <SC.ColumnDragHighlighter className="column-drag-highlighter" isDraggedColumn={draggedColumnIndex === index} />
   ) : null
 }

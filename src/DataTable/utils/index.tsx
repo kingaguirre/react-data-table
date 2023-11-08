@@ -1,4 +1,6 @@
 import React from 'react';
+import { Actions } from "../interfaces";
+import { ActionsColumn } from "../components/ActionsColumn";
 
 export const highlightText = (text: string, highlight: string) => {
   if (typeof text === "string") {
@@ -14,7 +16,7 @@ export const highlightText = (text: string, highlight: string) => {
   }
 };
 
-export const useDoubleClick = (onClick, onDoubleClick, delay = 300) => {
+export const useDoubleClick = (onClick, onDoubleClick, delay = 150) => {
   const [clickTimeout, setClickTimeout] = React.useState<any>(null);
 
   const handleClick = (...args) => {
@@ -38,7 +40,7 @@ export const getDeepValue = (obj: any, path: string) => {
   const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
 
   if (value instanceof Date) {
-    return value; // Return date objects as they are
+    return value; /** Return date objects as they are */
   } else if (typeof value === 'boolean' || typeof value === 'object') {
     return JSON.stringify(value);
   }
@@ -47,7 +49,7 @@ export const getDeepValue = (obj: any, path: string) => {
 };
 
 export const setDeepValue = (obj: any, path: string, value: any) => {
-  const newObj = { ...obj }; // Create a shallow copy
+  const newObj = { ...obj }; /** Create a shallow copy */
   const keys = path.split(/[\.\[\]]+/).filter(Boolean);
 
   keys.reduce((acc, part, index) => {
@@ -168,7 +170,7 @@ export const exportToExcel = (filename: string, rows: any[], columns: any) => {
 
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${filename}.xls`; // Excel 2003 format
+  link.download = `${filename}.xls`; /** Excel 2003 format */
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -230,24 +232,56 @@ export const getLocalStorageColumnSettings = (columnSettings: any) => {
 export const setColumnSettings = (
   columnSettings: any,
   tableWidth: any,
-  customRowSettings: any
+  customRowSettings: any,
+  actions?: Actions | Actions[]
 ) => {
-  const customColumns = (!!customRowSettings && customRowSettings.length > 0) ? customRowSettings.filter(i => i.showColumn !== false).map(i => ({
-    column: i.column,
-    title: "#",
+  let customColumns = (!!customRowSettings && customRowSettings.length > 0)
+    ? customRowSettings.filter(i => i.showColumn !== false).map(i => ({
+      column: i.column,
+      title: "#",
+      align: "center",
+      order: 0,
+      pinned: "none",
+      sorted: "none",
+      width: i.width || "40px",
+      draggable: false,
+      editable: false,
+    })) : [];
+
+  /** Create a Set to keep track of unique columns */
+  const seenColumns = new Set();
+  customColumns = customColumns.filter(customColumn => {
+    if (!seenColumns.has(customColumn.column)) {
+      seenColumns.add(customColumn.column);
+      return true;
+    }
+    return false;
+  });
+
+  const hasActions = isStringExist(actions, [Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE]);
+
+  const actionsColumn = hasActions ? [{
+    column: "",
+    title: "Actions",
     align: "center",
     order: 0,
     pinned: "none",
     sorted: "none",
-    width: i.width || "40px",
-    draggable: false
-  })) : [];
+    width: "60px",
+    draggable: false,
+    editable: false,
+    columnCustomRenderer: (data) => <ActionsColumn data={data}/>
+  }] : [];
 
-  const colSettings = [...customColumns, ...getLocalStorageColumnSettings(columnSettings)];
+  const localStorageColumnSettings = getLocalStorageColumnSettings(columnSettings);
+
+  /** Now we merge customColumns and localStorageColumnSettings, ensuring no duplicates from customColumns */
+  const colSettings = [...actionsColumn, ...customColumns, ...localStorageColumnSettings];
+
   if (tableWidth === null) return colSettings;
 
   const columnsWithWidth = colSettings.filter(col => col.width);
-  const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width!, 10), 0);
+  const totalWidthWithWidth = columnsWithWidth.reduce((acc, col) => acc + parseInt(col.width, 10), 0);
   const remainingWidth = tableWidth - totalWidthWithWidth;
   const columnsWithoutWidth = colSettings.filter(col => !col.width);
   const columnWidth = Math.max(remainingWidth / columnsWithoutWidth.length, 120);
@@ -276,7 +310,7 @@ export const serializeColumns = (columns) => {
 
 export const mergeColumnSettings = (originalColumns, savedColumns) => {
   return originalColumns.map((column) => {
-      const savedColumn = savedColumns.find((sc) => sc.column === column.column); // Assuming 'column' is a unique identifier
+      const savedColumn = savedColumns.find((sc) => sc.column === column.column); /** Assuming 'column' is a unique identifier */
       return {
           ...column,
           ...savedColumn,
@@ -298,10 +332,10 @@ export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, 
 export const getAdvanceFilterSettingsObj = (filterSettings: any[]): { [key: string]: string } => {
   if (!filterSettings) return {};
 
-  // Find the first setting that has default: true
+  /** Find the first setting that has default: true */
   const defaultSetting = filterSettings.find(setting => setting.default);
 
-  // If there's no default setting, return an empty object
+  /** If there's no default setting, return an empty object */
   if (!defaultSetting) return {};
 
   return defaultSetting.fields.reduce((acc, field) => {
@@ -310,7 +344,7 @@ export const getAdvanceFilterSettingsObj = (filterSettings: any[]): { [key: stri
   }, {} as { [key: string]: string });
 };
 
-// Serialize object to query string
+/** Serialize object to query string */
 export const serialize = (obj: { [key: string]: any }): string => {
   const str: string[] = [];
   for (let p in obj) {
@@ -324,16 +358,64 @@ export const serialize = (obj: { [key: string]: any }): string => {
 export const mergeCustomStylesForRow = (rowValue, customRowSettings) => {
   let mergedStyles = {};
 
-  // Loop through each customRowSetting
-  customRowSettings.forEach((setting) => {
+  /** Loop through each customRowSetting */
+  customRowSettings?.forEach((setting) => {
     const valueAtPath = getDeepValue(rowValue, setting.column);
     if (valueAtPath !== undefined && valueAtPath === setting.value) {
-      // Merge the styles if the condition is true
+      /** Merge the styles if the condition is true */
       mergedStyles = { ...mergedStyles, ...setting.styles };
     }
   });
 
   return mergedStyles;
+};
+
+/**
+ * Replaces the domain of a given URL if it's localhost with the specified new domain.
+ * @param {string} url - The URL to be checked and updated.
+ * @param {string} newDomain - The new domain to replace localhost with.
+ * @returns {string} - The updated URL with the new domain.
+ */
+export const replaceLocalhostWithDomain = (url, newDomain) => {
+  try {
+    const urlObj = new URL(url);
+
+    // Check if the hostname is localhost (this includes various localhost types)
+    if (urlObj.hostname === 'localhost' ||
+      urlObj.hostname === '127.0.0.1' ||
+      urlObj.hostname.startsWith('localhost:') ||
+      urlObj.hostname.endsWith('.localhost')) {
+      // Create a new URL with the new domain, preserving the pathname and search parameters if any
+      return `${newDomain}${urlObj.pathname}${urlObj.search}`;
+    }
+
+    // If the hostname is not localhost, return the original URL
+    return url;
+  } catch (error) {
+    console.error('Invalid URL:', error);
+    return url; // Return the original URL if there was an error parsing it
+  }
+};
+
+/**
+ * Checks if a string or each string in an array of strings exists exactly (case-insensitive) in a given array.
+ * @param {Array} firstArray - The array to search within.
+ * @param {string|Array} secondParam - A string or an array of strings to look for.
+ * @returns {boolean} - True if the string or all strings from the secondParam exist in the first array, false otherwise.
+ */
+export const isStringExist = (stringArray, stringToCheck) => {
+  if (!stringArray) {
+    return false;
+  }
+  
+  // Convert all first array elements to lowercase for case-insensitive comparison
+  const lowerCaseFirstArray = stringArray.map(element => typeof element === 'string' ? element.toLowerCase() : element);
+
+  // Check if secondParam is an array or a single string and convert to lowercase
+  const elementsToCheck = Array.isArray(stringToCheck) ? stringToCheck.map(el => el.toLowerCase()) : [stringToCheck.toLowerCase()];
+
+  // Use every to determine if all elements exist in the array
+  return lowerCaseFirstArray.every(element => elementsToCheck.includes(element));
 };
 
 export * from "./useDragDropManager";
