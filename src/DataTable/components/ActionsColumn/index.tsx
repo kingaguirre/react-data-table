@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { ActionsContainer, DropdownContainer, ActionsIconContainer } from './styled';
 import { Actions } from '../../interfaces';
-import { DataTableContext, getDeepValue } from "../../index";
+import { DataTableContext } from "../../index";
+import { isStringExist } from "../../utils/index";
 
 interface IProps {
   data?: any;
@@ -11,7 +12,7 @@ interface IProps {
 
 export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   const { data } = props;
-  const { actions, onAddRow, onDeleteRow, rowKey } = useContext(DataTableContext);
+  const { actions, onAddRow, onDeleteRow } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const actionRef = useRef<HTMLDivElement>(null);
@@ -57,10 +58,6 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
     setShowDropdown(false);
   };
 
-  const handleDelete = (data) => {
-
-  }
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
@@ -95,15 +92,12 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
 
   return (
     <ActionsContainer>
-      {hasAction(Actions.DELETE) && (
-        <i
-          className="fa fa-trash-o"
-          onClick={() => handleDelete(data)}
-        />
+      {hasAction(Actions.DELETE) && <i className="fa fa-trash-o" onClick={() => onDeleteRow(data)}/>}
+      {isStringExist(actions, [Actions.COPY, Actions.PASTE, Actions.DUPLICATE]) && (
+        <ActionsIconContainer ref={actionRef} onClick={toggleDropdown}>
+          <i className="fa fa-ellipsis-v" />
+        </ActionsIconContainer>
       )}
-      <ActionsIconContainer ref={actionRef} onClick={toggleDropdown}>
-        <i className="fa fa-ellipsis-v" />
-      </ActionsIconContainer>
       {dropdown}
     </ActionsContainer>
   );

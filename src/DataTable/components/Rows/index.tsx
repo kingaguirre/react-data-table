@@ -1,10 +1,11 @@
 import React, { useEffect, useContext, useState, useCallback, Fragment } from "react";
-import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue } from "../../utils"
+import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue, isStringExist } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
 import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import * as SC from "./styled";
+import { Actions } from "../../interfaces";
 
 export const Rows = () => {
   const {
@@ -15,7 +16,7 @@ export const Rows = () => {
     fetchConfig,
     selectable,
     customRowSettings,
-    editable,
+    actions,
     onChange,
     state: { selectedRows, activeRow, columns, search, fetchedData },
     setState,
@@ -28,14 +29,22 @@ export const Rows = () => {
 
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
   const [editingCell, setEditingCell] = useState<{ rowIndex: number; columnIndex: number; value: string } | null>(null);
+  const isEditable = isStringExist(actions, Actions.EDIT);
+
+  const checkEditability = (columnEditable, isEditable) => {
+    if (!isEditable && !!columnEditable ||
+      !!isEditable && (!!columnEditable || columnEditable === undefined)) {
+      return true;
+    }
+    return false;
+  };
 
   const handleCellDoubleClick = useCallback((rowIndex: number, columnIndex: number, value: string) => {
     const columnEditable = columns[columnIndex].editable;
-
-    if (columnEditable !== false && editable) { // This checks if editable is not explicitly set to false
+    if (checkEditability(columnEditable, isEditable)) { // This checks if editable is not explicitly set to false
       setEditingCell({ rowIndex, columnIndex, value });
     }
-  }, [editable, columns]);
+  }, [isEditable, columns]);
 
   const handleCellChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (editingCell) {

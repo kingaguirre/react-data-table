@@ -380,7 +380,6 @@ export default () => {
         // selectedRows={["user-id0"]}
         selectable
         downloadCSV
-        editable
         onChange={v => console.log(v)}
         customRowSettings={[
           {

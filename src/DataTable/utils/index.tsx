@@ -408,14 +408,18 @@ export const isStringExist = (stringArray, stringToCheck) => {
     return false;
   }
   
-  // Convert all first array elements to lowercase for case-insensitive comparison
-  const lowerCaseFirstArray = stringArray.map(element => typeof element === 'string' ? element.toLowerCase() : element);
+  // Convert all elements of the first array to lowercase for case-insensitive comparison
+  const lowerCaseFirstArray = stringArray.map(element =>
+    typeof element === 'string' ? element.toLowerCase() : element
+  );
 
-  // Check if secondParam is an array or a single string and convert to lowercase
-  const elementsToCheck = Array.isArray(stringToCheck) ? stringToCheck.map(el => el.toLowerCase()) : [stringToCheck.toLowerCase()];
+  // Check if stringToCheck is an array or a single string and convert to lowercase
+  const elementsToCheck = Array.isArray(stringToCheck)
+    ? stringToCheck.map(el => el.toLowerCase())
+    : [stringToCheck.toLowerCase()];
 
-  // Use every to determine if all elements exist in the array
-  return lowerCaseFirstArray.every(element => elementsToCheck.includes(element));
+  // Use some to determine if any element to check exists in the first array
+  return elementsToCheck.some(element => lowerCaseFirstArray.includes(element));
 };
 
 export * from "./useDragDropManager";

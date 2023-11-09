@@ -53,7 +53,6 @@ export interface DataTableProps {
   selectedRows?: any[];
   clickableRow?: boolean;
   customRowSettings?: CustomRowSettings[];
-  editable?: boolean;
   actions?: Actions | Actions[];
   onChange?: (updatedData: any[]) => void;
   onRowClick?: (rowData: any) => void;

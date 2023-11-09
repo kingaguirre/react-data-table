@@ -46,7 +46,6 @@ export const DataTable = (props: DataTableProps) => {
     selectedRows = [],
     clickableRow = true,
     customRowSettings,
-    editable = false,
     actions,
     onChange,
     onColumnSettingsChange,
@@ -131,7 +130,7 @@ export const DataTable = (props: DataTableProps) => {
         const newData = setDeepValue(parsedData, rowKey, newRowKey);
 
         if (fetchConfig) {
-          const newFetchedData = [newData, ...(state.localData || [])];
+          const newFetchedData = [newData, ...(state.fetchedData.data || [])];
           setState({
             type: SET_FETCHED_DATA,
             payload: { ...state.fetchedData, data: newFetchedData }
@@ -150,20 +149,27 @@ export const DataTable = (props: DataTableProps) => {
     }
   }, [state.localData, state.fetchedData.data]);
 
+  const updateDataByRowKey = (rowData, data) => [...data].map(d => {
+    const rowDataRowKey = getDeepValue(rowData, rowKey);
+    const dataRowKey = getDeepValue(d, rowKey);
+    if (rowDataRowKey === dataRowKey) {
+      return { ...d, intentAction: "R" }
+    }
+    return d;
+  });
+
   const onDeleteRow = useCallback((data, fetchConfig) => {
     const parsedNewData = !!data ? JSON.parse(data) : [];
-    const newRowKey = `${getDeepValue(parsedNewData, rowKey)}_copy_${new Date().getTime()}`;
-    const newData = setDeepValue(parsedNewData, rowKey, newRowKey);
 
     if (fetchConfig) {
-      const newFetchedData = [newData, ...(state.localData || [])];
+      const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data);
       setState({
         type: SET_FETCHED_DATA,
-        payload: { ...state.fetchedData, data: newFetchedData }
+        payload: { ...state.fetchedData, data: updateDataByRowKey(parsedNewData, state.fetchedData.data) }
       });
       onChange?.(newFetchedData);
     } else {
-      const newLocalData = [newData, ...(state.localData || [])];
+      const newLocalData = updateDataByRowKey(parsedNewData, state.localData);
       setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       onChange?.(newLocalData);
     }
@@ -335,7 +341,6 @@ export const DataTable = (props: DataTableProps) => {
         filterSettings: fetchConfig?.filterSettings,
         columnSettings,
         customRowSettings,
-        editable,
         actions,
         state,
         setState,
