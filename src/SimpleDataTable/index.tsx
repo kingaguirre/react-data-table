@@ -43,7 +43,7 @@ export const DataTable = (props: DataTableProps) => {
     localPageSize: pageSize,
     filterValues: columnSettings.reduce((initialValues, col: ColumnSettings) => ({
       ...initialValues,
-      [col.column]: col.filterBy ? col.filterBy.value : "",
+      [col.column]: col.filterConfig ? col.filterConfig.value : "",
     }), {})
   } as IReducerState);
   /** Reducer End */

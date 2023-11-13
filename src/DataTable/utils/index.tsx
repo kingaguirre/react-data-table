@@ -48,21 +48,22 @@ export const getDeepValue = (obj: any, path: string) => {
   return value;
 };
 
-export const setDeepValue = (obj: any, path: string, value: any) => {
-  const newObj = { ...obj }; /** Create a shallow copy */
-  const keys = path.split(/[\.\[\]]+/).filter(Boolean);
+export const setDeepValue = (obj, path, value) => {
+  const newObj = { ...obj };
+  const keys = path.match(/[^.[\]]+/g) || [];
 
-  keys.reduce((acc, part, index) => {
+  keys.reduce((acc, key, index) => {
     if (index === keys.length - 1) {
-      acc[part] = value;
-    } else if (!acc[part] || typeof acc[part] !== 'object') {
-      acc[part] = Array.isArray(acc) && !isNaN(Number(part)) ? [] : {};
+      acc[key] = value;
+    } else {
+      if (!acc[key] || typeof acc[key] !== 'object') acc[key] = {};
+      return acc[key];
     }
-    return acc[part];
   }, newObj);
 
   return newObj;
 };
+
 
 export const sortData = (data: any[] | null, column: string, direction: 'asc' | 'desc') => {
   const compareFunction = (a: any, b: any) => {
@@ -232,7 +233,7 @@ export const getLocalStorageColumnSettings = (columnSettings: any) => {
 export const setColumnSettings = (
   columnSettings: any,
   tableWidth: any,
-  customRowSettings: any,
+  customRowSettings?: any,
   actions?: Actions | Actions[]
 ) => {
   let customColumns = (!!customRowSettings && customRowSettings.length > 0)
@@ -421,6 +422,15 @@ export const isStringExist = (stringArray, stringToCheck) => {
   // Use some to determine if any element to check exists in the first array
   return elementsToCheck.some(element => lowerCaseFirstArray.includes(element));
 };
+
+export const updateDataByRowKey = (rowData, data, rowKey) => [...data].map(d => {
+  const rowDataRowKey = getDeepValue(rowData, rowKey);
+  const dataRowKey = getDeepValue(d, rowKey);
+  if (rowDataRowKey === dataRowKey) {
+    return { ...d, intentAction: "R" }
+  }
+  return d;
+});
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

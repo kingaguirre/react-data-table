@@ -155,16 +155,22 @@ const columnSettings = [
     pinned: true,
     groupTitle: 'test',
     order: 0,
-    filterBy: {
+    filterConfig: {
       type: 'text',
     },
-    editable: {
-      type: "select",
-      value: "option2",
-      options: [
-        { value: "option1", text: "Option 1" },
-        { value: "option2", text: "Option 2" },
-      ]
+    actionConfig: {
+      type: "text",
+      // value: "option2",
+      // options: [
+      //   { value: "option1", text: "Option 1" },
+      //   { value: "option2", text: "Option 2" },
+      // ],
+      schema: {
+        type: "string",
+        maxLength: 3,
+        minLength: 1,
+        // pattern: "^[a-zA-Z]$"
+      }
     }
   },
   {
@@ -173,8 +179,8 @@ const columnSettings = [
     align: 'center',
     groupTitle: 'test',
     order: 0,
-    editable: false,
-    filterBy: {
+    actionConfig: false,
+    filterConfig: {
       type: 'text',
       // value: "0"
     },
@@ -199,7 +205,7 @@ const columnSettings = [
     groupTitle: 'User Details',
     order: 2,
     pinned: 'none',
-    filterBy: {
+    filterConfig: {
       type: 'select',
       options: [{
         text: 'clear',
@@ -223,7 +229,7 @@ const columnSettings = [
     title: 'Birth Day',
     groupTitle: 'User Details',
     order: 5,
-    filterBy: {
+    filterConfig: {
       type: 'date-range',
     },
   },
@@ -232,7 +238,7 @@ const columnSettings = [
     title: 'Age',
     groupTitle: 'test Details',
     order: 4,
-    filterBy: {
+    filterConfig: {
       type: 'number-range',
       // value: {min: 10, max: 50}
     },
@@ -368,7 +374,7 @@ export default () => {
       /> */}
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <DataTable
-        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE]}
+        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.ADD]}
         dataSource={dataSource}
         columnSettings={columnSettings}
         onRowClick={handleRowClick}
@@ -430,9 +436,10 @@ export default () => {
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
+
       />
     <div style={{height: 100}}/>
-      <DataTable
+      {/* <DataTable
         fetchConfig={{
           // endpoint: "http://localhost:3002/custom-items",
           endpoint: replaceLocalhostWithDomain("http://localhost:3002/custom-items", "http://localhost:3002"),
@@ -529,7 +536,7 @@ export default () => {
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
-      />
+      /> */}
       <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{

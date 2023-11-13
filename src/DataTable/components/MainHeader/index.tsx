@@ -1,7 +1,8 @@
 import React, { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
-import { exportToCsv, exportToExcel, setColumnSettings } from "../../utils";
+import { exportToCsv, exportToExcel, setColumnSettings, isStringExist } from "../../utils";
 import { SET_COLUMNS, SET_SEARCH, SET_ADVANCE_FILTER_VALUES} from "../../context/actions";
 import { DataTableContext } from "../../index";
+import { Actions } from "../../interfaces";
 import FilterComponent from "../FilterComponent";
 import * as SC from "./styled";
 
@@ -12,6 +13,8 @@ export const MainHeader = () => {
     visibleRows,
     columnSettings,
     filterSettings,
+    customRowSettings,
+    actions,
     state: { columns, search, selectedRows, tableWidth },
     setState,
     onColumnSettingsChange,
@@ -20,6 +23,7 @@ export const MainHeader = () => {
 
   const settingsContainerRef: any = useRef<any>(null);
   const toggleButtonRef: any = useRef<any>(null);
+  const isAddEnabled = isStringExist(actions, Actions.ADD);
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -60,7 +64,7 @@ export const MainHeader = () => {
   const handleResetClick = () => {
     localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
 
-    const currentSettings = setColumnSettings(columnSettings, tableWidth);
+    const currentSettings = setColumnSettings(columnSettings, tableWidth, customRowSettings, actions);
     setState({ type: SET_COLUMNS, payload: currentSettings });
     onResetClick?.(currentSettings);
   };
@@ -93,6 +97,7 @@ export const MainHeader = () => {
         </>
       )}
       <SC.ControlsWrapper>
+        {isAddEnabled && <button>Add</button>}
         {!!downloadCSV && (
           <button onClick={() => {
             exportToCsv('data.csv', selectedRows > 0 ? selectedRows : visibleRows, columns);

@@ -12,7 +12,8 @@ import {
   serializeColumns,
   setColumnSettings,
   getAdvanceFilterSettingsObj,
-  serialize
+  serialize,
+  updateDataByRowKey
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
@@ -67,7 +68,7 @@ export const DataTable = (props: DataTableProps) => {
     filterValues: {
       ...columnSettings.reduce((initialValues, col: ColumnSettings) => ({
         ...initialValues,
-        [col.column]: col.filterBy ? col.filterBy.value : "",
+        [col.column]: col.filterConfig ? col.filterConfig.value : "",
       }), {}),
       ...(fetchConfig?.requestData?.filter || {}),
     },
@@ -82,11 +83,11 @@ export const DataTable = (props: DataTableProps) => {
     let filtered = !!state.localData && !!state.localData.length ? state.localData.filter(row => {
       /** Filter by column filter */
       const columnFilterMatches = state.columns.every(col => {
-        if (col.filterBy) {
+        if (col.filterConfig) {
           const rowValue = getDeepValue(row, col.column);
-          if (col.filterBy.type === "number-range" || col.filterBy.type === "date-range") {
+          if (col.filterConfig.type === "number-range" || col.filterConfig.type === "date-range") {
             const filterValue = state.filterValues[col.column];
-            return filterCheck(filterValue, rowValue, col.filterBy.type)
+            return filterCheck(filterValue, rowValue, col.filterConfig.type)
           } else {
             const filterValue = state.filterValues[col.column]?.toLowerCase() || "";
             return String(rowValue).toLowerCase().includes(filterValue);
@@ -149,27 +150,18 @@ export const DataTable = (props: DataTableProps) => {
     }
   }, [state.localData, state.fetchedData.data]);
 
-  const updateDataByRowKey = (rowData, data) => [...data].map(d => {
-    const rowDataRowKey = getDeepValue(rowData, rowKey);
-    const dataRowKey = getDeepValue(d, rowKey);
-    if (rowDataRowKey === dataRowKey) {
-      return { ...d, intentAction: "R" }
-    }
-    return d;
-  });
-
   const onDeleteRow = useCallback((data, fetchConfig) => {
     const parsedNewData = !!data ? JSON.parse(data) : [];
 
     if (fetchConfig) {
-      const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data);
+      const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data, rowKey);
       setState({
         type: SET_FETCHED_DATA,
-        payload: { ...state.fetchedData, data: updateDataByRowKey(parsedNewData, state.fetchedData.data) }
+        payload: { ...state.fetchedData, data: newFetchedData }
       });
       onChange?.(newFetchedData);
     } else {
-      const newLocalData = updateDataByRowKey(parsedNewData, state.localData);
+      const newLocalData = updateDataByRowKey(parsedNewData, state.localData, rowKey);
       setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       onChange?.(newLocalData);
     }

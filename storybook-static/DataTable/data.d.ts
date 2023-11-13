@@ -36,7 +36,7 @@ export declare const COLUMN_SETTINGS: ({
     title: string;
     align: string;
     freeze: boolean;
-    filterBy: {
+    filterConfig: {
         type: string;
         value: string;
         options?: undefined;
@@ -51,7 +51,7 @@ export declare const COLUMN_SETTINGS: ({
     width: string;
     align?: undefined;
     freeze?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     groupTitle?: undefined;
     order?: undefined;
     hide?: undefined;
@@ -62,7 +62,7 @@ export declare const COLUMN_SETTINGS: ({
     order: number;
     freeze: boolean;
     align?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     width?: undefined;
     hide?: undefined;
 } | {
@@ -70,7 +70,7 @@ export declare const COLUMN_SETTINGS: ({
     title: string;
     groupTitle: string;
     order: number;
-    filterBy: {
+    filterConfig: {
         type: string;
         value: string;
         options: {
@@ -88,7 +88,7 @@ export declare const COLUMN_SETTINGS: ({
     groupTitle: string;
     align?: undefined;
     freeze?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     width?: undefined;
     order?: undefined;
     hide?: undefined;
@@ -99,7 +99,7 @@ export declare const COLUMN_SETTINGS: ({
     order: number;
     align?: undefined;
     freeze?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     width?: undefined;
     hide?: undefined;
 } | {
@@ -107,7 +107,7 @@ export declare const COLUMN_SETTINGS: ({
     title: string;
     align?: undefined;
     freeze?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     width?: undefined;
     groupTitle?: undefined;
     order?: undefined;
@@ -119,7 +119,7 @@ export declare const COLUMN_SETTINGS: ({
     hide: boolean;
     align?: undefined;
     freeze?: undefined;
-    filterBy?: undefined;
+    filterConfig?: undefined;
     width?: undefined;
     order?: undefined;
 })[];

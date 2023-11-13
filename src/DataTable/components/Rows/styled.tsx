@@ -39,7 +39,6 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
-  transition: all .15s ease;
   ${({ isPinned }) => !!isPinned ? `
     position: sticky;
     z-index: 10;

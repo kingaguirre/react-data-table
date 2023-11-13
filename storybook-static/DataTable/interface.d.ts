@@ -1,5 +1,5 @@
 export interface ColumnSettings {
-    filterBy?: any;
+    filterConfig?: any;
     column: string;
     title: string;
     align?: string;

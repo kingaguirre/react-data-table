@@ -1,11 +1,12 @@
 import React, { useEffect, useContext, useState, useCallback, Fragment } from "react";
 import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue, isStringExist } from "../../utils"
-import { SET_ACTIVE_ROW, SET_SELECTED_ROWS } from "../../context/actions";
+import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
 import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import * as SC from "./styled";
 import { Actions } from "../../interfaces";
+import Ajv from "ajv";
 
 export const Rows = () => {
   const {
@@ -28,8 +29,24 @@ export const Rows = () => {
   } = useContext(DataTableContext);
 
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
-  const [editingCell, setEditingCell] = useState<{ rowIndex: number; columnIndex: number; value: string } | null>(null);
+  const [editingCell, setEditingCell] = useState<{
+    rowIndex: number; columnIndex: number; value: string; invalid?: boolean; error?: string | null
+  } | null>(null);
   const isEditable = isStringExist(actions, Actions.EDIT);
+  const ajv = new Ajv();
+  /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
+  const isFetching = fetchConfig && fetchedData.fetching;
+  const rows = fetchConfig ? fetchedData.data : visibleRows;
+
+  /** Placeholder for loading */
+  if (isFetching && rows === undefined) {
+    return <SC.LoadingPanel>Loading the data...</SC.LoadingPanel>;
+  }
+
+  /** Placeholder for no data */
+  if (!rows || rows.length === 0 || !Array.isArray(rows) && !isFetching && rows !== undefined) {
+    return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
+  }
 
   const checkEditability = (columnEditable, isEditable) => {
     if (!isEditable && !!columnEditable ||
@@ -40,8 +57,8 @@ export const Rows = () => {
   };
 
   const handleCellDoubleClick = useCallback((rowIndex: number, columnIndex: number, value: string) => {
-    const columnEditable = columns[columnIndex].editable;
-    if (checkEditability(columnEditable, isEditable)) { // This checks if editable is not explicitly set to false
+    const columnEditable = columns[columnIndex].actionConfig;
+    if (checkEditability(columnEditable, isEditable)) {
       setEditingCell({ rowIndex, columnIndex, value });
     }
   }, [isEditable, columns]);
@@ -53,38 +70,76 @@ export const Rows = () => {
     }
   };
 
-  const handleStopEditing = (saveChanges = true) => {
+  const handleDoEdit = (saveChanges = true) => {
     if (editingCell) {
-      // Only handle the update if the target of the click isn't an input or if saveChanges is true
-      if (saveChanges && onChange) {
-        const updatedData = [...rows];
-        const columnKey = columns[editingCell.columnIndex].column;
-        setDeepValue(updatedData[editingCell.rowIndex], columnKey, editingCell.value);
-        onChange(updatedData);
+      const currentRow = rows[editingCell.rowIndex];
+      const columnKey = columns[editingCell.columnIndex].column;
+      const columnSchema = columns[editingCell.columnIndex]?.actionConfig?.schema;
+      const currentValue = getDeepValue(currentRow, columnKey);
+      let isValid = true;
+
+      /** Only validate if columnSchema is defined */
+      if (!!columnSchema) {
+        isValid = ajv.validate(columnSchema, editingCell.value);
       }
-      setEditingCell(null);
+
+      if (isValid) {
+        if (saveChanges && onChange) {
+          const newData = setDeepValue(currentRow, columnKey, editingCell.value);
+          const updatedRows = rows.map((item, i) => editingCell.rowIndex === i ? newData : item);
+
+          if (fetchConfig) {
+            setState({
+              type: SET_FETCHED_DATA,
+              payload: { ...fetchedData, data: updatedRows }
+            });
+          } else {
+            setState({ type: SET_LOCAL_DATA, payload: updatedRows });
+          }
+
+          if (currentValue !== editingCell.value) {
+            onChange(updatedRows);
+          }
+        }
+        setEditingCell(null);
+      } else {
+        const error = ajv.errorsText(ajv.errors);
+        console.error("Validation failed: ", error);
+        setEditingCell(prev => ({ ...prev!, invalid: true, error }));
+      }
     }
   };
 
-  // New function to handle the key down events
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (editingCell) {
       if (e.key === "Enter") {
-        handleStopEditing();
+        handleDoEdit();
       } else if (e.key === "Escape") {
-        handleStopEditing(false);  // Do not save changes
+        handleDoEdit(false);  // Do not save changes
       }
     }
   };
 
   useEffect(() => {
+    let isEditHandled = false;
+
+    const handleClick = () => {
+      if (!isEditHandled && editingCell) {
+        handleDoEdit();
+        isEditHandled = true;
+      }
+    };
+
     if (editingCell) {
-      window.addEventListener('click', () => handleStopEditing());
-      return () => {
-        window.removeEventListener('click', () => handleStopEditing());
-      };
+      window.addEventListener('click', handleClick);
     }
-  }, [editingCell, handleStopEditing]);
+
+    return () => {
+      if (editingCell) {
+        window.removeEventListener('click', handleClick);
+      }
+    };
+  }, [editingCell, handleDoEdit]);
 
   const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
@@ -130,20 +185,6 @@ export const Rows = () => {
     onSelectedRowsChange?.(payload);
     setState({ type: SET_SELECTED_ROWS, payload });
   }, [selectedRows, rowKey, onSelectedRowsChange, setState]);
-
-  /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
-  const isFetching = fetchConfig && fetchedData.fetching;
-  const rows = fetchConfig ? fetchedData.data : visibleRows;
-
-  /** Placeholder for loading */
-  if (isFetching && rows === undefined) {
-    return <SC.LoadingPanel>Loading the data...</SC.LoadingPanel>;
-  }
-
-  /** Placeholder for no data */
-  if (!rows || rows.length === 0 || !Array.isArray(rows) && !isFetching && rows !== undefined) {
-    return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
-  }
 
   return (
     <SC.TableRowsContainer isFetching={isFetching}>
@@ -196,35 +237,45 @@ export const Rows = () => {
                 }
 
                 if (editingCell && editingCell.rowIndex === rowIndex && editingCell.columnIndex === index) {
-                  const columnEditable = columns[editingCell.columnIndex].editable;
+                  const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
+                  const isInvalid = editingCell?.invalid;
+                  const error = editingCell?.error;
 
-                  if (columnEditable?.type === "select") {
+                  if (columnActionConfig?.type === "select") {
                     cellContent = (
-                      <select
-                        value={editingCell.value}
-                        onChange={handleCellChange}
-                        onBlur={() => handleStopEditing()}
-                        onKeyDown={handleKeyDown}
-                        autoFocus
-                      >
-                        {columnEditable.options.map(opt => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.text}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <select
+                          value={editingCell.value}
+                          onChange={handleCellChange}
+                          onBlur={() => handleDoEdit()}
+                          onKeyDown={handleKeyDown}
+                          autoFocus
+                          className={isInvalid ? "invalid" : ""}
+                        >
+                          {columnActionConfig.options.map(opt => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.text}
+                            </option>
+                          ))}
+                        </select>
+                        {isInvalid && <span>{error}</span>}
+                      </div>
                     );
                   } else {
                     // Assuming type "text" for now, but you can add more types
                     cellContent = (
-                      <input
-                        type="text"
-                        value={editingCell.value}
-                        onChange={handleCellChange}
-                        onBlur={() => handleStopEditing()}
-                        onKeyDown={handleKeyDown}
-                        autoFocus
-                      />
+                      <div>
+                        <input
+                          type="text"
+                          value={editingCell.value || ""}
+                          onChange={handleCellChange}
+                          onBlur={() => handleDoEdit()}
+                          onKeyDown={handleKeyDown}
+                          autoFocus
+                          className={isInvalid ? "invalid" : ""}
+                        />
+                        {isInvalid && <span>{error}</span>}
+                      </div>
                     );
                   }
                 }

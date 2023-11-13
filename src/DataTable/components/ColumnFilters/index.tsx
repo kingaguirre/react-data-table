@@ -15,7 +15,7 @@ export const ColumnFilters = () => {
     selectable
   } = React.useContext(DataTableContext);
 
-  const anyFilterBy = columns.some(col => col.filterBy);
+  const anyFilterBy = columns.some(col => col.filterConfig);
   let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
 
   if (!anyFilterBy) {
@@ -60,26 +60,26 @@ export const ColumnFilters = () => {
             isPinned={isPinned}
             style={pinnedStyle}
           >
-            {(col.filterBy) ? col.filterBy.type === "text" ? (
+            {(col.filterConfig) ? col.filterConfig.type === "text" ? (
               <input
                 className="sm"
                 type="text"
                 value={filterValues[col.column] || ""}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               />
-            ) : col.filterBy.type === "select" ? (
+            ) : col.filterConfig.type === "select" ? (
               <select
                 className="sm"
                 value={filterValues[col.column] || ""}
                 onChange={e => handleSetFilterValues(e.target.value, col.column)}
               >
-                {col.filterBy.options.map((option, optionIndex) => (
+                {col.filterConfig.options.map((option, optionIndex) => (
                   <option key={optionIndex} value={option.value}>
                     {option.text}
                   </option>
                 ))}
               </select>
-            ) : col.filterBy.type === "number-range" ? (
+            ) : col.filterConfig.type === "number-range" ? (
               <div>
                 <input
                   className="sm"
@@ -96,7 +96,7 @@ export const ColumnFilters = () => {
                   placeholder="Max"
                 />
               </div>
-              ) : col.filterBy.type === "date-range" ? (
+              ) : col.filterConfig.type === "date-range" ? (
                 <div>
                   <input
                     className="sm"

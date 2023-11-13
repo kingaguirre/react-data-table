@@ -65,7 +65,7 @@ export interface DataTableProps {
 }
 
 export interface ColumnSettings {
-  filterBy?: any;
+  filterConfig?: any;
   column: string;
   title: string;
   align?: 'left' | 'right' | 'center' | string;
@@ -77,6 +77,7 @@ export interface ColumnSettings {
   order?: number;
   sorted?: 'asc' | 'desc' | string;
   draggable?: boolean;
+  actionConfig?: any;
   columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
 }
 
