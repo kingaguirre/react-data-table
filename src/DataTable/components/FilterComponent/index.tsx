@@ -70,47 +70,29 @@ export default (props: FilterComponentProps) => {
 
   const [selectedMenu, setSelectedMenu] = useState(initialFilterSettings[0].id);
   const [filterSettings, setFilterSettings] = useState<Setting[]>(initialFilterSettings);
-  const initialFieldValues = getAdvanceFilterSettingsObj(filterSettings);
-  const [fieldValues, setFieldValues] = useState<{ [key: string]: string }>(initialFieldValues);
+  const [fieldValues, setFieldValues] = useState<{ [key: string]: string }>({});
+  const [initialFieldValues, setInitialFieldValues] = useState<{ [key: string]: string }>({});
   const [defaultSetting, setDefaultSetting] = useState<Setting | null>(
     filterSettings.find(setting => setting.default) || null
   );
   const [cloneMenuName, setCloneMenuName] = useState<string>("");
 
+  // Set initial field values when the filter settings change
+  React.useEffect(() => {
+    const initialFieldValues = getAdvanceFilterSettingsObj(filterSettings);
+    setFieldValues(initialFieldValues);
+    setInitialFieldValues(initialFieldValues);
+  }, [filterSettings]);
+
   const handleInputChange = (id: string, value: string) => {
     // Update fieldValues
     const updatedFieldValues = { ...fieldValues, [id]: value };
     setFieldValues(updatedFieldValues);
-
-    // Update filterSettings with the new field value
-    const updatedSettings = filterSettings.map(setting => {
-      if (setting.id === selectedMenu) {
-        return {
-          ...setting,
-          fields: setting.fields.map(field =>
-            field.id === id ? { ...field, value: value } : field
-          )
-        };
-      }
-      return setting;
-    });
-    setFilterSettings(updatedSettings);
-
-    onChange?.(updatedSettings);
   };
 
   const handleDefaultChange = (setting: Setting) => {
     // Update defaultSetting
     setDefaultSetting(setting);
-
-    // Update filterSettings to reflect the new default
-    const updatedSettings = filterSettings.map(s => ({
-      ...s,
-      default: s.id === setting.id
-    }));
-    setFilterSettings(updatedSettings);
-
-    onChange?.(updatedSettings);
   };
 
   const applyChanges = () => {
@@ -123,6 +105,12 @@ export default (props: FilterComponentProps) => {
       onApply(selectedValues);
     }
   };
+
+  const saveChanges = () => {
+    // Save changes to the initial field values
+    setInitialFieldValues({ ...fieldValues });
+  };
+
 
   const handleClone = () => {
     // Find the currently selected menu
@@ -141,7 +129,16 @@ export default (props: FilterComponentProps) => {
 
       // Trigger onChange with new settings if provided
       onChange?.(updatedSettings);
+      // Reset field values to initial values after cloning
+      setFieldValues(initialFieldValues);
     }
+  };
+
+  const handleMenuSelect = (menuId: string) => {
+    setSelectedMenu(menuId);
+
+    // Reset field values to initial values when a menu is selected
+    setFieldValues(initialFieldValues);
   };
 
   return (
@@ -152,7 +149,7 @@ export default (props: FilterComponentProps) => {
             <MenuItem
               key={setting.id}
               isSelected={setting.id === selectedMenu}
-              onClick={() => setSelectedMenu(setting.id)}>
+              onClick={() => handleMenuSelect(setting.id)}>
               {setting.title}
             </MenuItem>
           ))}
@@ -217,6 +214,7 @@ export default (props: FilterComponentProps) => {
           <button onClick={handleClone}>Clone</button>
         </div>
         <button onClick={applyChanges}>Apply</button>
+        <button onClick={saveChanges}>Save</button>
       </Footer>
     </Container>
   );

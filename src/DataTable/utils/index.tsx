@@ -423,11 +423,11 @@ export const isStringExist = (stringArray, stringToCheck) => {
   return elementsToCheck.some(element => lowerCaseFirstArray.includes(element));
 };
 
-export const updateDataByRowKey = (rowData, data, rowKey) => [...data].map(d => {
+export const updateDataByRowKey = (rowData, data, rowKey, intentAction = "R") => [...data].map(d => {
   const rowDataRowKey = getDeepValue(rowData, rowKey);
   const dataRowKey = getDeepValue(d, rowKey);
   if (rowDataRowKey === dataRowKey) {
-    return { ...d, intentAction: "R" }
+    return { ...d, intentAction }
   }
   return d;
 });

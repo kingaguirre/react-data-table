@@ -64,10 +64,12 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   }
 `;
 
-export const CellContent = styled.div`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+export const CellContent = styled.div<{isCustomColumn?: boolean}>`
+  ${({isCustomColumn}) => !isCustomColumn ? `
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  ` : ``}
   font-size: 12px;
   line-height: 1.2;
   position: relative;

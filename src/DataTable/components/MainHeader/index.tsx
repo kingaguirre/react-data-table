@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useEffect, useState, useCallback, ChangeEvent } from "react";
-import { exportToCsv, exportToExcel, setColumnSettings, isStringExist } from "../../utils";
+import { exportToCsv, exportToExcel, setColumnSettings, isStringExist, setDeepValue } from "../../utils";
 import { SET_COLUMNS, SET_SEARCH, SET_ADVANCE_FILTER_VALUES} from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { Actions } from "../../interfaces";
@@ -15,15 +15,19 @@ export const MainHeader = () => {
     filterSettings,
     customRowSettings,
     actions,
+    onAddRow,
+    rowKey,
     state: { columns, search, selectedRows, tableWidth },
     setState,
     onColumnSettingsChange,
     onResetClick,
+    editingCells
   } = useContext(DataTableContext);
 
   const settingsContainerRef: any = useRef<any>(null);
   const toggleButtonRef: any = useRef<any>(null);
   const isAddEnabled = isStringExist(actions, Actions.ADD);
+  const isAddDisabled = editingCells?.some(i => i?.isNew === true);
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -71,6 +75,13 @@ export const MainHeader = () => {
 
   const setFilterValues = (values: any) => setState({ type: SET_ADVANCE_FILTER_VALUES, payload: values});
 
+  const handleOnAddRow = () => {
+    const newData = setDeepValue({
+      intentAction: "*"
+    }, rowKey, `new-${new Date().getTime()}`);
+    onAddRow(newData);
+  };
+
   return (
     <SC.MainHeaderWrapper>
       {!!filterAll && (
@@ -97,7 +108,7 @@ export const MainHeader = () => {
         </>
       )}
       <SC.ControlsWrapper>
-        {isAddEnabled && <button>Add</button>}
+        {isAddEnabled && <button disabled={isAddDisabled} onClick={handleOnAddRow}>Add</button>}
         {!!downloadCSV && (
           <button onClick={() => {
             exportToCsv('data.csv', selectedRows > 0 ? selectedRows : visibleRows, columns);

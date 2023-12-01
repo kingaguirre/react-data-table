@@ -197,7 +197,10 @@ const columnSettings = [
     title: 'Email',
     groupTitle: 'User Details',
     order: 3,
-    pinned: true
+    pinned: true,
+    actionConfig: {
+      type: "text",
+    }
   },
   {
     column: 'userDetails.isAdmin',
@@ -386,7 +389,7 @@ export default () => {
         // selectedRows={["user-id0"]}
         selectable
         downloadCSV
-        onChange={v => console.log(v)}
+        onChange={v => console.log("New Value: ", v)}
         customRowSettings={[
           {
             column: "intentAction",
@@ -411,6 +414,14 @@ export default () => {
             showColumn: false,
             styles: {
               backgroundColor: "rgba(0,0,0,0.3)",
+            }
+          },
+          {
+            column: "intentAction",
+            value: "N",
+            showColumn: false,
+            styles: {
+              backgroundColor: "#a3ee9e",
             }
           }
         ]}
@@ -613,24 +624,24 @@ export default () => {
         // selectedRows={["user-id0"]}
         selectable
         downloadCSV
-        collapsibleRowRender={() => (
-          <DataTable
-            dataSource={dataSource}
-            columnSettings={[{
-              column: 'userDetails.birthDay',
-              title: 'Birth Day',
-              order: 5,
-              width: "200px"
-            },
-            {
-              column: 'userDetails.firstName',
-              title: 'First Name',
-              width: "150px"
-            }]}
-            rowKey="userID.value"
-            clickableRow
-          />
-        )}
+        // collapsibleRowRender={() => (
+        //   <DataTable
+        //     dataSource={dataSource}
+        //     columnSettings={[{
+        //       column: 'userDetails.birthDay',
+        //       title: 'Birth Day',
+        //       order: 5,
+        //       width: "200px"
+        //     },
+        //     {
+        //       column: 'userDetails.firstName',
+        //       title: 'First Name',
+        //       width: "150px"
+        //     }]}
+        //     rowKey="userID.value"
+        //     clickableRow
+        //   />
+        // )}
         onColumnSettingsChange={handleColumnSettingsChange}
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}

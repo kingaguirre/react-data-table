@@ -12,7 +12,7 @@ interface IProps {
 
 export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   const { data } = props;
-  const { actions, onAddRow, onDeleteRow } = useContext(DataTableContext);
+  const { actions, onAddRow, onDeleteRow, onSave, onCancel, onUndo } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const actionRef = useRef<HTMLDivElement>(null);
@@ -90,15 +90,38 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
     )
   ) : null;
 
+  const getActionIcons = (data) => {
+    const isNewRow = JSON.parse(data)?.intentAction === "*";
+    const isDeletedRow = JSON.parse(data)?.intentAction === "R";
+
+    switch(true) {
+      case isNewRow:
+        return (
+          <>
+            <i className="fa fa-check" onClick={() => onSave(data)}/>
+            <i className="fa fa-close" onClick={() => onCancel(data)}/>
+          </>
+        );
+      case isDeletedRow:
+        return (
+          <i className="fa fa-undo" onClick={() => onUndo(data)}/>
+        )
+      default: return (
+        <>
+          {hasAction(Actions.DELETE) && <i className="fa fa-trash-o" onClick={() => onDeleteRow(data)}/>}
+          {isStringExist(actions, [Actions.COPY, Actions.PASTE, Actions.DUPLICATE]) && (
+            <ActionsIconContainer ref={actionRef} onClick={toggleDropdown}>
+              <i className="fa fa-ellipsis-v" />
+            </ActionsIconContainer>
+          )}
+          {dropdown}
+        </>
+      );
+    }
+  }
   return (
     <ActionsContainer>
-      {hasAction(Actions.DELETE) && <i className="fa fa-trash-o" onClick={() => onDeleteRow(data)}/>}
-      {isStringExist(actions, [Actions.COPY, Actions.PASTE, Actions.DUPLICATE]) && (
-        <ActionsIconContainer ref={actionRef} onClick={toggleDropdown}>
-          <i className="fa fa-ellipsis-v" />
-        </ActionsIconContainer>
-      )}
-      {dropdown}
+      {getActionIcons(data)}
     </ActionsContainer>
   );
 };

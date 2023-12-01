@@ -1,4 +1,4 @@
-import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect } from "react";
+import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect, useState } from "react";
 import { DataTableProps, ColumnSettings } from "./interfaces";
 import {
   getDeepValue,
@@ -13,7 +13,8 @@ import {
   setColumnSettings,
   getAdvanceFilterSettingsObj,
   serialize,
-  updateDataByRowKey
+  updateDataByRowKey,
+  hasDomain
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
@@ -57,6 +58,16 @@ export const DataTable = (props: DataTableProps) => {
     onPageIndexChange,
     onSelectedRowsChange,
   } = props;
+
+  const [editingCells, setEditingCells] = useState<Array<{
+    cancelledRowIndex
+    columnIndex: number;
+    value: string;
+    editable?: boolean;
+    invalid?: boolean;
+    error?: string | null;
+    isNew?: boolean
+  }>>([]);
 
   /** Reducer Start */
   const [state, setState] = useReducer(dataTableReducer, {
@@ -121,13 +132,14 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos End */
 
   /** Callback Start */
-  const onAddRow = useCallback((data, fetchConfig) => {
+  const onAddRow = useCallback((data) => {
     try {
-      const parsedData = !!data && typeof data === "string" ? JSON.parse(data) : {};
+      const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
       const rowKeyValue = getDeepValue(parsedData, rowKey);
+      const intentAction = getDeepValue(parsedData, 'intentAction');
 
       if (!!rowKeyValue) {
-        const newRowKey = `${rowKeyValue}_copy_${new Date().getTime()}`;
+        const newRowKey = intentAction !== "*" ? `${rowKeyValue}_copy_${new Date().getTime()}` : rowKeyValue;
         const newData = setDeepValue(parsedData, rowKey, newRowKey);
 
         if (fetchConfig) {
@@ -136,11 +148,9 @@ export const DataTable = (props: DataTableProps) => {
             type: SET_FETCHED_DATA,
             payload: { ...state.fetchedData, data: newFetchedData }
           });
-          onChange?.(newFetchedData);
         } else {
           const newLocalData = [newData, ...(state.localData || [])];
           setState({ type: SET_LOCAL_DATA, payload: newLocalData });
-          onChange?.(newLocalData);
         }
       } else {
         console.error("Invalid data.");
@@ -150,22 +160,57 @@ export const DataTable = (props: DataTableProps) => {
     }
   }, [state.localData, state.fetchedData.data]);
 
-  const onDeleteRow = useCallback((data, fetchConfig) => {
+  const onCancel = useCallback((data) => {
+    try {
+      const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
+      const rowKeyValue = getDeepValue(parsedData, rowKey);
+
+      if (!!rowKeyValue) {
+        const dataToUse: any[] = fetchConfig ? state.fetchedData.data : state.localData;
+        const cancelledRowIndex = dataToUse.findIndex(i => getDeepValue(i, rowKey) === getDeepValue(parsedData, rowKey));
+        const newData = dataToUse?.filter(i => getDeepValue(i, rowKey) !== rowKeyValue);
+
+        // Remove row values in state
+        setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== cancelledRowIndex));
+
+        if (fetchConfig) {
+          setState({
+            type: SET_FETCHED_DATA,
+            payload: { ...state.fetchedData, data: newData }
+          });
+        } else {
+          setState({ type: SET_LOCAL_DATA, payload: newData });
+        }
+      } else {
+        console.error("Invalid data.");
+      }
+    } catch (error) {
+      console.error("Invalid data.");
+    }
+  }, [state.localData, state.fetchedData.data, editingCells, setEditingCells]);
+
+  const doUpdateRowIntentAction = (data, intentAction = "R") => {
     const parsedNewData = !!data ? JSON.parse(data) : [];
 
     if (fetchConfig) {
-      const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data, rowKey);
+      const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data, rowKey, intentAction);
       setState({
         type: SET_FETCHED_DATA,
         payload: { ...state.fetchedData, data: newFetchedData }
       });
       onChange?.(newFetchedData);
     } else {
-      const newLocalData = updateDataByRowKey(parsedNewData, state.localData, rowKey);
+      const newLocalData = updateDataByRowKey(parsedNewData, state.localData, rowKey, intentAction);
       setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       onChange?.(newLocalData);
     }
-  }, [state.localData, state.fetchedData.data]);
+  };
+
+  const onDeleteRow = useCallback((data) => doUpdateRowIntentAction(data), [state.localData, state.fetchedData.data]);
+
+  const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
+  
+  const onUndo = useCallback((data) => doUpdateRowIntentAction(data, "U"), [state.localData, state.fetchedData.data]);
 
   const fetchWithPagination = useCallback(async (
     pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter, advanceFilter
@@ -183,6 +228,9 @@ export const DataTable = (props: DataTableProps) => {
       const { endpoint, requestData, responseDataPath = "data", responseTotalDataPath = "totalData" } = fetchConfig;
 
       let url = endpoint;
+      if (!hasDomain(url)) {
+        url = `${window.location.origin}${url}`;
+      }
       let body: any = null;
       let method = 'GET';
 
@@ -350,7 +398,12 @@ export const DataTable = (props: DataTableProps) => {
         onSelectedRowsChange,
         onChange,
         onAddRow,
-        onDeleteRow
+        onDeleteRow,
+        onSave,
+        onCancel,
+        onUndo,
+        editingCells,
+        setEditingCells
       }}
     >
       <SC.TableWrapper>
