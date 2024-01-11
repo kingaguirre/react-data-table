@@ -79,7 +79,7 @@ export const MainHeader = () => {
     const newData = setDeepValue({
       intentAction: "*"
     }, rowKey, `new-${new Date().getTime()}`);
-    onAddRow(newData);
+    onAddRow(newData, undefined, true);
   };
 
   return (

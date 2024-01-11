@@ -133,7 +133,7 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos End */
 
   /** Callback Start */
-  const onAddRow = useCallback((data, rowIndex) => {
+  const onAddRow = useCallback((data, rowIndex, isNewAddedRow = false) => {
     try {
       const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
       const rowKeyValue = getDeepValue(parsedData, rowKey);
@@ -144,10 +144,9 @@ export const DataTable = (props: DataTableProps) => {
         const newRowKey = intentAction !== "*" ? `${rowKeyValue}_copy_${new Date().getTime()}` : rowKeyValue;
         const newData = {
           ...setDeepValue(parsedData, rowKey, newRowKey),
-          intentAction: "N",
+          intentAction: isNewAddedRow ? "*" : "N",
           ...arrayToEmptyObject(notEditableColumns) // not editable column will always be empty
         };
-        console.log(newData)
 
         if (fetchConfig) {
           const newFetchedData = [...(state.fetchedData.data || [])];
