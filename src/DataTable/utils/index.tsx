@@ -520,5 +520,15 @@ export const arrayToEmptyObject = (keys) => {
   return result;
 }
 
+export const getValue = (input) => {
+  if (typeof input === 'string') {
+    return input;
+  } else if (typeof input === 'object' && input !== null && 'value' in input) {
+    return input.value;
+  } else {
+    return null; // or handle the case when the input doesn't match the expected format
+  }
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
