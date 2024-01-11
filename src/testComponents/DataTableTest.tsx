@@ -160,7 +160,7 @@ const FORM_MENU_FIELD_SETTINGS = {
 
 const columnSettings = [
   {
-    column: 'acknowledgementNumber.value',
+    column: 'acknowledgementNumber',
     title: 'Acknowledgement Number',
     align: 'center',
     pinned: true,

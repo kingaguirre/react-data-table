@@ -522,12 +522,18 @@ export const arrayToEmptyObject = (keys) => {
 
 export const getValue = (input) => {
   if (typeof input === 'string') {
-    return input;
-  } else if (typeof input === 'object' && input !== null && 'value' in input) {
-    return input.value;
-  } else {
-    return null; // or handle the case when the input doesn't match the expected format
+    try {
+      const parsedObject = JSON.parse(input);
+      if (typeof parsedObject === 'object' && parsedObject !== null && 'value' in parsedObject) {
+        return parsedObject.value;
+      }
+    } catch (error) {
+      // Parsing failed, return the original string
+      return input;
+    }
   }
+
+  return null; // or handle the case when the input doesn't match the expected format
 };
 
 export * from "./useDragDropManager";

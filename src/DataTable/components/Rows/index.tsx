@@ -1,5 +1,16 @@
 import React, { useEffect, useContext, useState, useCallback, Fragment, useRef } from "react";
-import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue, isStringExist, areArraysOfObjectsEqual, findUpdatedIndex } from "../../utils"
+import {
+  useDoubleClick,
+  getDeepValue,
+  highlightText,
+  getPinnedDetails,
+  mergeCustomStylesForRow,
+  setDeepValue,
+  isStringExist,
+  areArraysOfObjectsEqual,
+  findUpdatedIndex,
+  getValue
+} from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
@@ -465,7 +476,7 @@ export const Rows = () => {
                       isCustomColumn={!!col.columnCustomRenderer}
                       style={{ maxWidth: col.width }}
                     >
-                      {cellContent}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
+                      {getValue(cellContent)}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
                     </SC.CellContent>
                     <ColumnDragHighlighter index={colIndex} />
                     <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
