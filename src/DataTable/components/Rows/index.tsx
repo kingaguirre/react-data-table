@@ -163,6 +163,15 @@ export const Rows = () => {
 
     setAddedRow(findUpdatedIndex(savedDataSourceRef.current, dataSource));
     savedDataSourceRef.current = dataSource;
+
+    // Use setTimeout to reset addedRow after 2 seconds
+    const timeoutId = setTimeout(() => {
+      setAddedRow(-1);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timeoutId); // Cleanup the timeout to avoid memory leaks
+    };
   }, [dataSource, columns]);
 
   useEffect(() => {
@@ -441,6 +450,7 @@ export const Rows = () => {
                     } else {
                       cellContent = cellValue !== "null" ? cellValue : "";
                     }
+                    cellContent = getValue(cellContent);
                     _isColumnValid = !isColumnValid(columns, colIndex, cellContent);
                     _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
                   }
@@ -476,7 +486,7 @@ export const Rows = () => {
                       isCustomColumn={!!col.columnCustomRenderer}
                       style={{ maxWidth: col.width }}
                     >
-                      {getValue(cellContent)}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
+                      {cellContent}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
                     </SC.CellContent>
                     <ColumnDragHighlighter index={colIndex} />
                     <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
