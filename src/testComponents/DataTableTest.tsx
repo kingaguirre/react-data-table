@@ -39,11 +39,22 @@ const selectRandomString = (stringsArray) => {
 }
 
 const dataSource = Array(100).fill("").map((_, i) => ({
+  intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "U",
+  ...((i === 0 || i === 1) ? {
+    acknowledgementNumber: {
+      value: i === 0 ? '231' : '23123',
+      ...(i === 0 ? {
+        isChanged: true,
+        previous: { value: '2222' }
+      } : {}),
+    },
+  } : {
+    acknowledgementNumber: null
+  }),
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
   username: `test-username${i}`,
   password: `test-password${i}`,
-  intentAction: i !== 0 ? selectRandomString(["O", "U", "R"]) : "",
   userDetails: {
     email: `test${i}@email.com`,
     isAdmin: (i % 2 === 0).toString(),
@@ -149,7 +160,7 @@ const FORM_MENU_FIELD_SETTINGS = {
 
 const columnSettings = [
   {
-    column: 'acknowledgementNumber',
+    column: 'acknowledgementNumber.value',
     title: 'Acknowledgement Number',
     align: 'center',
     pinned: true,

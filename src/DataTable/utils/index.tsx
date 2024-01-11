@@ -36,13 +36,13 @@ export const useDoubleClick = (onClick, onDoubleClick, delay = 150) => {
   return handleClick;
 };
 
-export const getDeepValue = (obj: any, path: string) => {
+export const getDeepValue = (obj: any, path: string, returnObj = false) => {
   const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
 
   if (value instanceof Date) {
     return value; /** Return date objects as they are */
   } else if (typeof value === 'boolean' || typeof value === 'object') {
-    return JSON.stringify(value);
+    return returnObj ? value : JSON.stringify(value);
   }
 
   return value;
@@ -247,6 +247,8 @@ export const setColumnSettings = (
       width: i.width || "40px",
       draggable: false,
       actionConfig: false,
+      selectable: false,
+      class: 'custom-action-column',
     })) : [];
 
   /** Create a Set to keep track of unique columns */
@@ -271,7 +273,9 @@ export const setColumnSettings = (
     width: "60px",
     draggable: false,
     actionConfig: false,
-    columnCustomRenderer: (data) => <ActionsColumn data={data}/>
+    selectable: false,
+    class: 'custom-action-column',
+    columnCustomRenderer: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex}/>
   }] : [];
 
   const localStorageColumnSettings = getLocalStorageColumnSettings(columnSettings);
@@ -447,6 +451,74 @@ export const hasDomain = (url) => {
   );
   return !!pattern.test(url);
 };
+
+// Utility function to compare objects
+export const areObjectsEqual = (obj1, obj2) => {
+  if (obj1 === null || obj2 === null || typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+    return obj1 === obj2;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    const val1 = obj1[key];
+    const val2 = obj2[key];
+
+    if (typeof val1 === 'object' && typeof val2 === 'object') {
+      if (!areObjectsEqual(val1, val2)) {
+        return false;
+      }
+    } else if (val1 !== val2) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+// Utility function to compare arrays of objects
+export const areArraysOfObjectsEqual = (arr1, arr2) => {
+  if (arr1?.length !== arr2?.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (!areObjectsEqual(arr1[i], arr2[i])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+export const findUpdatedIndex = (data1, data2) => {
+  const maxLength = Math.max(data1.length, data2.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const object1 = data1[i];
+    const object2 = data2[i];
+
+    // Check if the objects are different
+    if (!areObjectsEqual(object1, object2)) {
+      return i; // Return the index of the updated object
+    }
+  }
+
+  return -1; // Return -1 if no differences are found
+};
+
+export const arrayToEmptyObject = (keys) => {
+  const result = {};
+  keys.forEach(key => {
+    result[key] = '';
+  });
+  return result;
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

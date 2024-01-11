@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useCallback, Fragment, useRef } from "react";
-import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue, isStringExist } from "../../utils"
+import { useDoubleClick, getDeepValue, highlightText, getPinnedDetails, mergeCustomStylesForRow, setDeepValue, isStringExist, areArraysOfObjectsEqual, findUpdatedIndex } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
 import { SelectCheckboxColumn } from "../SelectCheckboxColumn";
@@ -32,12 +32,17 @@ export const Rows = () => {
 
   const cellRefs = useRef({});
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
+  const [addedRow, setAddedRow] = useState<number>(-1);
+  // At the beginning of your functional component
+  const [selectedColumn, setSelectedColumn] = useState<any>(null);
+
   const isEditable = isStringExist(actions, Actions.EDIT);
   const ajv = new Ajv();
   /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
   const isFetching = fetchConfig && fetchedData.fetching;
   const rows = fetchConfig ? fetchedData.data : visibleRows;
   const dataSource = fetchConfig ? fetchedData.data : localData;
+  const savedDataSourceRef = useRef(dataSource);
 
   const checkIsNewRow = (row) => row?.intentAction === "*";
   const checkIsNewAddedRow = (row) => row?.intentAction === "N";
@@ -143,6 +148,10 @@ export const Rows = () => {
         setEditingCells(prev => prev.filter(i => !(i.rowIndex === rowIndex && i.isNew === true)));
       }
     });
+
+
+    setAddedRow(findUpdatedIndex(savedDataSourceRef.current, dataSource));
+    savedDataSourceRef.current = dataSource;
   }, [dataSource, columns]);
 
   useEffect(() => {
@@ -166,6 +175,22 @@ export const Rows = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [editingCells, handleDoEdit]);
+
+  useEffect(() => {
+    const handleCopyToClipboard = (e) => {
+      if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedColumn !== null) {
+        const rowData = rows?.[selectedColumn.rowIndex];
+        const columnText = getDeepValue(rowData, selectedColumn.column);
+        navigator.clipboard.writeText(columnText);
+      }
+    };
+  
+    document.addEventListener('keydown', handleCopyToClipboard);
+  
+    return () => {
+      document.removeEventListener('keydown', handleCopyToClipboard);
+    };
+  }, [selectedColumn, rows]);
 
   const checkEditability = (columnEditable, isEditable, isColumnNew) => {
     if ((isColumnNew === true && columnEditable !== false) ||
@@ -271,6 +296,15 @@ export const Rows = () => {
     setState({ type: SET_SELECTED_ROWS, payload });
   }, [selectedRows, rowKey, onSelectedRowsChange, setState]);
 
+  const isColumnValid = (columns, colIndex, value) => {
+    const columnSchema = columns[colIndex]?.actionConfig?.schema;
+    if (!!columnSchema) {
+      return ajv.validate(columnSchema, value);
+    }
+
+    return true;
+  };
+
   /** Placeholder for loading */
   if (isFetching && rows === undefined) {
     return <SC.LoadingPanel>Loading the data...</SC.LoadingPanel>;
@@ -303,7 +337,7 @@ export const Rows = () => {
               {...(!!clickableRow ? {
                 onClick: () => handleRowClick(row)
               } : {})}
-              className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''}`}
+              className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${addedRow === rowIndex ? 'highlighted' : ''}`}
             >
               <CollapsibleRowColumn
                 onClick={() => toggleRowCollapse(rowKeyValue)}
@@ -316,6 +350,7 @@ export const Rows = () => {
               {columns.map((col, colIndex) => {
                 if (col.hidden) return null;
 
+                const isSelectedColumn = selectedColumn?.rowIndex === rowIndex && selectedColumn?.column === col.column;
                 const ref = cellRefs.current[`${rowIndex}-${colIndex}`];
                 const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
 
@@ -324,6 +359,8 @@ export const Rows = () => {
                 }
 
                 let cellContent;
+                let _isColumnValid = true;
+                let _hasOldValue = "";
 
                 if (search) {
                   cellContent = highlightText(cellContent, search);
@@ -333,8 +370,10 @@ export const Rows = () => {
                   cell.rowIndex === rowIndex && cell.columnIndex === colIndex
                 );
 
+                const isNotEditable = col?.actionConfig === false;
                 const cellValue = getDeepValue(row, col.column);
                 const isDeletedRow = getDeepValue(row, "intentAction") === "R";
+                const isUpdatedRow = getDeepValue(row, "intentAction") === "U"
 
                 // Render the cell based on whether it's being edited or not
                 if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow) {
@@ -382,9 +421,18 @@ export const Rows = () => {
                   }
                 } else {
                   // Render normal cell content
-                  cellContent = col.columnCustomRenderer
-                    ? col.columnCustomRenderer(cellValue, row)
-                    : typeof cellValue === "object" ? JSON.stringify(cellValue) : cellValue;
+                  if (col.columnCustomRenderer) {
+                    cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
+                    _isColumnValid = false;
+                  } else {
+                    if (typeof cellValue === "object" && cellValue !== null) {
+                      cellContent = JSON.stringify(cellValue)
+                    } else {
+                      cellContent = cellValue !== "null" ? cellValue : "";
+                    }
+                    _isColumnValid = !isColumnValid(columns, colIndex, cellContent);
+                    _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
+                  }
                 }
 
                 return (
@@ -395,11 +443,20 @@ export const Rows = () => {
                     minWidth={col.minWidth}
                     align={col.align}
                     isPinned={isPinned}
-                    style={{ ...customRowStyle, ...pinnedStyle }}
+                    style={{
+                      ...pinnedStyle,
+                      ...(isUpdatedRow ? {
+                        backgroundColor: _hasOldValue ? "yellow" : "white"
+                      } : customRowStyle)
+                    }}
                     onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex, cellValue)}
+                    className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : ''} ${col?.class}`}
                     onClick={(e) => {
                       if (editingCell) {
                         e.stopPropagation();
+                      }
+                      if (col.selectable !== false && !isNotEditable) {
+                        setSelectedColumn({rowIndex, column: col.column})
                       }
                     }}
                   >
@@ -408,10 +465,11 @@ export const Rows = () => {
                       isCustomColumn={!!col.columnCustomRenderer}
                       style={{ maxWidth: col.width }}
                     >
-                      {cellContent}
+                      {cellContent}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
                     </SC.CellContent>
                     <ColumnDragHighlighter index={colIndex} />
                     <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
+                    {_isColumnValid && <SC.InvalidBorder/>}
                   </SC.TableCell>
                 );
               })}

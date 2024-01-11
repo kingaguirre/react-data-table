@@ -14,7 +14,8 @@ import {
   getAdvanceFilterSettingsObj,
   serialize,
   updateDataByRowKey,
-  hasDomain
+  hasDomain,
+  arrayToEmptyObject
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
@@ -46,7 +47,7 @@ export const DataTable = (props: DataTableProps) => {
     downloadCSV = false,
     activeRow = null,
     selectedRows = [],
-    clickableRow = true,
+    clickableRow = false,
     customRowSettings,
     actions,
     onChange,
@@ -132,24 +133,32 @@ export const DataTable = (props: DataTableProps) => {
   /** Memos End */
 
   /** Callback Start */
-  const onAddRow = useCallback((data) => {
+  const onAddRow = useCallback((data, rowIndex) => {
     try {
       const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
       const rowKeyValue = getDeepValue(parsedData, rowKey);
       const intentAction = getDeepValue(parsedData, 'intentAction');
 
       if (!!rowKeyValue) {
+        const notEditableColumns = columnSettings.filter(i => i?.actionConfig === false).map(i => i?.column);
         const newRowKey = intentAction !== "*" ? `${rowKeyValue}_copy_${new Date().getTime()}` : rowKeyValue;
-        const newData = setDeepValue(parsedData, rowKey, newRowKey);
+        const newData = {
+          ...setDeepValue(parsedData, rowKey, newRowKey),
+          intentAction: "N",
+          ...arrayToEmptyObject(notEditableColumns) // not editable column will always be empty
+        };
+        console.log(newData)
 
         if (fetchConfig) {
-          const newFetchedData = [newData, ...(state.fetchedData.data || [])];
+          const newFetchedData = [...(state.fetchedData.data || [])];
+          newFetchedData.splice(rowIndex + 1, 0, newData);
           setState({
             type: SET_FETCHED_DATA,
             payload: { ...state.fetchedData, data: newFetchedData }
           });
         } else {
-          const newLocalData = [newData, ...(state.localData || [])];
+          const newLocalData = [...(state.localData || [])];
+          newLocalData.splice(rowIndex + 1, 0, newData);
           setState({ type: SET_LOCAL_DATA, payload: newLocalData });
         }
       } else {
@@ -158,7 +167,7 @@ export const DataTable = (props: DataTableProps) => {
     } catch (error) {
       console.error("Invalid data.");
     }
-  }, [state.localData, state.fetchedData.data]);
+  }, [state.localData, state.fetchedData.data, columnSettings]);
 
   const onCancel = useCallback((data) => {
     try {

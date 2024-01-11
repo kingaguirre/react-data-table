@@ -6,6 +6,25 @@ export const TableRowsContainer = styled.div<{ isFetching?: boolean }>`
     pointer-events: none;
     opacity: 0.6;
   ` : ''}
+
+  /* Define a class that adds the highlight effect */
+  .highlighted {
+    > div {
+      animation: fadeOut 2s ease-in-out;
+    }
+  }
+
+  /* Define a keyframe animation for fading out */
+  @keyframes fadeOut {
+    0% {
+      background-color: blue;
+      colore: white;
+    }
+    100% {
+      background-color: transparent;
+      colore: inherit;
+    }
+  }
 `;
 
 export const TableRow = styled.div`
@@ -17,6 +36,7 @@ export const TableRow = styled.div`
       background-color: #eaeaea;
     }
   }
+  &:hover,
   &.is-active {
     > * {
       background-color: #cbddf6!important;
@@ -33,12 +53,27 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   width: ${({ width }) => width || 'auto'};
   min-width: ${({ width }) => width || 'auto'};
   position: relative;
-  background-color: white;
+  background-color: white;se
   display: flex;
   align-items: center;
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
+  &.is-not-editable:not(.custom-action-column) {
+    background-color: grey!important;
+  }
+  &.selected {
+    &:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 1px;
+      border: 1px solid blue;
+      content: "";
+      z-index: 1;
+    }
+  }
   ${({ isPinned }) => !!isPinned ? `
     position: sticky;
     z-index: 10;
@@ -129,4 +164,14 @@ export const CollapsibleRowRenderContainer = styled.div`
   border: 1px solid #ddd;
   border-top: none;
   overflow: auto;
+`;
+
+export const InvalidBorder = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid red;
+  z-index: 0;
 `;

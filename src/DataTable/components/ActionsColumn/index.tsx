@@ -7,11 +7,11 @@ import { isStringExist } from "../../utils/index";
 
 interface IProps {
   data?: any;
-  actions?: Actions | Actions[];
+  rowIndex?: number;
 }
 
 export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
-  const { data } = props;
+  const { data, rowIndex } = props;
   const { actions, onAddRow, onDeleteRow, onSave, onCancel, onUndo } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -49,12 +49,12 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
 
   const handlePaste = async () => {
     const clipboardText = await navigator.clipboard.readText();
-    onAddRow(clipboardText);
+    onAddRow?.(clipboardText, rowIndex);
     setShowDropdown(false);
   };
 
   const handleDuplicate = (data) => {
-    onAddRow(data);
+    onAddRow?.(data, rowIndex);
     setShowDropdown(false);
   };
 

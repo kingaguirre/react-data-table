@@ -78,6 +78,8 @@ export interface ColumnSettings {
   sorted?: 'asc' | 'desc' | string;
   draggable?: boolean;
   actionConfig?: any;
-  columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
+  class?: string;
+  selectable?: boolean; // disable selecting of column
+  columnCustomRenderer?: (value: any, rowData: any, index?: number) => React.ReactNode;
 }
 
