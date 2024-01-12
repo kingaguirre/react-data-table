@@ -335,6 +335,34 @@ export const Rows = () => {
     return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
   }
 
+  const OverflowCheck = ({ text }) => {
+    const elementRef: any = useRef(null);
+    const [isOverflowing, setIsOverflowing] = useState(false);
+
+    useEffect(() => {
+      const element = elementRef.current;
+
+      if (element) {
+        setIsOverflowing(element.scrollWidth > element.clientWidth);
+      }
+    }, [text]);
+
+    return (
+      <div
+        ref={elementRef}
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: '100%', // Adjust as needed
+        }}
+        title={isOverflowing ? text : undefined}
+      >
+        {text}
+      </div>
+    );
+  }
+
   return (
     <SC.TableRowsContainer isFetching={isFetching}>
       {rows?.map((row, rowIndex) => {
@@ -486,6 +514,7 @@ export const Rows = () => {
                       isCustomColumn={!!col.columnCustomRenderer}
                       style={{ maxWidth: col.width }}
                     >
+                      <OverflowCheck text={cellContent}/>
                       {cellContent}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
                     </SC.CellContent>
                     <ColumnDragHighlighter index={colIndex} />

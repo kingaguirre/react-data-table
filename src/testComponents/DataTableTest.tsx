@@ -40,9 +40,9 @@ const selectRandomString = (stringsArray) => {
 
 const dataSource = Array(100).fill("").map((_, i) => ({
   intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "U",
-  ...((i === 0 || i === 1) ? {
+  ...((i === 0 || i === 1 || i === 2) ? {
     acknowledgementNumber: {
-      value: i === 0 ? '231' : '23123',
+      value: i === 0 ? '231' : i === 2 ? '123123123123123112313131231231312' : '23123',
       ...(i === 0 ? {
         isChanged: true,
         previous: { value: '2222' }
