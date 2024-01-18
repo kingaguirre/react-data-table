@@ -14,7 +14,8 @@
   "dependencies": {
     "@tippyjs/react": "^4.2.6",
     "ajv": "^8.12.0",
-    "font-awesome": "^4.7.0"
+    "font-awesome": "^4.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.22.10",

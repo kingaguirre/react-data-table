@@ -18,6 +18,8 @@ import { CollapsibleRowColumn } from "../CollapsibleRowColumn";
 import * as SC from "./styled";
 import { Actions } from "../../interfaces";
 import Ajv from "ajv";
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css'; // optional
 
 export const Rows = () => {
   const {
@@ -64,6 +66,7 @@ export const Rows = () => {
     if (cell) {
       const { value } = cell;
       const currentRow = dataSource[rowIndex];
+      const saveDataSourceCurrentRow = savedDataSourceRef?.current?.find(i => getDeepValue(i, rowKey) === getDeepValue(currentRow, rowKey));
       const columnKey = columns[columnIndex].column;
       const columnSchema = columns[columnIndex]?.actionConfig?.schema;
       let isValid = true;
@@ -75,12 +78,19 @@ export const Rows = () => {
         }
 
         if (isValid) {
-          let newData = setDeepValue(currentRow, columnKey, value);
-          if (!checkIsNewRow(currentRow)) {
-            newData = setDeepValue(setDeepValue(currentRow, columnKey, value), "intentAction", "U");
-          }
+          let newData = {
+            ...saveDataSourceCurrentRow,
+            ...(!checkIsNewRow(saveDataSourceCurrentRow) ? {intentAction: "U"} : {}),
+            [columnKey]: {
+              previous: {
+                value: getValue(saveDataSourceCurrentRow?.[columnKey])
+              },
+              isChanged: true,
+              value
+            }
+          };
+
           // Update the data for the current cell
-          // const newData = setDeepValue(setDeepValue(currentRow, columnKey, value), "intentAction", "U");
           const updatedRows = dataSource.map((item, i) => rowIndex === i ? newData : item);
 
           // Update logic based on whether it's local data or fetched data
@@ -121,7 +131,7 @@ export const Rows = () => {
         ));
       }
     }
-  }, [editingCells, dataSource, columns, onChange, fetchConfig, setState, fetchedData, ajv]);
+  }, [editingCells, dataSource, columns, onChange, fetchConfig, setState, fetchedData, ajv, savedDataSourceRef]);
 
   useEffect(() => {
     // Reset refs whenever rows or columns change
@@ -160,9 +170,7 @@ export const Rows = () => {
       }
     });
 
-
     setAddedRow(findUpdatedIndex(savedDataSourceRef.current, dataSource));
-    savedDataSourceRef.current = dataSource;
 
     // Use setTimeout to reset addedRow after 2 seconds
     const timeoutId = setTimeout(() => {
@@ -222,9 +230,12 @@ export const Rows = () => {
     return false;
   };
 
-  const handleCellDoubleClick = useCallback((rowIndex, columnIndex, value) => {
+  const handleCellDoubleClick = useCallback((rowIndex, columnIndex, val) => {
     const columnEditable = columns[columnIndex].actionConfig;
     const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === columnIndex)?.isNew;
+    const _val = getValue(val);
+    const value = _val !== "null" ? _val : "";
+
     if (checkEditability(columnEditable, isEditable, isColumnNew)) {
       setEditingCells(prev => {
         const isExist = prev?.find(i => rowIndex === i.rowIndex && columnIndex === i.columnIndex);
@@ -292,6 +303,27 @@ export const Rows = () => {
     (row) => handleRowDoubleClick(row),
   );
 
+  const handleColumnSingleClick = useCallback((props: any) => {
+    const { event, col, rowIndex, editingCell, isNotEditable } = props;
+    if (editingCell) {
+      event.stopPropagation();
+    }
+    if (col.selectable !== false && !isNotEditable) {
+      setSelectedColumn({rowIndex, column: col.column})
+    }
+  }, []);
+
+  const handleColumnDoubleClick = useCallback((props: any) => {
+    const { rowIndex, colIndex, cellValue } = props;
+    
+    handleCellDoubleClick(rowIndex, colIndex, cellValue)
+  }, []);
+
+  const handleColumnClick = useDoubleClick(
+    (props) => handleColumnSingleClick(props),
+    (props) => handleColumnDoubleClick(props),
+  );
+
   const toggleRowCollapse = useCallback((id: string) => {
     setCollapsedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]);
   }, [collapsibleRowHeight]);
@@ -335,32 +367,41 @@ export const Rows = () => {
     return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
   }
 
-  const OverflowCheck = ({ text }) => {
+  const CellContent = ({ children, col }) => {
     const elementRef: any = useRef(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
 
-    useEffect(() => {
+    const checkOverflow = () => {
       const element = elementRef.current;
-
       if (element) {
         setIsOverflowing(element.scrollWidth > element.clientWidth);
       }
-    }, [text]);
+    };
 
-    return (
-      <div
+    useEffect(() => {
+      checkOverflow();
+      window.addEventListener('resize', checkOverflow);
+      return () => {
+        window.removeEventListener('resize', checkOverflow);
+      };
+    }, [children]);
+
+    const content = (
+    // return (
+      <SC.CellContent
         ref={elementRef}
-        style={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          maxWidth: '100%', // Adjust as needed
-        }}
-        title={isOverflowing ? text : undefined}
+        className="cell-content"
+        isCustomColumn={!!col.columnCustomRenderer}
+        style={{ maxWidth: col.width }}
       >
-        {text}
-      </div>
-    );
+        {children}
+      </SC.CellContent>
+    )
+    return isOverflowing ? (
+      <Tippy content={children} placement="bottom">
+        {content}
+      </Tippy>
+    ) : content
   }
 
   return (
@@ -410,10 +451,6 @@ export const Rows = () => {
                 let _isColumnValid = true;
                 let _hasOldValue = "";
 
-                if (search) {
-                  cellContent = highlightText(cellContent, search);
-                }
-
                 const editingCell = editingCells.find(cell => 
                   cell.rowIndex === rowIndex && cell.columnIndex === colIndex
                 );
@@ -460,7 +497,7 @@ export const Rows = () => {
                           onChange={handleCellChange(rowIndex, colIndex)}
                           onBlur={() => handleDoEdit(rowIndex, colIndex)}
                           onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                          // autoFocus
+                          autoFocus
                           className={isInvalid ? "invalid" : ""}
                         />
                         {isInvalid && <span>{error}</span>}
@@ -473,7 +510,7 @@ export const Rows = () => {
                     cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
                     _isColumnValid = false;
                   } else {
-                    if (typeof cellValue === "object" && cellValue !== null) {
+                    if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
                       cellContent = JSON.stringify(cellValue)
                     } else {
                       cellContent = cellValue !== "null" ? cellValue : "";
@@ -481,10 +518,14 @@ export const Rows = () => {
                     cellContent = getValue(cellContent);
                     _isColumnValid = !isColumnValid(columns, colIndex, cellContent);
                     _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
+                    
+                    if (search) {
+                      cellContent = highlightText(cellContent, search);
+                    }
                   }
                 }
 
-                return (
+                const TableCell = (
                   <SC.TableCell
                     key={colIndex}
                     ref={ref}
@@ -498,30 +539,22 @@ export const Rows = () => {
                         backgroundColor: _hasOldValue ? "yellow" : "white"
                       } : customRowStyle)
                     }}
-                    onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex, cellValue)}
+                    {...(!isNotEditable ?  {
+                      onClick: (event) => handleColumnClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
+                    } : {})}
                     className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : ''} ${col?.class}`}
-                    onClick={(e) => {
-                      if (editingCell) {
-                        e.stopPropagation();
-                      }
-                      if (col.selectable !== false && !isNotEditable) {
-                        setSelectedColumn({rowIndex, column: col.column})
-                      }
-                    }}
                   >
-                    <SC.CellContent
-                      className="cell-content"
-                      isCustomColumn={!!col.columnCustomRenderer}
-                      style={{ maxWidth: col.width }}
-                    >
-                      <OverflowCheck text={cellContent}/>
-                      {cellContent}{_hasOldValue && <i title={_hasOldValue} className="fa fa-info-circle"/>}
-                    </SC.CellContent>
+                    <CellContent col={col}>{cellContent}</CellContent>
                     <ColumnDragHighlighter index={colIndex} />
                     <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
                     {_isColumnValid && <SC.InvalidBorder/>}
                   </SC.TableCell>
                 );
+
+                return _hasOldValue ? (
+                  <Tippy content={_hasOldValue}>
+                    {TableCell}
+                  </Tippy>) : TableCell;
               })}
             </SC.TableRow>
             {isRowCollapsed && collapsibleRowRender && (

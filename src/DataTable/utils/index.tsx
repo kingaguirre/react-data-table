@@ -1,4 +1,5 @@
 import React from 'react';
+import * as XLSX from 'xlsx';
 import { Actions } from "../interfaces";
 import { ActionsColumn } from "../components/ActionsColumn";
 
@@ -134,47 +135,6 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
       document.body.removeChild(link);
     }
   }
-};
-
-export const exportToExcel = (filename: string, rows: any[], columns: any) => {
-  const xmlHeader = '<?xml version="1.0"?>';
-  const workbookHeader = '<workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet">';
-  const workbookFooter = '</workbook>';
-  const worksheetHeader = '<worksheet><table>';
-  const worksheetFooter = '</table></worksheet>';
-
-  const createRow = (cells: string[]) => {
-    return `<row>${cells.map(cell => `<cell><data ss:Type="String">${cell}</data></cell>`).join('')}</row>`;
-  };
-
-  const headerRow = createRow(columns.filter(col => !col.hidden).map(col => col.title));
-
-  const dataRows = rows.map(row => {
-    return createRow(columns.filter(col => !col.hidden).map(col => {
-      const cellValue = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
-      return cellValue === null || cellValue === undefined ? '' : cellValue.toString();
-    }));
-  });
-
-  const xml = [
-    xmlHeader,
-    workbookHeader,
-    worksheetHeader,
-    headerRow,
-    ...dataRows,
-    worksheetFooter,
-    workbookFooter
-  ].join('');
-
-  const blob = new Blob([xml], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${filename}.xls`; /** Excel 2003 format */
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 export const getPinnedDetails = (col: any, pinnedWidth: number) => {
@@ -520,20 +480,82 @@ export const arrayToEmptyObject = (keys) => {
   return result;
 }
 
+const extractValueFromObject = (obj) => {
+  if ('value' in obj) {
+    return obj.value;
+  }
+  return null; // or handle the case when the object doesn't have a 'value' property
+};
+
 export const getValue = (input) => {
+  // Check if input is a string and try to parse it as JSON
   if (typeof input === 'string') {
     try {
       const parsedObject = JSON.parse(input);
-      if (typeof parsedObject === 'object' && parsedObject !== null && 'value' in parsedObject) {
-        return parsedObject.value;
-      }
+      return extractValueFromObject(parsedObject);
     } catch (error) {
       // Parsing failed, return the original string
       return input;
     }
+  } else if (typeof input === 'object' && input !== null) {
+    if (input instanceof Date) {
+      return input;
+    } else {
+      // Handle case when input is already an object
+      return extractValueFromObject(input);
+    }
+  } else if (typeof input === "number") {
+    return input;
   }
 
   return null; // or handle the case when the input doesn't match the expected format
+};
+
+/**
+ * Function to safely get a nested value from an object.
+ * @param {Object} obj - The object to query.
+ * @param {Array} path - The path array to the property to get.
+ */
+const getNestedValue = (obj, path) => {
+  return path.reduce((acc, key) => {
+    return (acc && acc[key] !== undefined) ? acc[key] : null;
+  }, obj);
+};
+
+/**
+ * Function to download Excel file.
+ * @param {Array} headers - Array of headers for the Excel file.
+ * @param {Array} rows - Array of row data for the Excel file.
+ * @param {String} fileName - Name of the file to be downloaded.
+ */
+export const downloadExcel = (headers, rows, fileName = "data") => {
+  // Filter out headers that are hidden or have a custom renderer
+  const filteredHeaders = headers.filter(header => !header.hidden && !header.columnCustomRenderer);
+
+  // Process rows to extract deep values
+  const processedRows = rows.map(row => {
+    let newRow = {};
+    filteredHeaders.forEach(header => {
+      const keys = header.column.split('.');
+      const value = getValue(getNestedValue(row, keys));
+
+      newRow[header.title] = value;
+    });
+    return newRow;
+  });
+
+  // Create a new workbook and add a worksheet
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(processedRows, {
+    header: filteredHeaders.map(header => header.title),
+    skipHeader: false
+  });
+
+  // Append worksheet to workbook
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+  // Write workbook and download
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
 };
 
 export * from "./useDragDropManager";

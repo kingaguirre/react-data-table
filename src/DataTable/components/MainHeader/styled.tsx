@@ -36,6 +36,34 @@ export const SearchWrapper = styled.div`
   }
 `;
 
+
+export const DownloadWrapper = styled.div`
+  position: relative;
+`;
+
+export const DownloadDropdown = styled.div`
+  left: 0;
+  bottom: 0;
+  width: 135px!important;
+  transform: translateY(100%);
+  background-color: white!important;
+  position: absolute!important;
+  z-index: 120;
+  font-size: 12px;
+  padding: 0!important;
+  height: auto!important;
+  > span {
+    display: block;
+    cursor: pointer;
+    transition: all .3s ease;
+    color: #111;
+    padding: 5px 12px;
+    &:hover {
+      background-color: #e1e1e1;
+    }
+  }
+`;
+
 export const ControlsWrapper = styled.div`
   background-color: #e1e1e1;
   display: flex;
@@ -44,7 +72,9 @@ export const ControlsWrapper = styled.div`
   margin: -6px -16px -6px 0;
   height: 38px;
   align-items: stretch;
+  > ${DownloadWrapper} > *,
   > * {
+    height: 100%;
     background-color: #e1e1e1;
     padding: 0 16px;
     color: #222;
@@ -88,3 +118,4 @@ export const SettingsContainer = styled.div`
     }
   }
 `;
+

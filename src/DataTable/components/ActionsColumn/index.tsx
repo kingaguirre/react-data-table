@@ -31,6 +31,7 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   };
 
   const toggleDropdown = () => {
+    console.log(123)
     if (!showDropdown) {
       const position = updateDropdownPosition();
       setPosition(position);

@@ -45,6 +45,8 @@ export interface DataTableProps {
   selectable?: boolean;
   rowKey: string;
   tableHeight?: string;
+  tableMaxHeight?: string;
+  hideHeader?: boolean;
   collapsibleRowHeight?: string;
   fetchConfig?: FetchConfig;
   filterAll?: boolean;

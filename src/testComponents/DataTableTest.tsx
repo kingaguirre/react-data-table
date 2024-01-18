@@ -43,7 +43,7 @@ const dataSource = Array(100).fill("").map((_, i) => ({
   ...((i === 0 || i === 1 || i === 2) ? {
     acknowledgementNumber: {
       value: i === 0 ? '231' : i === 2 ? '123123123123123112313131231231312' : '23123',
-      ...(i === 0 ? {
+      ...((i === 0 || i === 2) ? {
         isChanged: true,
         previous: { value: '2222' }
       } : {}),
