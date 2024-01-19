@@ -24,6 +24,7 @@ export const MainHeader = () => {
     editingCells
   } = useContext(DataTableContext);
 
+  const downloadDropdownRef = useRef(null);
   const settingsContainerRef: any = useRef<any>(null);
   const toggleButtonRef: any = useRef<any>(null);
   const isAddEnabled = isStringExist(actions, Actions.ADD);
@@ -53,6 +54,32 @@ export const MainHeader = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        settingsContainerRef.current &&
+        !settingsContainerRef.current.contains(event.target) &&
+        toggleButtonRef.current &&
+        !toggleButtonRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+  
+      if (
+        downloadDropdownRef.current &&
+        !downloadDropdownRef.current.contains(event.target)
+      ) {
+        setShowDownload(false);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
   const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setState({ type: SET_SEARCH, payload: event.target.value });
   }, [search, setState]);
@@ -117,7 +144,7 @@ export const MainHeader = () => {
               <i className="fa fa-download"/>
             </button>
             {showDownload && (
-              <SC.DownloadDropdown>
+              <SC.DownloadDropdown ref={downloadDropdownRef}>
                 <span onClick={() => {
                   downloadExcel(columns, dataSource);
                 }}>Download All</span>

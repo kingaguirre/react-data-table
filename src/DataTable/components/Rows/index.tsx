@@ -9,7 +9,8 @@ import {
   isStringExist,
   areArraysOfObjectsEqual,
   findUpdatedIndex,
-  getValue
+  getValue,
+  useCheckOverflow
 } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -51,6 +52,8 @@ export const Rows = () => {
 
   const isEditable = isStringExist(actions, Actions.EDIT);
   const ajv = new Ajv();
+  const { addElement, ellipsisMap, refsMap } = useCheckOverflow();
+
   /** Use fetchedData.data when fetchConfig is defined, otherwise use visibleRows */
   const isFetching = fetchConfig && fetchedData.fetching;
   const rows = fetchConfig ? fetchedData.data : visibleRows;
@@ -367,43 +370,6 @@ export const Rows = () => {
     return <SC.LoadingPanel>No data available.</SC.LoadingPanel>;
   }
 
-  const CellContent = ({ children, col }) => {
-    const elementRef: any = useRef(null);
-    const [isOverflowing, setIsOverflowing] = useState(false);
-
-    const checkOverflow = () => {
-      const element = elementRef.current;
-      if (element) {
-        setIsOverflowing(element.scrollWidth > element.clientWidth);
-      }
-    };
-
-    useEffect(() => {
-      checkOverflow();
-      window.addEventListener('resize', checkOverflow);
-      return () => {
-        window.removeEventListener('resize', checkOverflow);
-      };
-    }, [children]);
-
-    const content = (
-    // return (
-      <SC.CellContent
-        ref={elementRef}
-        className="cell-content"
-        isCustomColumn={!!col.columnCustomRenderer}
-        style={{ maxWidth: col.width }}
-      >
-        {children}
-      </SC.CellContent>
-    )
-    return isOverflowing ? (
-      <Tippy content={children} placement="bottom">
-        {content}
-      </Tippy>
-    ) : content
-  }
-
   return (
     <SC.TableRowsContainer isFetching={isFetching}>
       {rows?.map((row, rowIndex) => {
@@ -497,7 +463,7 @@ export const Rows = () => {
                           onChange={handleCellChange(rowIndex, colIndex)}
                           onBlur={() => handleDoEdit(rowIndex, colIndex)}
                           onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                          autoFocus
+                          // autoFocus
                           className={isInvalid ? "invalid" : ""}
                         />
                         {isInvalid && <span>{error}</span>}
@@ -525,36 +491,47 @@ export const Rows = () => {
                   }
                 }
 
-                const TableCell = (
-                  <SC.TableCell
-                    key={colIndex}
-                    ref={ref}
-                    width={col.width}
-                    minWidth={col.minWidth}
-                    align={col.align}
-                    isPinned={isPinned}
-                    style={{
-                      ...pinnedStyle,
-                      ...(isUpdatedRow ? {
-                        backgroundColor: _hasOldValue ? "yellow" : "white"
-                      } : customRowStyle)
-                    }}
-                    {...(!isNotEditable ?  {
-                      onClick: (event) => handleColumnClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
-                    } : {})}
-                    className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : ''} ${col?.class}`}
-                  >
-                    <CellContent col={col}>{cellContent}</CellContent>
-                    <ColumnDragHighlighter index={colIndex} />
-                    <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
-                    {_isColumnValid && <SC.InvalidBorder/>}
-                  </SC.TableCell>
-                );
+                const cellKey = `row-${rowIndex}-col-${colIndex}`;
+                const hasEllipsis = ellipsisMap.get(cellKey);
+                // const columnRef = refsMap.current.get(cellKey); // way to get each column ref
 
-                return _hasOldValue ? (
-                  <Tippy content={_hasOldValue}>
-                    {TableCell}
-                  </Tippy>) : TableCell;
+                return (
+                  <>
+                    <SC.TableCell
+                      key={colIndex}
+                      ref={ref}
+                      width={col.width}
+                      minWidth={col.minWidth}
+                      align={col.align}
+                      isPinned={isPinned}
+                      style={{
+                        ...pinnedStyle,
+                        ...(isUpdatedRow ? {
+                          backgroundColor: _hasOldValue ? "yellow" : "white"
+                        } : customRowStyle)
+                      }}
+                      {...(!isNotEditable ?  {
+                        onClick: (event) => handleColumnClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
+                      } : {})}
+                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : ''} ${col?.class}`}
+                    >
+                      <SC.CellContent
+                        className="cell-content"
+                        isCustomColumn={!!col.columnCustomRenderer}
+                        style={{ maxWidth: col.width }}
+                        ref={node => addElement(node, cellKey)}
+                      >
+                        {cellContent}
+                      </SC.CellContent>
+                      
+                      <ColumnDragHighlighter index={colIndex} />
+                      <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
+                      {_isColumnValid && <SC.InvalidBorder/>}
+                    </SC.TableCell>
+                    {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
+                    {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
+                  </>
+                )
               })}
             </SC.TableRow>
             {isRowCollapsed && collapsibleRowRender && (
