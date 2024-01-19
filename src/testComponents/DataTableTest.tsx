@@ -394,11 +394,11 @@ export default () => {
         onRowClick={handleRowClick}
         onRowDoubleClick={handleRowDoubleClick}
         rowKey="userID.value"
-        activeRow="user-id2"
-        selectedRows={[{"userID": { "value": "user-id0" }}]}
+        // activeRow="user-id2"
+        // selectedRows={[{"userID": { "value": "user-id0" }}]}
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
-        selectable
+        // selectable
         downloadCSV
         onChange={v => console.log("New Value: ", v)}
         customRowSettings={[

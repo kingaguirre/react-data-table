@@ -36,7 +36,7 @@ export const TableRow = styled.div`
       background-color: #eaeaea;
     }
   }
-  &:hover,
+
   &.is-active {
     > * {
       background-color: #cbddf6!important;
@@ -61,6 +61,11 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   border-left: 1px solid #ddd;
   &.is-not-editable:not(.custom-action-column) {
     background-color: grey!important;
+  }
+  &.is-editable:not(.custom-action-column) {
+    &:hover {
+      background-color: #cbddf6!important;
+    }
   }
   &.selected {
     &:before {

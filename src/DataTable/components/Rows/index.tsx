@@ -224,6 +224,9 @@ export const Rows = () => {
   }, [selectedColumn, rows]);
 
   const checkEditability = (columnEditable, isEditable, isColumnNew) => {
+    if (columnEditable === undefined) {
+      return true;
+    }
     if ((isColumnNew === true && columnEditable !== false) ||
       (!isEditable && !!columnEditable || !!isEditable &&
       (!!columnEditable || columnEditable === undefined))) {
@@ -232,26 +235,6 @@ export const Rows = () => {
   
     return false;
   };
-
-  const handleCellDoubleClick = useCallback((rowIndex, columnIndex, val) => {
-    const columnEditable = columns[columnIndex].actionConfig;
-    const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === columnIndex)?.isNew;
-    const _val = getValue(val);
-    const value = _val !== "null" ? _val : "";
-
-    if (checkEditability(columnEditable, isEditable, isColumnNew)) {
-      setEditingCells(prev => {
-        const isExist = prev?.find(i => rowIndex === i.rowIndex && columnIndex === i.columnIndex);
-        return isExist ? prev?.map(i => {
-          return rowIndex === i.rowIndex && columnIndex === i.columnIndex ? {
-            ...i,
-            value,
-            editable: true
-          } : i
-        }) : [...prev, { rowIndex, columnIndex, value, editable: true }]
-      });
-    }
-  }, [isEditable, columns, editingCells]);
 
   const handleCellChange = (rowIndex, columnIndex) => (e) => {
     const newValue = e.target.value;
@@ -306,25 +289,41 @@ export const Rows = () => {
     (row) => handleRowDoubleClick(row),
   );
 
-  const handleColumnSingleClick = useCallback((props: any) => {
+  const handleCellSingleClick = useCallback((props: any) => {
     const { event, col, rowIndex, editingCell, isNotEditable } = props;
     if (editingCell) {
       event.stopPropagation();
     }
     if (col.selectable !== false && !isNotEditable) {
-      setSelectedColumn({rowIndex, column: col.column})
+      setSelectedColumn({rowIndex, column: col.column});
     }
   }, []);
 
-  const handleColumnDoubleClick = useCallback((props: any) => {
-    const { rowIndex, colIndex, cellValue } = props;
-    
-    handleCellDoubleClick(rowIndex, colIndex, cellValue)
-  }, []);
+  const handleCellDoubleClick = useCallback((props) => {
+    const { rowIndex, colIndex: columnIndex, cellValue } = props;
+    const columnEditable = columns[columnIndex].actionConfig;
+    const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === columnIndex)?.isNew;
+    const _val = getValue(cellValue);
+    const value = _val !== "null" ? _val : "";
 
-  const handleColumnClick = useDoubleClick(
-    (props) => handleColumnSingleClick(props),
-    (props) => handleColumnDoubleClick(props),
+    if (checkEditability(columnEditable, isEditable, isColumnNew)) {
+      setEditingCells(prev => {
+        const isExist = prev?.find(i => rowIndex === i.rowIndex && columnIndex === i.columnIndex);
+        return isExist ? prev?.map(i => {
+          return rowIndex === i.rowIndex && columnIndex === i.columnIndex ? {
+            ...i,
+            value,
+            editable: true
+          } : i
+        }) : [...prev, { rowIndex, columnIndex, value, editable: true }]
+      });
+      setSelectedColumn({rowIndex, column: columns[columnIndex]?.column})
+    }
+  }, [isEditable, columns, editingCells]);
+
+  const handleCellClick = useDoubleClick(
+    (props) => handleCellSingleClick(props),
+    (props) => handleCellDoubleClick(props),
   );
 
   const toggleRowCollapse = useCallback((id: string) => {
@@ -353,6 +352,7 @@ export const Rows = () => {
 
   const isColumnValid = (columns, colIndex, value) => {
     const columnSchema = columns[colIndex]?.actionConfig?.schema;
+
     if (!!columnSchema) {
       return ajv.validate(columnSchema, value);
     }
@@ -414,7 +414,7 @@ export const Rows = () => {
                 }
 
                 let cellContent;
-                let _isColumnValid = true;
+                let _isColumnInValid = false;
                 let _hasOldValue = "";
 
                 const editingCell = editingCells.find(cell => 
@@ -474,7 +474,7 @@ export const Rows = () => {
                   // Render normal cell content
                   if (col.columnCustomRenderer) {
                     cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
-                    _isColumnValid = false;
+                    _isColumnInValid = false;
                   } else {
                     if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
                       cellContent = JSON.stringify(cellValue)
@@ -482,7 +482,7 @@ export const Rows = () => {
                       cellContent = cellValue !== "null" ? cellValue : "";
                     }
                     cellContent = getValue(cellContent);
-                    _isColumnValid = !isColumnValid(columns, colIndex, cellContent);
+                    _isColumnInValid = !isColumnValid(columns, colIndex, cellContent);
                     _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
                     
                     if (search) {
@@ -511,9 +511,9 @@ export const Rows = () => {
                         } : customRowStyle)
                       }}
                       {...(!isNotEditable ?  {
-                        onClick: (event) => handleColumnClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
+                        onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
                       } : {})}
-                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : ''} ${col?.class}`}
+                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : 'is-editable'} ${col?.class}`}
                     >
                       <SC.CellContent
                         className="cell-content"
@@ -523,10 +523,9 @@ export const Rows = () => {
                       >
                         {cellContent}
                       </SC.CellContent>
-                      
                       <ColumnDragHighlighter index={colIndex} />
                       <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
-                      {_isColumnValid && <SC.InvalidBorder/>}
+                      {_isColumnInValid && <SC.InvalidBorder/>}
                     </SC.TableCell>
                     {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
                     {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
