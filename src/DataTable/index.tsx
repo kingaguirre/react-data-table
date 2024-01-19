@@ -60,6 +60,7 @@ export const DataTable = (props: DataTableProps) => {
     onSelectedRowsChange,
   } = props;
 
+  const [canPaste, setCanPaste] = useState(false);
   const [editingCells, setEditingCells] = useState<Array<{
     cancelledRowIndex
     columnIndex: number;
@@ -411,7 +412,9 @@ export const DataTable = (props: DataTableProps) => {
         onCancel,
         onUndo,
         editingCells,
-        setEditingCells
+        setEditingCells,
+        canPaste,
+        setCanPaste
       }}
     >
       <SC.TableWrapper>

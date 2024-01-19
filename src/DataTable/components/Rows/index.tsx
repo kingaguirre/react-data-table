@@ -496,9 +496,8 @@ export const Rows = () => {
                 // const columnRef = refsMap.current.get(cellKey); // way to get each column ref
 
                 return (
-                  <>
+                  <Fragment key={colIndex}>
                     <SC.TableCell
-                      key={colIndex}
                       ref={ref}
                       width={col.width}
                       minWidth={col.minWidth}
@@ -529,7 +528,7 @@ export const Rows = () => {
                     </SC.TableCell>
                     {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
                     {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
-                  </>
+                  </Fragment>
                 )
               })}
             </SC.TableRow>
