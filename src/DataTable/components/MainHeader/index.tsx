@@ -34,6 +34,15 @@ export const MainHeader = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  // Temporary state to hold column visibility changes
+  const [tempColumnVisibility, setTempColumnVisibility] = useState(
+    columns.reduce((acc, col) => {
+      if (col.class !== "custom-action-column") {
+        acc[col.column] = !col.hidden;
+      }
+      return acc;
+    }, {})
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,16 +93,6 @@ export const MainHeader = () => {
     setState({ type: SET_SEARCH, payload: event.target.value });
   }, [search, setState]);
 
-  const handleColumnVisibilityChange = useCallback((columnIndex: number) => {
-    const newColumns = [...columns];
-    newColumns[columnIndex].hidden = !newColumns[columnIndex].hidden;
-
-    setState({ type: SET_COLUMNS, payload: newColumns });
-    onColumnSettingsChange?.(newColumns);
-
-    localStorage.setItem('currentColumnSettings', JSON.stringify(newColumns));
-  }, [columns, onColumnSettingsChange, setState]);
-
   const handleResetClick = () => {
     localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
 
@@ -109,6 +108,43 @@ export const MainHeader = () => {
       intentAction: "*"
     }, rowKey, `new-${new Date().getTime()}`);
     onAddRow(newData, undefined, true);
+  };
+
+  const handleColumnVisibilityChange = useCallback((columnName) => {
+    setTempColumnVisibility(prevState => ({
+      ...prevState,
+      [columnName]: !prevState[columnName],
+    }));
+  }, [tempColumnVisibility]);
+
+  const applyColumnVisibilityChange = () => {
+    const newColumns = columns.map(col => ({
+      ...col,
+      hidden: col.column in tempColumnVisibility ? !tempColumnVisibility[col.column] : col.hidden,
+    }));
+
+    setState({ type: SET_COLUMNS, payload: newColumns });
+    onColumnSettingsChange?.(newColumns);
+    // localStorage.setItem('currentColumnSettings', JSON.stringify(newColumns));
+  };
+
+  const handleResetSettingsClick = () => {
+    const resetColumns = columns.map(col => ({ ...col, hidden: false }));
+    setState({ type: SET_COLUMNS, payload: resetColumns });
+    onResetClick?.(resetColumns);
+    localStorage.setItem('currentColumnSettings', JSON.stringify(resetColumns));
+
+    // Update tempColumnVisibility to reflect the reset
+    setTempColumnVisibility(resetColumns.reduce((acc, col) => {
+      acc[col.column] = !col.hidden;
+      return acc;
+    }, {}));
+  };
+
+  // Compare tempColumnVisibility with stored currentColumnSettings to determine button state
+  const isResetButtonDisabled = () => {
+    const currentSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
+    return currentSettings.every(col => tempColumnVisibility[col.column] === !col.hidden);
   };
 
   return (
@@ -163,16 +199,29 @@ export const MainHeader = () => {
         </button>
       </SC.ControlsWrapper>
       <SC.SettingsContainer ref={settingsContainerRef} className={`${isDropdownOpen ? 'is-visible' : ''}`}>
-        {columns.map((col, index) => (
+        <SC.SettingsHeader>Visible columns</SC.SettingsHeader>
+        {columns
+          .filter(col => col.class !== "custom-action-column")
+          .map((col, index) => (
           <label key={index}>
             <input
               type="checkbox"
-              checked={!col.hidden}
-              onChange={() => handleColumnVisibilityChange(index)}
+              checked={col.column in tempColumnVisibility ? tempColumnVisibility[col.column] : !col.hidden}
+              onChange={() => handleColumnVisibilityChange(col.column)}
             />
             <span>{col.title}</span>
           </label>
         ))}
+        <SC.SettingsFooter>
+          <button
+            onClick={handleResetSettingsClick}
+            disabled={isResetButtonDisabled()}
+          >Reset</button>
+          <div>
+            <button onClick={() => setDropdownOpen(false)}>Cancel</button>
+            <button onClick={applyColumnVisibilityChange}>Apply</button>
+          </div>
+        </SC.SettingsFooter>
       </SC.SettingsContainer>
     </SC.MainHeaderWrapper>
   )

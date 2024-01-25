@@ -45,6 +45,19 @@ export const TableRow = styled.div`
       display: none;
     }
   }
+  &.is-selected {
+    &:after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      content: "";
+      z-index: 1001;
+      border: 2px solid blue;
+      pointer-events: none;
+    }
+  }
 `;
 
 export const TableCell = styled.div<{ width?: string; minWidth?: string; align?: string, isPinned?: boolean }>`
