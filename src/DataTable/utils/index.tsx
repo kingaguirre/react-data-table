@@ -504,21 +504,36 @@ export const arrayToEmptyObject = (keys) => {
 
 const extractValueFromObject = (obj) => {
   if ('value' in obj) {
-    return obj.value;
+    if (Array.isArray(obj.value)) {
+      // Handle when 'value' is an array
+      return obj.value.join(', ');
+    } else if (typeof obj.value === 'string') {
+      // Handle when 'value' is a string
+      return obj.value;
+    }
   }
-  return null; // or handle the case when the object doesn't have a 'value' property
+  return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string
 };
 
 export const getValue = (input) => {
-  // Check if input is a string and try to parse it as JSON
+  // Check if input is a string
   if (typeof input === 'string') {
     try {
       const parsedObject = JSON.parse(input);
-      return extractValueFromObject(parsedObject);
+      if (Array.isArray(parsedObject)) {
+        // Handle case when input is a JSON string representing an array
+        return parsedObject.join(', ');
+      } else {
+        // Handle case when input is a JSON string representing an object
+        return extractValueFromObject(parsedObject);
+      }
     } catch (error) {
       // Parsing failed, return the original string
       return input;
     }
+  } else if (Array.isArray(input)) {
+    // Handle case when input is an array
+    return input.join(', ');
   } else if (typeof input === 'object' && input !== null) {
     if (input instanceof Date) {
       return input;
@@ -530,7 +545,7 @@ export const getValue = (input) => {
     return input;
   }
 
-  return null; // or handle the case when the input doesn't match the expected format
+  return null; // Handle the case when the input doesn't match the expected format
 };
 
 /**

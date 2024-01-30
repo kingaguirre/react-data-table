@@ -53,11 +53,13 @@ const dataSource = Array(100).fill("").map((_, i) => ({
   }),
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
-  username: `test-username${i}`,
+  username: i === 0 ? ['test1', 'test2', 'test3'] : `test-username${i}`,
   password: `test-password${i}`,
   userDetails: {
     email: `test${i}@email.com`,
-    isAdmin: (i % 2 === 0).toString(),
+    isAdmin: {
+      value: (i % 2 === 0).toString()
+    },
     other: `other value${i}`,
     birthDay: getRandomBirthdate().birthdate,
     firstName: `John${i}`,
