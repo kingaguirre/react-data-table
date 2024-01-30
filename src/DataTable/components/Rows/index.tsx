@@ -189,6 +189,10 @@ export const Rows = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (event.target.closest('.test-123') || event.target.closest('.test-1234')) {
+        // If clicked inside an element with the '.test-123' class, do nothing
+        return;
+      }
       if (editingCells.length > 0) {
         editingCells.forEach(cell => {
           // Check if the click was outside and the cell is editable
@@ -534,6 +538,8 @@ export const Rows = () => {
           </Fragment>
         )
       })}
+      {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
+      <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
     </SC.TableRowsContainer>
   )
 }
