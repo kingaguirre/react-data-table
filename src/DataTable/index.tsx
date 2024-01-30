@@ -1,5 +1,5 @@
 import React, { createContext, useRef, useReducer, useMemo, useCallback, useEffect, useState } from "react";
-import { DataTableProps, ColumnSettings } from "./interfaces";
+import { DataTableProps, ColumnSettings, Actions } from "./interfaces";
 import {
   getDeepValue,
   setDeepValue,
@@ -319,6 +319,8 @@ export const DataTable = (props: DataTableProps) => {
       }
     }
   }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+
+  const hasAction = (action: Actions) => Array.isArray(actions) ? actions.includes(action) : actions === action;
   /** Callback End */
 
   /** Custom Functions Start */
@@ -414,7 +416,8 @@ export const DataTable = (props: DataTableProps) => {
         editingCells,
         setEditingCells,
         canPaste,
-        setCanPaste
+        setCanPaste,
+        hasAction
       }}
     >
       <SC.TableWrapper>

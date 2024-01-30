@@ -49,8 +49,30 @@ export const getDeepValue = (obj: any, path: string, returnObj = false) => {
   return value;
 };
 
+const deepClone = (obj) => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (obj instanceof Array) {
+    return obj.reduce((arr, item, i) => {
+      arr[i] = deepClone(item);
+      return arr;
+    }, []);
+  }
+
+  if (obj instanceof Object) {
+    return Object.keys(obj).reduce((newObj, key) => {
+      newObj[key] = deepClone(obj[key]);
+      return newObj;
+    }, {});
+  }
+
+  return obj;
+};
+
 export const setDeepValue = (obj, path, value) => {
-  const newObj = { ...obj };
+  const newObj = deepClone(obj);
   const keys = path.match(/[^.[\]]+/g) || [];
 
   keys.reduce((acc, key, index) => {

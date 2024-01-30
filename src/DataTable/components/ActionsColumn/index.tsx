@@ -12,13 +12,12 @@ interface IProps {
 
 export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   const { data, rowIndex } = props;
-  const { actions, onAddRow, onDeleteRow, onSave, onCancel, onUndo, canPaste, setCanPaste } = useContext(DataTableContext);
+  const { actions, onAddRow, onDeleteRow, onSave, onCancel, onUndo, canPaste, setCanPaste, hasAction } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   
   const actionRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const hasAction = (action: Actions) => Array.isArray(actions) ? actions.includes(action) : actions === action;
 
   const updateClipboardState = async () => {
     try {

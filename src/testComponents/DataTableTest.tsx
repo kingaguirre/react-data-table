@@ -219,6 +219,19 @@ const columnSettings = [
     groupTitle: 'User Details',
     order: 2,
     pinned: 'none',
+    actionConfig: {
+      type: 'select',
+      options: [{
+        text: 'clear',
+        value: ''
+        },{
+        text: 'admin',
+        value: 'true'
+        },{
+        text: 'clerk',
+        value: 'false'
+        }]
+    },
     filterConfig: {
       type: 'select',
       options: [{
@@ -388,11 +401,11 @@ export default () => {
       /> */}
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <DataTable
-        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.ADD]}
+        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.ADD, Actions.EDIT]}
         dataSource={dataSource}
         columnSettings={columnSettings}
-        onRowClick={handleRowClick}
-        onRowDoubleClick={handleRowDoubleClick}
+        // onRowClick={handleRowClick}
+        // onRowDoubleClick={handleRowDoubleClick}
         rowKey="userID.value"
         // activeRow="user-id2"
         // selectedRows={[{"userID": { "value": "user-id0" }}]}

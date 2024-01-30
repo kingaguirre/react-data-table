@@ -41,7 +41,8 @@ export const Rows = () => {
     collapsibleRowRender,
     onSelectedRowsChange,
     editingCells,
-    setEditingCells
+    setEditingCells,
+    hasAction
   } = useContext(DataTableContext);
 
   const cellRefs = useRef({});
@@ -81,17 +82,18 @@ export const Rows = () => {
         }
 
         if (isValid) {
-          let newData = {
-            ...saveDataSourceCurrentRow,
-            ...(!checkIsNewRow(saveDataSourceCurrentRow) ? {intentAction: "U"} : {}),
-            [columnKey]: {
-              previous: {
-                value: getValue(saveDataSourceCurrentRow?.[columnKey])
-              },
-              isChanged: true,
-              value
-            }
-          };
+          const curVal = getValue(getDeepValue(saveDataSourceCurrentRow, columnKey));
+          const shouldChangeIntentAction = !checkIsNewRow(saveDataSourceCurrentRow) && !!saveDataSourceCurrentRow;
+          const isValueUdpated = curVal !== value && !!saveDataSourceCurrentRow;
+
+          const newData = setDeepValue({
+            ...currentRow,
+            ...(shouldChangeIntentAction ? {intentAction: "U"} : {}),
+          }, columnKey, isValueUdpated ? {
+            previous: { value: curVal },
+            isChanged: true,
+            value
+          } : value);
 
           // Update the data for the current cell
           const updatedRows = dataSource.map((item, i) => rowIndex === i ? newData : item);
@@ -289,22 +291,16 @@ export const Rows = () => {
     (row) => handleRowDoubleClick(row),
   );
 
-  const handleCellSingleClick = useCallback((props: any) => {
-    const { event, col, rowIndex, editingCell, isNotEditable } = props;
-    if (editingCell) {
-      event.stopPropagation();
-    }
-    if (col.selectable !== false && !isNotEditable) {
-      setSelectedColumn({rowIndex, column: col.column});
-    }
-  }, []);
-
-  const handleCellDoubleClick = useCallback((props) => {
-    const { rowIndex, colIndex: columnIndex, cellValue } = props;
+  const handleCellClick = useCallback((props) => {
+    const { event, editingCell, rowIndex, colIndex: columnIndex, cellValue } = props;
     const columnEditable = columns[columnIndex].actionConfig;
     const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === columnIndex)?.isNew;
     const _val = getValue(cellValue);
     const value = _val !== "null" ? _val : "";
+
+    if (editingCell) {
+      event.stopPropagation();
+    }
 
     if (checkEditability(columnEditable, isEditable, isColumnNew)) {
       setEditingCells(prev => {
@@ -317,14 +313,10 @@ export const Rows = () => {
           } : i
         }) : [...prev, { rowIndex, columnIndex, value, editable: true }]
       });
+
       setSelectedColumn({rowIndex, column: columns[columnIndex]?.column})
     }
   }, [isEditable, columns, editingCells]);
-
-  const handleCellClick = useDoubleClick(
-    (props) => handleCellSingleClick(props),
-    (props) => handleCellDoubleClick(props),
-  );
 
   const toggleRowCollapse = useCallback((id: string) => {
     setCollapsedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]);
@@ -421,10 +413,10 @@ export const Rows = () => {
                   cell.rowIndex === rowIndex && cell.columnIndex === colIndex
                 );
 
-                const isNotEditable = col?.actionConfig === false;
                 const cellValue = getDeepValue(row, col.column);
                 const isDeletedRow = getDeepValue(row, "intentAction") === "R";
                 const isUpdatedRow = getDeepValue(row, "intentAction") === "U"
+                const isNotEditable = col?.actionConfig === false || !hasAction(Actions.EDIT);
 
                 // Render the cell based on whether it's being edited or not
                 if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow) {
@@ -509,10 +501,10 @@ export const Rows = () => {
                           backgroundColor: _hasOldValue ? "yellow" : "white"
                         } : customRowStyle)
                       }}
-                      {...(!isNotEditable ?  {
+                      {...((!isNotEditable && !isDeletedRow) ? {
                         onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
                       } : {})}
-                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : 'is-editable'} ${col?.class}`}
+                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : !isDeletedRow ? 'is-editable' : ''} ${col?.class}`}
                     >
                       <SC.CellContent
                         className="cell-content"
