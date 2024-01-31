@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { ActionsContainer, DropdownContainer, ActionsIconContainer } from './styled';
 import { Actions } from '../../interfaces';
 import { DataTableContext } from "../../index";
-import { isStringExist } from "../../utils/index";
+import { isStringExist, isValidDataWithSchema } from "../../utils/index";
 
 interface IProps {
   data?: any;
@@ -12,7 +12,19 @@ interface IProps {
 
 export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   const { data, rowIndex } = props;
-  const { actions, onAddRow, onDeleteRow, onSave, onCancel, onUndo, canPaste, setCanPaste, hasAction } = useContext(DataTableContext);
+  const {
+    actions,
+    onAddRow,
+    onDeleteRow,
+    onSave,
+    onCancel,
+    onUndo,
+    canPaste,
+    setCanPaste,
+    hasAction,
+    editingCells,
+    state: { columns }
+  } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   
@@ -118,7 +130,16 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
       case isNewRow:
         return (
           <>
-            <i className="fa fa-check" onClick={() => onSave(data)}/>
+            <i
+              className="fa fa-check"
+              {...(isValidDataWithSchema(columns, editingCells)) ? {
+                onClick: () => onSave(data),
+                style: { color: "inherit" }
+              } : {
+                disabled: true,
+                style: { color: "grey", cursor: "not-allowed" }
+              }}
+            />
             <i className="fa fa-close" onClick={() => onCancel(data)}/>
           </>
         );
@@ -139,6 +160,7 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
       );
     }
   }
+
   return (
     <ActionsContainer>
       {getActionIcons(data)}

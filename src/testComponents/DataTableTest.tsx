@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DataTable, exportToCsv } from '../DataTable';
+import { DataTable, exportToCsv, UploadCell } from '../DataTable';
 import { Actions } from "../DataTable/interfaces";
 import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
 import { MenuForm } from '../MenuForm';
@@ -206,14 +206,28 @@ const columnSettings = [
     order: 1,
   },
   {
+    column: 'userDetails.image',
+    title: 'Image',
+    width: '120px',
+    sorted: 'none',
+    order: 1,
+    columnCustomRenderer: () => {
+      return (
+        <UploadCell
+          editable
+          onFileChange={(file) => console.log(file)}
+          accept="image/*" // Accept only images
+        />
+      )
+    }
+  },
+  {
     column: 'userDetails.email',
     title: 'Email',
     groupTitle: 'User Details',
     order: 3,
     pinned: true,
-    actionConfig: {
-      type: "text",
-    }
+    columnType: 'upload',
   },
   {
     column: 'userDetails.isAdmin',

@@ -15,7 +15,7 @@ import {
   serialize,
   updateDataByRowKey,
   hasDomain,
-  arrayToEmptyObject
+  arrayToEmptyObject,
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
@@ -27,6 +27,7 @@ import { ColumnGroupHeader } from "./components/ColumnGroupHeader";
 import { ColumnFilters } from "./components/ColumnFilters";
 import { MainHeader } from "./components/MainHeader";
 import { Footer } from "./components/Footer";
+import UploadCell from "./components/CusomCell/UploadCell";
 
 export const DataTableContext = createContext<any>(null);
 
@@ -217,7 +218,15 @@ export const DataTable = (props: DataTableProps) => {
 
   const onDeleteRow = useCallback((data) => doUpdateRowIntentAction(data), [state.localData, state.fetchedData.data]);
 
-  const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
+
+  const onSave = useCallback((data) => {
+    // console.log(state.columns)
+    // console.log(JSON.parse(data))
+    // console.log(data)
+
+    // console.log(isValidDataWithSchema(state.columns, JSON.parse(data)))
+    doUpdateRowIntentAction(data, "N")
+  }, [state.localData, state.fetchedData.data]);
   
   const onUndo = useCallback((data) => doUpdateRowIntentAction(data, "U"), [state.localData, state.fetchedData.data]);
 
@@ -440,4 +449,4 @@ export const DataTable = (props: DataTableProps) => {
   );
 }
 
-export { getDeepValue, setDeepValue, exportToCsv };
+export { getDeepValue, setDeepValue, exportToCsv, UploadCell };

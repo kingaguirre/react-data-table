@@ -82,6 +82,7 @@ export interface ColumnSettings {
   actionConfig?: any;
   class?: string;
   selectable?: boolean; // disable selecting of column
+  columnType?: "upload";
   columnCustomRenderer?: (value: any, rowData: any, index?: number) => React.ReactNode;
 }
 

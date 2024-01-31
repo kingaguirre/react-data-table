@@ -161,7 +161,8 @@ export const Rows = () => {
                 columnIndex: colIndex,
                 value: "",
                 editable: col?.actionConfig !== false,
-                isNew: true
+                isNew: true,
+                column: col.column
               }];
             });
           }
@@ -429,6 +430,7 @@ export const Rows = () => {
                   const error = editingCell?.error;
                   const inputType = columnActionConfig?.type || "text";
 
+                  // Upload
                   if (inputType === "select") {
                     cellContent = (
                       <div>

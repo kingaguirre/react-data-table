@@ -2,18 +2,19 @@ import React from 'react';
 import * as XLSX from 'xlsx';
 import { Actions } from "../interfaces";
 import { ActionsColumn } from "../components/ActionsColumn";
+import Ajv from "ajv";
 
 export const highlightText = (text: string, highlight: string) => {
   if (typeof text === "string") {
     /** Split text on highlight term, include term itself into parts, ignore case  */
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return (
-    <span>
-      {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
-        <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
-        <span key={i}>{part}</span>
-      )}
-    </span>);
+      <span>
+        {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
+          <span key={i} style={{ backgroundColor: '#ffc069' }}>{part}</span> :
+          <span key={i}>{part}</span>
+        )}
+      </span>);
   }
 };
 
@@ -113,8 +114,8 @@ export const sortData = (data: any[] | null, column: string, direction: 'asc' | 
   return data !== null ? direction === 'asc' ? [...data].sort(compareFunction) : [...data].sort((a, b) => -compareFunction(a, b)) : null;
 };
 
-export const getTableWidth = ({state, selectable, collapsibleRowRender}) => ({
-  width: state.columns?.reduce((acc, col) => 
+export const getTableWidth = ({ state, selectable, collapsibleRowRender }) => ({
+  width: state.columns?.reduce((acc, col) =>
     acc + (parseInt(col.hidden ? "" : col.width || "", 10) || 0), 0
   ) + (selectable ? 27 : 0) + (collapsibleRowRender ? 30 : 0),
 });
@@ -187,7 +188,7 @@ export const filterCheck = (filterValue: any, rowValue: string, filterType: stri
   switch (true) {
     case (!!filterValue && (!filterValue.min || !filterValue.max)):
     case (!filterValue || (filterValue.min === "" && filterValue.max === "")):
-    case (parsedRowValue >= (isNumberRange ? parseFloat(filterValue.min) : new Date(filterValue.min)) && 
+    case (parsedRowValue >= (isNumberRange ? parseFloat(filterValue.min) : new Date(filterValue.min)) &&
       parsedRowValue <= (isNumberRange ? parseFloat(filterValue.max) : new Date(filterValue.max))):
       return true;
 
@@ -257,7 +258,7 @@ export const setColumnSettings = (
     actionConfig: false,
     selectable: false,
     class: 'custom-action-column',
-    columnCustomRenderer: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex}/>
+    columnCustomRenderer: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex} />
   }] : [];
 
   const localStorageColumnSettings = getLocalStorageColumnSettings(columnSettings);
@@ -297,21 +298,21 @@ export const serializeColumns = (columns) => {
 
 export const mergeColumnSettings = (originalColumns, savedColumns) => {
   return originalColumns.map((column) => {
-      const savedColumn = savedColumns.find((sc) => sc.column === column.column); /** Assuming 'column' is a unique identifier */
-      return {
-          ...column,
-          ...savedColumn,
-      };
+    const savedColumn = savedColumns.find((sc) => sc.column === column.column); /** Assuming 'column' is a unique identifier */
+    return {
+      ...column,
+      ...savedColumn,
+    };
   });
 }
 
 export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, filterValues: { [key: string]: any }): { [key: string]: any } => {
   const validFilterValues = Object.entries(filterValues)
-      .filter(([, value]) => value !== "")
-      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-      
+    .filter(([, value]) => value !== "")
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+
   if (defaultFilter) {
-      return { ...defaultFilter, ...validFilterValues };
+    return { ...defaultFilter, ...validFilterValues };
   }
   return validFilterValues;
 };
@@ -394,7 +395,7 @@ export const isStringExist = (stringArray, stringToCheck) => {
   if (!stringArray) {
     return false;
   }
-  
+
   // Convert all elements of the first array to lowercase for case-insensitive comparison
   const lowerCaseFirstArray = stringArray.map(element =>
     typeof element === 'string' ? element.toLowerCase() : element
@@ -594,6 +595,35 @@ export const downloadExcel = (headers, rows, fileName = "data") => {
   // Write workbook and download
   XLSX.writeFile(wb, `${fileName}.xlsx`);
 };
+
+export const isValidDataWithSchema = (columns, data) => {
+  const ajv = new Ajv();
+  const validationResults: any = [];
+  const columnsWithSchema = columns.reduce((acc, col) => {
+    if (col.actionConfig && col.actionConfig.schema) {
+      acc[col.column] = col.actionConfig.schema;
+    }
+    return acc;
+  }, {});
+
+  data.forEach(cell => {
+    const schema = columnsWithSchema[cell.column];
+    if (schema) {
+      const validate = ajv.compile(schema);
+      if (!validate(cell.value)) {
+        // If validation fails, push the cell info and validation errors
+        validationResults.push({
+          rowIndex: cell.rowIndex,
+          columnIndex: cell.columnIndex,
+          column: cell.column,
+          errors: validate.errors
+        });
+      }
+    }
+  });
+
+  return !(validationResults.length > 0);
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

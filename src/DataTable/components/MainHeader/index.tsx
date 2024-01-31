@@ -34,6 +34,7 @@ export const MainHeader = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [show, setShow] = useState(false);
   // Temporary state to hold column visibility changes
   const [tempColumnVisibility, setTempColumnVisibility] = useState(
     columns.reduce((acc, col) => {
