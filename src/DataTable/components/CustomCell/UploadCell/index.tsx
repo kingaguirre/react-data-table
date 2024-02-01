@@ -33,6 +33,12 @@ const ModalContainer = styled.div`
   background: white;
   border: 1px solid #ccc;
   z-index: 100;
+  > p {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: blue;
+  }
 `;
 
 const ModalContent = styled.div`
@@ -53,6 +59,23 @@ const Overlay = styled.div`
   z-index: 10002;
 `;
 
+const FileContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  i > {
+    width: 20px;
+  }
+`;
+
+const FileDetails = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: calc(100% - 20px);
+  font-size: 12px;
+  line-height: 1.2;
+`;
 
 interface IProps {
   fileName?: any;
@@ -65,6 +88,7 @@ export default (props: IProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentFileName, setCurrentFileName] = useState(props.fileName);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileUploadDate, setFileUploadDate] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const uploadCellRef = useRef(null);
   const { addElement, ellipsisMap } = useCheckOverflow();
@@ -82,6 +106,7 @@ export default (props: IProps) => {
     setIsEditing(true);
     setCurrentFileName("");
     setUploadedFile(null);
+    setFileUploadDate(null);
     if (onFileChange) {
       onFileChange(null); // Call the callback with null when the file is deleted
     }
@@ -93,6 +118,7 @@ export default (props: IProps) => {
       setCurrentFileName(file.name);
       setUploadedFile(file);
       setIsEditing(false);
+      setFileUploadDate(new Date().toLocaleDateString());
       if (onFileChange) {
         onFileChange(file); // Call the callback with the file details
       }
@@ -124,15 +150,23 @@ export default (props: IProps) => {
       {hasEllipsis && <Tippy content={currentFileName} placement="bottom" reference={uploadCellRef} />}
       {isModalOpen && ReactDOM.createPortal(
         <Overlay onClick={() => setIsModalOpen(false)}>
-          <ModalContainer>
-            <ModalContent onClick={(e) => e.stopPropagation()}>
+          <ModalContainer onClick={(e) => e.stopPropagation()}>
+            <p>Attached File</p>
+            <ModalContent>
               {!currentFileName || isEditing ? (
                 <input type="file" onChange={handleFileChange} accept={accept} />
               ) : (
-                <>
-                  {currentFileName}
+                <FileContainer>
+                  <FileDetails>
+                    <div>{currentFileName}</div>
+                    <div>
+                      <div>{((uploadedFile?.size || 0) / 1024).toFixed(2)} KB</div>
+                      <div>{fileUploadDate}</div>
+                    </div>
+                  </FileDetails>
+                  
                   <i className="fa fa-trash" onClick={handleDelete}/>
-                </>
+                </FileContainer>
               )}
             </ModalContent>
           </ModalContainer>

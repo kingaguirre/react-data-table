@@ -12,13 +12,13 @@ export const ColumnFilters = () => {
     state: { filterValues, columns },
     setState,
     collapsibleRowRender,
-    selectable
+    selectable,
+    hasAnyFilterConfig
   } = React.useContext(DataTableContext);
 
-  const anyFilterBy = columns.some(col => col.filterConfig);
   let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
 
-  if (!anyFilterBy) {
+  if (!hasAnyFilterConfig) {
     return null;
   }
 

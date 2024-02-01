@@ -168,9 +168,9 @@ const columnSettings = [
     pinned: true,
     groupTitle: 'test',
     order: 0,
-    filterConfig: {
-      type: 'text',
-    },
+    // filterConfig: {
+    //   type: 'text',
+    // },
     actionConfig: {
       type: "text",
       // value: "option2",
@@ -193,10 +193,10 @@ const columnSettings = [
     groupTitle: 'test',
     order: 0,
     actionConfig: false,
-    filterConfig: {
-      type: 'text',
-      // value: "0"
-    },
+    // filterConfig: {
+    //   type: 'text',
+    //   // value: "0"
+    // },
   },
   {
     column: 'password',
@@ -248,19 +248,19 @@ const columnSettings = [
         value: 'false'
         }]
     },
-    filterConfig: {
-      type: 'select',
-      options: [{
-        text: 'clear',
-        value: ''
-        },{
-        text: 'admin',
-        value: 'true'
-        },{
-        text: 'clerk',
-        value: 'false'
-        }]
-    },
+    // filterConfig: {
+    //   type: 'select',
+    //   options: [{
+    //     text: 'clear',
+    //     value: ''
+    //     },{
+    //     text: 'admin',
+    //     value: 'true'
+    //     },{
+    //     text: 'clerk',
+    //     value: 'false'
+    //     }]
+    // },
   },
   {
     column: 'userDetails.other',
@@ -272,19 +272,19 @@ const columnSettings = [
     title: 'Birth Day',
     groupTitle: 'User Details',
     order: 5,
-    filterConfig: {
-      type: 'date-range',
-    },
+    // filterConfig: {
+    //   type: 'date-range',
+    // },
   },
   {
     column: 'userDetails.age',
     title: 'Age',
     groupTitle: 'test Details',
     order: 4,
-    filterConfig: {
-      type: 'number-range',
-      // value: {min: 10, max: 50}
-    },
+    // filterConfig: {
+    //   type: 'number-range',
+    //   // value: {min: 10, max: 50}
+    // },
   },
   {
     column: 'userDetails.firstName',

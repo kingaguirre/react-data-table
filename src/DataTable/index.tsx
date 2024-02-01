@@ -27,7 +27,7 @@ import { ColumnGroupHeader } from "./components/ColumnGroupHeader";
 import { ColumnFilters } from "./components/ColumnFilters";
 import { MainHeader } from "./components/MainHeader";
 import { Footer } from "./components/Footer";
-import UploadCell from "./components/CusomCell/UploadCell";
+import UploadCell from "./components/CustomCell/UploadCell";
 
 export const DataTableContext = createContext<any>(null);
 
@@ -131,6 +131,7 @@ export const DataTable = (props: DataTableProps) => {
 
   const start = state.localPageIndex * state.localPageSize;
   const end = start + state.localPageSize;
+  const hasAnyFilterConfig = state.columns.some(col => col.filterConfig);
   const visibleRows = useMemo(() => filteredData !== null ? filteredData.slice(start, end) : null, [filteredData, start, end]);
   /** Memos End */
 
@@ -218,15 +219,7 @@ export const DataTable = (props: DataTableProps) => {
 
   const onDeleteRow = useCallback((data) => doUpdateRowIntentAction(data), [state.localData, state.fetchedData.data]);
 
-
-  const onSave = useCallback((data) => {
-    // console.log(state.columns)
-    // console.log(JSON.parse(data))
-    // console.log(data)
-
-    // console.log(isValidDataWithSchema(state.columns, JSON.parse(data)))
-    doUpdateRowIntentAction(data, "N")
-  }, [state.localData, state.fetchedData.data]);
+  const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
   
   const onUndo = useCallback((data) => doUpdateRowIntentAction(data, "U"), [state.localData, state.fetchedData.data]);
 
@@ -426,7 +419,8 @@ export const DataTable = (props: DataTableProps) => {
         setEditingCells,
         canPaste,
         setCanPaste,
-        hasAction
+        hasAction,
+        hasAnyFilterConfig
       }}
     >
       <SC.TableWrapper>
