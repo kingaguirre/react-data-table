@@ -51,10 +51,17 @@ export const getDeepValue = (obj: any, path: string, returnObj = false) => {
 };
 
 const deepClone = (obj) => {
+  // Check for null or non-object values
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
+  // Handle Date objects specifically
+  if (obj instanceof Date) {
+    return new Date(obj.getTime());
+  }
+
+  // Handle arrays
   if (obj instanceof Array) {
     return obj.reduce((arr, item, i) => {
       arr[i] = deepClone(item);
@@ -62,6 +69,7 @@ const deepClone = (obj) => {
     }, []);
   }
 
+  // Handle objects
   if (obj instanceof Object) {
     return Object.keys(obj).reduce((newObj, key) => {
       newObj[key] = deepClone(obj[key]);
@@ -69,6 +77,7 @@ const deepClone = (obj) => {
     }, {});
   }
 
+  // Fallback for all other types
   return obj;
 };
 
@@ -79,8 +88,9 @@ export const setDeepValue = (obj, path, value) => {
   keys.reduce((acc, key, index) => {
     if (index === keys.length - 1) {
       acc[key] = value;
+      return newObj; // Return newObj for consistency, although this line does not affect functionality
     } else {
-      if (!acc[key] || typeof acc[key] !== 'object') acc[key] = {};
+      if (!acc[key] || typeof acc[key] !== 'object' || acc[key] instanceof Date) acc[key] = {};
       return acc[key];
     }
   }, newObj);
@@ -596,9 +606,10 @@ export const downloadExcel = (headers, rows, fileName = "data") => {
   XLSX.writeFile(wb, `${fileName}.xlsx`);
 };
 
-export const isValidDataWithSchema = (columns, data) => {
+export const isValidDataWithSchema = (columns, data, dataSource) => {
   const ajv = new Ajv();
   const validationResults: any = [];
+
   const columnsWithSchema = columns.reduce((acc, col) => {
     if (col.actionConfig && col.actionConfig.schema) {
       acc[col.column] = col.actionConfig.schema;
@@ -606,20 +617,50 @@ export const isValidDataWithSchema = (columns, data) => {
     return acc;
   }, {});
 
+  const columnsWithIsUnique = columns.reduce((acc, col) => {
+    if (col.actionConfig && col.actionConfig.isUnique) {
+      acc[col.column] = col.actionConfig.isUnique;
+    }
+    return acc;
+  }, {});
+
   data.forEach(cell => {
-    const schema = columnsWithSchema[cell.column];
-    if (schema) {
-      const validate = ajv.compile(schema);
-      if (!validate(cell.value)) {
-        // If validation fails, push the cell info and validation errors
+
+    const isUnique = columnsWithIsUnique[cell.column];
+    let isDuplicate = false;
+  
+    if (isUnique) {
+      // Check if the value is unique across the dataSource
+      isDuplicate = dataSource.some((row, index) => {
+        const rowValue = getDeepValue(row, cell.column);
+        // Check against all other rows except the current row being edited
+        return index !== cell.rowIndex && getValue(rowValue).toLowerCase() === cell.value?.toLowerCase();
+      });
+
+      if (isDuplicate) {
         validationResults.push({
           rowIndex: cell.rowIndex,
           columnIndex: cell.columnIndex,
           column: cell.column,
-          errors: validate.errors
+          errors: "Data should be unique"
         });
       }
     }
+
+    const schema = columnsWithSchema[cell.column];
+      // Only validate if columnSchema is defined and its not duplicae
+      if (schema && !isDuplicate) {
+        const validate = ajv.compile(schema);
+        if (!validate(cell.value)) {
+          // If validation fails, push the cell info and validation errors
+          validationResults.push({
+            rowIndex: cell.rowIndex,
+            columnIndex: cell.columnIndex,
+            column: cell.column,
+            errors: validate.errors
+          });
+        }
+      }
   });
 
   return !(validationResults.length > 0);

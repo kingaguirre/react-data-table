@@ -21,6 +21,7 @@ import { Actions } from "../../interfaces";
 import Ajv from "ajv";
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css'; // optional
+import DraggedElements from '../DraggedElements';
 
 export const Rows = () => {
   const {
@@ -73,11 +74,30 @@ export const Rows = () => {
       const saveDataSourceCurrentRow = savedDataSourceRef?.current?.find(i => getDeepValue(i, rowKey) === getDeepValue(currentRow, rowKey));
       const columnKey = columns[columnIndex].column;
       const columnSchema = columns[columnIndex]?.actionConfig?.schema;
-      let isValid = true;
+      const isUnique = columns[columnIndex]?.actionConfig?.isUnique;
 
+      let isValid = true;
+      let errorMessage = "";
+      let isDuplicate = false;
+  
       if (saveChanges) {
-        // Only validate if columnSchema is defined
-        if (columnSchema) {
+
+        if (isUnique) {
+          // Check if the value is unique across the dataSource
+          isDuplicate = dataSource.some((row, index) => {
+            const rowValue = getDeepValue(row, columnKey);
+            // Check against all other rows except the current row being edited
+            return index !== rowIndex && getValue(rowValue).toLowerCase() === value.toLowerCase();
+          });
+    
+          if (isDuplicate) {
+            isValid = false;
+            errorMessage = "Data should be unique";
+          }
+        }
+
+        // Only validate if columnSchema is defined and its not duplicae
+        if (columnSchema && !isDuplicate) {
           isValid = ajv.validate(columnSchema, value);
         }
 
@@ -116,16 +136,19 @@ export const Rows = () => {
 
           setEditingCells(prev => prev.map(cell => 
             cell.rowIndex === rowIndex && cell.columnIndex === columnIndex 
-              ? { ...cell, editable: false } 
+              ? { ...cell, editable: false, invalid: false, erorr: null } 
               : cell
           ));
         } else {
-          // Handle validation errors without clearing the editing cell
-          const error = ajv.errorsText(ajv.errors);
-          console.error("Validation failed: ", error);
+          // Handle validation errors, including unique constraint
+          if (!errorMessage) {
+            // If the error message wasn't set by the unique check, get it from AJV validation
+            errorMessage = ajv.errorsText(ajv.errors);
+          }
+          console.error("Validation failed: ", errorMessage);
           setEditingCells(prev => prev.map(cell => 
             (cell.rowIndex === rowIndex && cell.columnIndex === columnIndex) 
-              ? { ...cell, invalid: true, error } 
+              ? { ...cell, invalid: true, erorr: errorMessage } 
               : cell
           ));
         }
@@ -187,6 +210,25 @@ export const Rows = () => {
       clearTimeout(timeoutId); // Cleanup the timeout to avoid memory leaks
     };
   }, [dataSource, columns]);
+
+  // Update state when actions prop is changed
+  useEffect(() => {
+    const hasAddAction = !!actions.find(i => i === Actions.ADD);
+    const hasAddRow = !!dataSource.find(i => i.intentAction === "*")
+    if (!hasAddAction && hasAddRow) {
+      if (fetchConfig) {
+        const newFetchedData = [...(fetchedData.data || [])].filter(i => i.intentAction !== "*");
+        setState({
+          type: SET_FETCHED_DATA,
+          payload: { ...fetchedData, data: newFetchedData }
+        });
+      } else {
+        const newLocalData = [...(localData || [])].filter(i => i.intentAction !== "*");
+        setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+      }
+      setEditingCells(prev => prev.filter(i => i.isNew !== true));
+    }
+  }, [actions, dataSource]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -540,6 +582,7 @@ export const Rows = () => {
           </Fragment>
         )
       })}
+      {/* <DraggedElements/> */}
       {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
       <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
     </SC.TableRowsContainer>

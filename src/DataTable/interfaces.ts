@@ -56,6 +56,7 @@ export interface DataTableProps {
   clickableRow?: boolean;
   customRowSettings?: CustomRowSettings[];
   actions?: Actions | Actions[];
+  isPermanentDelete?: boolean;
   onChange?: (updatedData: any[]) => void;
   onRowClick?: (rowData: any) => void;
   onRowDoubleClick?: (rowData: any) => void;

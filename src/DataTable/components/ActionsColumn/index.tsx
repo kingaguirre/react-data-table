@@ -23,13 +23,15 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
     setCanPaste,
     hasAction,
     editingCells,
-    state: { columns }
+    fetchConfig,
+    state: { columns, fetchedData, localData }
   } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   
   const actionRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const dataSource = fetchConfig ? fetchedData.data : localData;
 
   const updateClipboardState = async () => {
     try {
@@ -132,7 +134,7 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
           <>
             <i
               className="fa fa-check"
-              {...(isValidDataWithSchema(columns, editingCells)) ? {
+              {...(isValidDataWithSchema(columns, editingCells, dataSource)) ? {
                 onClick: () => onSave(data),
                 style: { color: "inherit" }
               } : {

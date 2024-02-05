@@ -35,7 +35,7 @@ export const MainHeader = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [show, setShow] = useState(false);
+
   // Temporary state to hold column visibility changes
   const [tempColumnVisibility, setTempColumnVisibility] = useState(
     columns.reduce((acc, col) => {
@@ -175,7 +175,7 @@ export const MainHeader = () => {
         </>
       )}
       <SC.ControlsWrapper>
-        {isAddEnabled && <button disabled={isAddDisabled} onClick={handleOnAddRow}>Add</button>}
+        {isAddEnabled && <button className="add-button" disabled={isAddDisabled} onClick={handleOnAddRow}>Add</button>}
         {!!downloadCSV && (
           <SC.DownloadWrapper>
             <button onClick={() => setShowDownload(!showDownload)}>

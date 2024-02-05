@@ -72,6 +72,12 @@ export const ControlsWrapper = styled.div`
   margin: -6px -16px -6px 0;
   height: 38px;
   align-items: stretch;
+  .add-button {
+    &[disabled] {
+      pointer-events: none;
+      color: grey;
+    }
+  }
   > ${DownloadWrapper} > *,
   > * {
     height: 100%;

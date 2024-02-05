@@ -16,6 +16,7 @@ import {
   updateDataByRowKey,
   hasDomain,
   arrayToEmptyObject,
+  getValue
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
@@ -28,10 +29,12 @@ import { ColumnFilters } from "./components/ColumnFilters";
 import { MainHeader } from "./components/MainHeader";
 import { Footer } from "./components/Footer";
 import UploadCell from "./components/CustomCell/UploadCell";
+import Ajv from 'ajv';
 
 export const DataTableContext = createContext<any>(null);
 
-export const DataTable = (props: DataTableProps) => {
+export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref<any>) => {
+// export const DataTable = (props: DataTableProps) => {
   /** Refs */
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -51,6 +54,7 @@ export const DataTable = (props: DataTableProps) => {
     clickableRow = false,
     customRowSettings,
     actions,
+    isPermanentDelete = false,
     onChange,
     onColumnSettingsChange,
     onRowClick,
@@ -71,6 +75,7 @@ export const DataTable = (props: DataTableProps) => {
     error?: string | null;
     isNew?: boolean
   }>>([]);
+  const ajv = new Ajv();
 
   /** Reducer Start */
   const [state, setState] = useReducer(dataTableReducer, {
@@ -201,7 +206,7 @@ export const DataTable = (props: DataTableProps) => {
   }, [state.localData, state.fetchedData.data, editingCells, setEditingCells]);
 
   const doUpdateRowIntentAction = (data, intentAction = "R") => {
-    const parsedNewData = !!data ? JSON.parse(data) : [];
+    const parsedNewData = !!data ? JSON.parse(data) : {};
 
     if (fetchConfig) {
       const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data, rowKey, intentAction);
@@ -217,7 +222,30 @@ export const DataTable = (props: DataTableProps) => {
     }
   };
 
-  const onDeleteRow = useCallback((data) => doUpdateRowIntentAction(data), [state.localData, state.fetchedData.data]);
+  const doPermanentDelete = (data) => {
+    const parsedNewData = !!data ? JSON.parse(data) : {};
+    const rowKeyValue = getValue(getDeepValue(parsedNewData, rowKey));
+    if (fetchConfig) {
+      const newFetchedData = [...(state.fetchedData.data || [])].filter(i => getValue(getDeepValue(i, rowKey)) !== rowKeyValue);
+      setState({
+        type: SET_FETCHED_DATA,
+        payload: { data: newFetchedData }
+      });
+      onChange?.(newFetchedData);
+    } else {
+      const newLocalData = [...(state.localData || [])].filter(i => getValue(getDeepValue(i, rowKey)) !== rowKeyValue);
+      setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+      onChange?.(newLocalData);
+    }
+  };
+
+  const onDeleteRow = useCallback((data) => {
+    if (isPermanentDelete) {
+      doPermanentDelete(data)
+    } else {
+      doUpdateRowIntentAction(data)
+    }
+  }, [state.localData, state.fetchedData.data]);
 
   const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
   
@@ -338,6 +366,42 @@ export const DataTable = (props: DataTableProps) => {
     draggedColumnIndex
   } = useDragDropManager(state.columns, setColumns, onColumnSettingsChange);
   const { onMouseDown } = useResizeManager(state.columns, setColumns, onColumnSettingsChange);
+
+  const validateData = useCallback(() => {
+    const data = fetchConfig ? state.fetchedData.data : state.localData;
+    const columns = state.columns;
+    const invalidData: any = [];
+  
+    data.forEach((item, rowIndex) => {
+      columns.forEach(column => {
+        // Check if column has an actionConfig with a schema
+        if (column.actionConfig?.schema) {
+          const value = getDeepValue(item, column.column, true); // True to potentially return objects
+          const parsedValue = getValue(value); // Ensure the value is correctly formatted for validation
+  
+          const schema = column.actionConfig.schema;
+          const isSchemaInvalid = ajv.validate(schema, parsedValue);
+          const error = ajv.errorsText(ajv.errors);
+
+          if (!isSchemaInvalid) {
+            invalidData.push({
+              column: column.column,
+              value: parsedValue,
+              error,
+              rowIndex
+            });
+          }
+        }
+      });
+    });
+
+    return invalidData;
+  }, [state.localData, state.fetchedData.data, state.columns])
+
+  React.useImperativeHandle(ref, () => ({
+    validate: validateData
+  }));
+
   /** Custom Functions End */
 
   /** UseEffects Start */
@@ -441,6 +505,6 @@ export const DataTable = (props: DataTableProps) => {
       </SC.TableWrapper>
     </DataTableContext.Provider>
   );
-}
+});
 
 export { getDeepValue, setDeepValue, exportToCsv, UploadCell };

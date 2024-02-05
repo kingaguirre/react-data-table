@@ -38,7 +38,7 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(100).fill("").map((_, i) => ({
+const dataSource = Array(5).fill("").map((_, i) => ({
   intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "U",
   ...((i === 0 || i === 1 || i === 2) ? {
     acknowledgementNumber: {
@@ -173,6 +173,7 @@ const columnSettings = [
     // },
     actionConfig: {
       type: "text",
+      isUnique: true,
       // value: "option2",
       // options: [
       //   { value: "option1", text: "Option 1" },
@@ -227,7 +228,6 @@ const columnSettings = [
     groupTitle: 'User Details',
     order: 3,
     pinned: true,
-    columnType: 'upload',
   },
   {
     column: 'userDetails.isAdmin',
@@ -383,14 +383,21 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
+const ACTIONS_LIST = [Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.ADD, Actions.EDIT]
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
   const menuFormRef = React.createRef<any>();
+  const dataTablemRef = React.createRef<any>();
+  const [actions, setActions] = useState<any>(ACTIONS_LIST)
 
   const handleClick = () => {
     if (menuFormRef.current) {
       const isValid = menuFormRef.current.validate();
       console.log("Form is valid:", isValid);
+    }
+    if (dataTablemRef.current) {
+      const isValid = dataTablemRef.current.validate();
+      console.log("validate data-table:", isValid);
     }
   };
 
@@ -408,16 +415,21 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      {/* <button onClick={handleClick}>Validate</button>
-      <MenuForm
+      <button onClick={handleClick}>Validate</button>
+      {/* <MenuForm
         ref={menuFormRef}
         formSettings={FORM_MENU_FIELD_SETTINGS}
         dataSource={dataSource}
         onChange={v => console.log(v)}
       /> */}
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
+      <button onClick={() => {
+        setActions([Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.EDIT])
+      }}>Remove "Add Action"</button>
+      <button onClick={() => setActions(ACTIONS_LIST)}>Add "Add Action"</button>
       <DataTable
-        actions={[Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.ADD, Actions.EDIT]}
+        ref={dataTablemRef}
+        actions={actions}
         dataSource={dataSource}
         columnSettings={columnSettings}
         // onRowClick={handleRowClick}
@@ -430,6 +442,7 @@ export default () => {
         selectable
         downloadCSV
         onChange={v => console.log("New Value: ", v)}
+        isPermanentDelete
         customRowSettings={[
           {
             column: "intentAction",
