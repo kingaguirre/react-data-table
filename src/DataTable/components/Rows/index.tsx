@@ -462,8 +462,9 @@ export const Rows = () => {
 
                 const cellValue = getDeepValue(row, col.column);
                 const isDeletedRow = getDeepValue(row, "intentAction") === "R";
-                const isUpdatedRow = getDeepValue(row, "intentAction") === "U"
-                const isNotEditable = col?.actionConfig === false || !hasAction(Actions.EDIT);
+                const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
+                const hasEditAction = hasAction(Actions.EDIT);
+                const isNotEditable = col?.actionConfig === false || !hasEditAction;
 
                 // Render the cell based on whether it's being edited or not
                 if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow) {
@@ -552,7 +553,7 @@ export const Rows = () => {
                       {...((!isNotEditable && !isDeletedRow) ? {
                         onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
                       } : {})}
-                      className={`${isSelectedColumn ? 'selected' : ''} ${isNotEditable ? 'is-not-editable' : !isDeletedRow ? 'is-editable' : ''} ${col?.class}`}
+                      className={`${isSelectedColumn ? 'selected' : ''} ${hasEditAction ? isNotEditable ? 'is-not-editable' : !isDeletedRow ? 'is-editable' : '' : ''} ${col?.class}`}
                     >
                       <SC.CellContent
                         className="cell-content"
