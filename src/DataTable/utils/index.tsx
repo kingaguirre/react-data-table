@@ -669,13 +669,15 @@ export const isValidDataWithSchema = (columns, data, dataSource) => {
 export const updateSchemaObjectProperties = (obj) => {
   // Check if 'properties' exists and has a 'value' property
   if (obj.hasOwnProperty('properties') && obj.properties.hasOwnProperty('value')) {
-    // Move all properties of 'value' to the 'properties' level
-    Object.assign(obj.properties, obj.properties.value);
-    // Delete the 'value' property
-    delete obj.properties.value;
+    // Create a new object with the contents of 'value' at the top level
+    const updatedProperties = { ...obj.properties.value };
+
+    // Return a new object with the updated structure
+    return updatedProperties;
   }
-  // Return the updated or original object
-  return obj;
+  
+  // If 'value' doesn't exist, return a shallow copy of the object as is
+  return { ...obj };
 }
 
 export * from "./useDragDropManager";
