@@ -4,6 +4,7 @@ import { Actions } from "../DataTable/interfaces";
 import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
+import { type } from 'os';
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -194,159 +195,159 @@ const columnSettings = [
     groupTitle: 'test',
     order: 0,
     actionConfig: false,
-    // filterConfig: {
-    //   type: 'text',
-    //   // value: "0"
-    // },
-  },
-  {
-    column: 'password',
-    title: 'Password',
-    width: '200px',
-    sorted: 'none',
-    order: 1,
-  },
-  {
-    column: 'userDetails.image',
-    title: 'Image',
-    width: '120px',
-    sorted: 'none',
-    order: 1,
-    columnCustomRenderer: () => {
-      return (
-        <UploadCell
-          editable
-          onFileChange={(file) => console.log(file)}
-          accept="image/*" // Accept only images
-        />
-      )
-    }
-  },
-  {
-    column: 'userDetails.email',
-    title: 'Email',
-    groupTitle: 'User Details',
-    order: 3,
-    pinned: true,
-  },
-  {
-    column: 'userDetails.isAdmin',
-    title: 'Is Admin',
-    groupTitle: 'User Details',
-    order: 2,
-    pinned: 'none',
-    actionConfig: {
-      type: 'select',
-      options: [{
-        text: 'clear',
-        value: ''
-        },{
-        text: 'admin',
-        value: 'true'
-        },{
-        text: 'clerk',
-        value: 'false'
-        }]
+    filterConfig: {
+      type: 'text',
+      // value: "0"
     },
-    // filterConfig: {
-    //   type: 'select',
-    //   options: [{
-    //     text: 'clear',
-    //     value: ''
-    //     },{
-    //     text: 'admin',
-    //     value: 'true'
-    //     },{
-    //     text: 'clerk',
-    //     value: 'false'
-    //     }]
-    // },
   },
-  {
-    column: 'userDetails.other',
-    title: 'Other',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.birthDay',
-    title: 'Birth Day',
-    groupTitle: 'User Details',
-    order: 5,
-    // filterConfig: {
-    //   type: 'date-range',
-    // },
-  },
-  {
-    column: 'userDetails.age',
-    title: 'Age',
-    groupTitle: 'test Details',
-    order: 4,
-    // filterConfig: {
-    //   type: 'number-range',
-    //   // value: {min: 10, max: 50}
-    // },
-  },
-  {
-    column: 'userDetails.firstName',
-    title: 'First Name',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.lastName',
-    title: 'Last Name',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.phoneNumber',
-    title: 'Phone Number',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.address',
-    title: 'Address',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.city',
-    title: 'City',
-  },
-  {
-    column: 'userDetails.state',
-    title: 'State',
-  },
-  {
-    column: 'userDetails.zipCode',
-    title: 'Zip Code',
-  },
-  {
-    column: 'userAccounts[0].account1',
-    title: 'Account 1',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userAccounts[1].account2',
-    title: 'Account 2',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userAccounts[2].account3',
-    title: 'Account 3',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userID.value',
-    title: '#',
-    pinned: "none",
-    sorted: "none",
-    align: "center",
-    columnCustomRenderer: (value) => <button onClick={e => {
-      e.stopPropagation();
-      console.log(`button ${value} clicked`)
-    }} style={{fontSize: 5}}>Button {value}</button>
-  },
+  // {
+  //   column: 'password',
+  //   title: 'Password',
+  //   width: '200px',
+  //   sorted: 'none',
+  //   order: 1,
+  // },
+  // {
+  //   column: 'userDetails.image',
+  //   title: 'Image',
+  //   width: '120px',
+  //   sorted: 'none',
+  //   order: 1,
+  //   columnCustomRenderer: () => {
+  //     return (
+  //       <UploadCell
+  //         editable
+  //         onFileChange={(file) => console.log(file)}
+  //         accept="image/*" // Accept only images
+  //       />
+  //     )
+  //   }
+  // },
+  // {
+  //   column: 'userDetails.email',
+  //   title: 'Email',
+  //   groupTitle: 'User Details',
+  //   order: 3,
+  //   pinned: true,
+  // },
+  // {
+  //   column: 'userDetails.isAdmin',
+  //   title: 'Is Admin',
+  //   groupTitle: 'User Details',
+  //   order: 2,
+  //   pinned: 'none',
+  //   actionConfig: {
+  //     type: 'select',
+  //     options: [{
+  //       text: 'clear',
+  //       value: ''
+  //       },{
+  //       text: 'admin',
+  //       value: 'true'
+  //       },{
+  //       text: 'clerk',
+  //       value: 'false'
+  //       }]
+  //   },
+  //   // filterConfig: {
+  //   //   type: 'select',
+  //   //   options: [{
+  //   //     text: 'clear',
+  //   //     value: ''
+  //   //     },{
+  //   //     text: 'admin',
+  //   //     value: 'true'
+  //   //     },{
+  //   //     text: 'clerk',
+  //   //     value: 'false'
+  //   //     }]
+  //   // },
+  // },
+  // {
+  //   column: 'userDetails.other',
+  //   title: 'Other',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.birthDay',
+  //   title: 'Birth Day',
+  //   groupTitle: 'User Details',
+  //   order: 5,
+  //   // filterConfig: {
+  //   //   type: 'date-range',
+  //   // },
+  // },
+  // {
+  //   column: 'userDetails.age',
+  //   title: 'Age',
+  //   groupTitle: 'test Details',
+  //   order: 4,
+  //   // filterConfig: {
+  //   //   type: 'number-range',
+  //   //   // value: {min: 10, max: 50}
+  //   // },
+  // },
+  // {
+  //   column: 'userDetails.firstName',
+  //   title: 'First Name',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.lastName',
+  //   title: 'Last Name',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.phoneNumber',
+  //   title: 'Phone Number',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.address',
+  //   title: 'Address',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.city',
+  //   title: 'City',
+  // },
+  // {
+  //   column: 'userDetails.state',
+  //   title: 'State',
+  // },
+  // {
+  //   column: 'userDetails.zipCode',
+  //   title: 'Zip Code',
+  // },
+  // {
+  //   column: 'userAccounts[0].account1',
+  //   title: 'Account 1',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userAccounts[1].account2',
+  //   title: 'Account 2',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userAccounts[2].account3',
+  //   title: 'Account 3',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userID.value',
+  //   title: '#',
+  //   pinned: "none",
+  //   sorted: "none",
+  //   align: "center",
+  //   columnCustomRenderer: (value) => <button onClick={e => {
+  //     e.stopPropagation();
+  //     console.log(`button ${value} clicked`)
+  //   }} style={{fontSize: 5}}>Button {value}</button>
+  // },
 ];
 
 const generateRandomTransactions = (num = 100) => {
@@ -389,6 +390,7 @@ export default () => {
   const menuFormRef = React.createRef<any>();
   const dataTablemRef = React.createRef<any>();
   const [actions, setActions] = useState<any>(ACTIONS_LIST)
+  const [colSettings, setColSettings] = useState<any>(columnSettings)
 
   const handleClick = () => {
     if (menuFormRef.current) {
@@ -427,11 +429,35 @@ export default () => {
         setActions([Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.EDIT])
       }}>Remove "Add Action"</button>
       <button onClick={() => setActions(ACTIONS_LIST)}>Add "Add Action"</button>
+
+      <button onClick={() => setColSettings(columnSettings)}>Add "Column Schema"</button>
+      <button onClick={() => {
+        setColSettings(columnSettings.map(i => {
+          const { actionConfig } = i;
+
+          return typeof actionConfig === "object" && actionConfig !== null ? {
+            ...i,
+            actionConfig: {
+              ...(i.actionConfig as any),
+              schema: undefined
+            }
+          } : i
+        }))
+      }}>Remove "Column Schema"</button>
+
+      <button onClick={() => setColSettings(columnSettings)}>Add "Column Filter"</button>
+      <button onClick={() => {
+        setColSettings(columnSettings.map(i => ({
+          ...i,
+          filterConfig: undefined
+        })))
+      }}>Remove "Column Filter"</button>
+
       <DataTable
         ref={dataTablemRef}
         actions={actions}
         dataSource={dataSource}
-        columnSettings={columnSettings}
+        columnSettings={colSettings}
         // onRowClick={handleRowClick}
         // onRowDoubleClick={handleRowDoubleClick}
         rowKey="userID.value"

@@ -207,21 +207,42 @@ export const filterCheck = (filterValue: any, rowValue: string, filterType: stri
   }
 }
 
-export const getLocalStorageColumnSettings = (columnSettings: any) => {
+export const mergeColumnSettings = (originalColumns, savedColumns) => {
+  return originalColumns.map((originalColumn) => {
+    const savedColumn = savedColumns.find((sc) => sc.column === originalColumn.column);
+    // Exclude actionConfig and filterConfig from the saved column before merging
+    const { actionConfig, filterConfig, ...savedColumnExclusions } = savedColumn || {};
+    return {
+      ...originalColumn,
+      ...savedColumnExclusions,
+    };
+  });
+};
+
+export const getLocalStorageColumnSettings = (columnSettings) => {
   const savedDefaultColumnSettings = JSON.parse(localStorage.getItem('defaultColumnSettings') || '[]');
   const savedCurrentColumnSettings = JSON.parse(localStorage.getItem('currentColumnSettings') || '[]');
 
   const mergedDefaultSettings = mergeColumnSettings(columnSettings, savedDefaultColumnSettings);
   const mergedCurrentSettings = mergeColumnSettings(columnSettings, savedCurrentColumnSettings);
 
+  // Ensure actionConfig and filterConfig are applied from original columnSettings
+  const applyConfigOverrides = (settings) => settings.map(setting => ({
+    ...setting,
+    actionConfig: columnSettings.find(cs => cs.column === setting.column)?.actionConfig,
+    filterConfig: columnSettings.find(cs => cs.column === setting.column)?.filterConfig,
+  }));
+
   if (mergedCurrentSettings.length > 0) {
-    return mergedCurrentSettings;
+    return applyConfigOverrides(mergedCurrentSettings);
   } else if (mergedDefaultSettings.length > 0) {
-    return mergedDefaultSettings;
+    return applyConfigOverrides(mergedDefaultSettings);
   } else {
-    return columnSettings;
+    // If no saved settings, apply overrides to original just in case
+    return applyConfigOverrides(columnSettings);
   }
-}
+};
+
 
 export const setColumnSettings = (
   columnSettings: any,
@@ -304,16 +325,6 @@ export const setColumnSettings = (
 
 export const serializeColumns = (columns) => {
   return columns.map(({ columnCustomRenderer, ...rest }) => rest);
-}
-
-export const mergeColumnSettings = (originalColumns, savedColumns) => {
-  return originalColumns.map((column) => {
-    const savedColumn = savedColumns.find((sc) => sc.column === column.column); /** Assuming 'column' is a unique identifier */
-    return {
-      ...column,
-      ...savedColumn,
-    };
-  });
 }
 
 export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, filterValues: { [key: string]: any }): { [key: string]: any } => {
