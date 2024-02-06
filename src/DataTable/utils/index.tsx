@@ -666,6 +666,18 @@ export const isValidDataWithSchema = (columns, data, dataSource) => {
   return !(validationResults.length > 0);
 }
 
+export const updateSchemaObjectProperties = (obj) => {
+  // Check if 'properties' exists and has a 'value' property
+  if (obj.hasOwnProperty('properties') && obj.properties.hasOwnProperty('value')) {
+    // Move all properties of 'value' to the 'properties' level
+    Object.assign(obj.properties, obj.properties.value);
+    // Delete the 'value' property
+    delete obj.properties.value;
+  }
+  // Return the updated or original object
+  return obj;
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
