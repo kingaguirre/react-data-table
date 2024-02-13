@@ -384,7 +384,7 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
-const ACTIONS_LIST = [Actions.DELETE, Actions.ADD, Actions.EDIT]
+const ACTIONS_LIST = [Actions.DELETE, Actions.ADD]
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
   const menuFormRef = React.createRef<any>();

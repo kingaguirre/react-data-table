@@ -44,14 +44,15 @@ export const Rows = () => {
     editingCells,
     setEditingCells,
     hasAction,
-    isSingleSelect
+    isSingleSelect,
+    selectedColumn,
+    setSelectedColumn
   } = useContext(DataTableContext);
 
   const cellRefs = useRef({});
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
   const [addedRow, setAddedRow] = useState<number>(-1);
   // At the beginning of your functional component
-  const [selectedColumn, setSelectedColumn] = useState<any>(null);
 
   const isEditable = isStringExist(actions, Actions.EDIT);
   const ajv = new Ajv();
@@ -469,11 +470,12 @@ export const Rows = () => {
                 const cellValue = getDeepValue(row, col.column);
                 const isDeletedRow = getDeepValue(row, "intentAction") === "R";
                 const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
+                const isNewRow = checkIsNewRow(row);
                 const hasEditAction = hasAction(Actions.EDIT);
                 const isNotEditable = col?.actionConfig === false || !hasEditAction;
 
                 // Render the cell based on whether it's being edited or not
-                if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow) {
+                if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow && isNewRow) {
                   const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
                   const isInvalid = editingCell?.invalid;
                   const error = editingCell?.error;
@@ -556,7 +558,7 @@ export const Rows = () => {
                           backgroundColor: _hasOldValue ? "yellow" : "white"
                         } : customRowStyle)
                       }}
-                      {...((!isNotEditable && !isDeletedRow) ? {
+                      {...((!isNotEditable && !isDeletedRow || isNewRow) ? {
                         onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
                       } : {})}
                       className={`${isSelectedColumn ? 'selected' : ''} ${hasEditAction ? isNotEditable ? 'is-not-editable' : !isDeletedRow ? 'is-editable' : '' : ''} ${col?.class}`}

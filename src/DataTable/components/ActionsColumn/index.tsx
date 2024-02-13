@@ -151,7 +151,7 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
         )
       default: return (
         <>
-          {hasAction(Actions.DELETE) && <i className="fa fa-trash-o" onClick={() => onDeleteRow(data)}/>}
+          {hasAction(Actions.DELETE) && <i className="fa fa-trash-o" onClick={() => onDeleteRow(data, rowIndex)}/>}
           {isStringExist(actions, [Actions.COPY, Actions.PASTE, Actions.DUPLICATE]) && (
             <ActionsIconContainer ref={actionRef} onClick={toggleDropdown}>
               <i className="fa fa-ellipsis-v" />

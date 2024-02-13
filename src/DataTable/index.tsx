@@ -67,6 +67,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   } = props;
 
   const [canPaste, setCanPaste] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState<any>(null);
   const [editingCells, setEditingCells] = useState<Array<{
     cancelledRowIndex
     columnIndex: number;
@@ -189,6 +190,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
 
         // Remove row values in state
         setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== cancelledRowIndex));
+        // When permanent delete, remove selected cell if its same row
+        setSelectedColumn(prev => prev.rowIndex === cancelledRowIndex ? null : prev);
 
         if (fetchConfig) {
           setState({
@@ -240,11 +243,15 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     }
   };
 
-  const onDeleteRow = useCallback((data) => {
+  const onDeleteRow = useCallback((data, rowIndex) => {
     if (isPermanentDelete) {
-      doPermanentDelete(data)
+      doPermanentDelete(data);
+      // When permanent delete, remove all data with same row in editingCells state
+      setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== rowIndex));
+      // When permanent delete, remove selected cell if its same row
+      setSelectedColumn(prev => prev.rowIndex === rowIndex ? null : prev);
     } else {
-      doUpdateRowIntentAction(data)
+      doUpdateRowIntentAction(data);
     }
   }, [state.localData, state.fetchedData.data]);
 
@@ -486,7 +493,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         setCanPaste,
         hasAction,
         hasAnyFilterConfig,
-        isSingleSelect
+        isSingleSelect,
+        selectedColumn,
+        setSelectedColumn
       }}
     >
       <SC.TableWrapper>
