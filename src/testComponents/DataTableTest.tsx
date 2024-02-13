@@ -466,6 +466,7 @@ export default () => {
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
         selectable
+        isSingleSelect
         downloadCSV
         onChange={v => console.log("New Value: ", v)}
         isPermanentDelete
@@ -525,7 +526,8 @@ export default () => {
         onColumnSettingsChange={handleColumnSettingsChange}
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
-        onSelectedRowsChange={rows => setSselectedRow(rows)}
+        // onSelectedRowsChange={rows => setSselectedRow(rows)}
+        onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
 
       />
     <div style={{height: 100}}/>

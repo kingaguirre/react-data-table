@@ -43,7 +43,8 @@ export const Rows = () => {
     onSelectedRowsChange,
     editingCells,
     setEditingCells,
-    hasAction
+    hasAction,
+    isSingleSelect
   } = useContext(DataTableContext);
 
   const cellRefs = useRef({});
@@ -370,24 +371,29 @@ export const Rows = () => {
   }, [collapsibleRowHeight]);
 
   const toggleRowSelection = useCallback((row: any) => {
-    const normalizeSelectedRows = (rows: any[]) =>
-      rows.map((r) => (typeof r === 'string' ? { [rowKey]: r } : r));
+    if (isSingleSelect) {
+      // For single select, directly set the selectedRows with the current row
+      const payload = [row];
+      onSelectedRowsChange?.(payload);
+      setState({ type: SET_SELECTED_ROWS, payload });
+    } else {
+      // Existing multi-select logic...
+      const normalizeSelectedRows = (rows: any[]) =>
+        rows.map((r) => (typeof r === 'string' ? { [rowKey]: r } : r));
 
-    const normalizedSelectedRows = normalizeSelectedRows(selectedRows);
+      const normalizedSelectedRows = normalizeSelectedRows(selectedRows);
+      const rowKeyValue = getDeepValue(row, rowKey);
+      const isSelectedRow = normalizedSelectedRows.find(
+        (r) => getDeepValue(r, rowKey) === rowKeyValue
+      );
+      const payload = isSelectedRow
+        ? normalizedSelectedRows.filter((r) => getDeepValue(r, rowKey) !== rowKeyValue)
+        : [...normalizedSelectedRows, row];
 
-    const rowKeyValue = getDeepValue(row, rowKey); // Correctly fetch the deep value
-
-    const isSelectedRow = normalizedSelectedRows.find(
-      (r) => getDeepValue(r, rowKey) === rowKeyValue // Compare using the deep value
-    );
-
-    const payload = isSelectedRow
-      ? normalizedSelectedRows.filter((r) => getDeepValue(r, rowKey) !== rowKeyValue) // Compare using the deep value
-      : [...normalizedSelectedRows, row];
-
-    onSelectedRowsChange?.(payload);
-    setState({ type: SET_SELECTED_ROWS, payload });
-  }, [selectedRows, rowKey, onSelectedRowsChange, setState]);
+      onSelectedRowsChange?.(payload);
+      setState({ type: SET_SELECTED_ROWS, payload });
+    }
+  }, [selectedRows, rowKey, onSelectedRowsChange, setState, isSingleSelect]);
 
   const isColumnValid = (columns, colIndex, value) => {
     const columnSchema = columns[colIndex]?.actionConfig?.schema;
@@ -583,7 +589,7 @@ export const Rows = () => {
           </Fragment>
         )
       })}
-      {/* <DraggedElements/> */}
+      <DraggedElements/>
       {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
       <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
     </SC.TableRowsContainer>

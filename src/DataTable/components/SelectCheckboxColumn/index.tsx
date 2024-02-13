@@ -1,7 +1,7 @@
 import React from "react";
 import { DataTableContext } from "../../index";
 import { TableCell } from "../Rows/styled";
-import { Checkbox } from "./styled";
+import { Checkbox, Radio } from "./styled";
 
 interface IProps {
   checked?: boolean;
@@ -9,7 +9,7 @@ interface IProps {
 }
 export const SelectCheckboxColumn = (props: IProps) => {
   const { checked, onChange } = props;
-  const { selectable, collapsibleRowRender } = React.useContext(DataTableContext);
+  const { selectable, collapsibleRowRender, isSingleSelect } = React.useContext(DataTableContext); // Added isSingleSelect to context
 
   return selectable ? (
     <TableCell
@@ -22,12 +22,20 @@ export const SelectCheckboxColumn = (props: IProps) => {
       }}
     >
       {!!onChange && (
-        <Checkbox
-          type="checkbox"
-          checked={checked}
-          onChange={onChange}
-        />
+        isSingleSelect ? (
+          <Radio // Use Radio instead of Checkbox for single select
+            type="radio"
+            checked={checked}
+            onChange={onChange}
+          />
+        ) : (
+          <Checkbox
+            type="checkbox"
+            checked={checked}
+            onChange={onChange}
+          />
+        )
       )}
     </TableCell>
-  ) : null
+  ) : null;
 }

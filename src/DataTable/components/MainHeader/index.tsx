@@ -22,7 +22,6 @@ export const MainHeader = () => {
     onColumnSettingsChange,
     onResetClick,
     editingCells,
-    hasAnyFilterConfig
   } = useContext(DataTableContext);
 
   const downloadDropdownRef = useRef(null);

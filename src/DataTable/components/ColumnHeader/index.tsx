@@ -22,7 +22,8 @@ export const ColumnHeader = () => {
     onColumnSettingsChange,
     onSelectedRowsChange,
     collapsibleRowRender,
-    selectable
+    selectable,
+    isSingleSelect
   } = React.useContext(DataTableContext);
 
   const rows = fetchConfig ? fetchedData.data : filteredData;
@@ -42,8 +43,10 @@ export const ColumnHeader = () => {
     <TableRow className="column-header-container">
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
-        checked={(!!rows && !!rows.length) && selectedRows.length === rows.length}
-        onChange={(e) => e.target.checked ? selectAllRows() : deselectAllRows()}
+        {...(!isSingleSelect ? {
+          checked: (!!rows && !!rows.length) && selectedRows.length === rows.length,
+          onChange: (e) => e.target.checked ? selectAllRows() : deselectAllRows()
+        } : {})}
       />
       {columns.map((col, index) => {
         if (col.hidden) return null;

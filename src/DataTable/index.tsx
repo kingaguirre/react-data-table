@@ -55,6 +55,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     customRowSettings,
     actions,
     isPermanentDelete = false,
+    isSingleSelect = false,
     onChange,
     onColumnSettingsChange,
     onRowClick,
@@ -484,7 +485,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         canPaste,
         setCanPaste,
         hasAction,
-        hasAnyFilterConfig
+        hasAnyFilterConfig,
+        isSingleSelect
       }}
     >
       <SC.TableWrapper>

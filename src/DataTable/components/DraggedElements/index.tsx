@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
 // Styled components
 const ParentContainer = styled.div`
   display: flex;
   flex-direction: column;
+  position: relative;
 `;
 
 const Row = styled.div`
@@ -25,36 +26,122 @@ const Col = styled.div`
   }
 `;
 
+const SelectionBox = styled.div`
+  position: absolute;
+  border: 2px dashed #007bff;
+  background-color: rgba(0,123,255,0.1);
+  pointer-events: none;
+`;
+
 export default () => {
   const [isSelecting, setIsSelecting] = useState(false);
-  const selectedCellsRef = useRef([]);
-  const startCellRef = useRef(null);
+  const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
+  const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [selectedCells, setSelectedCells] = useState([]);
   const parentRef = useRef(null);
 
-  const handleMouseDown = (e) => {
-    if (!e.target.dataset.column) return;
-    setIsSelecting(true);
-    const cell = e.target.dataset;
-    startCellRef.current = { row: cell.row, column: cell.column };
-    selectedCellsRef.current = [{ ...startCellRef.current }];
-    e.target.classList.add('selected');
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (parentRef.current && !parentRef.current.contains(event.target)) {
+        setSelectedCells([]);
+        clearSelection();
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  const clearSelection = () => {
+    const cells = parentRef.current.querySelectorAll('.selected');
+    cells.forEach(cell => {
+      cell.classList.remove('selected');
+    });
   };
 
-  const handleMouseOver = (e) => {
-    if (!isSelecting || !e.target.dataset.column) return;
-    const currentCell = e.target.dataset;
-    const currentSelection = { row: currentCell.row, column: currentCell.column };
-    
-    if (!selectedCellsRef.current.some(cell => cell.row === currentSelection.row && cell.column === currentSelection.column)) {
-      selectedCellsRef.current.push(currentSelection);
-      e.target.classList.add('selected');
+  const handleCellClick = (rowIndex, columnIndex, e) => {
+    e.stopPropagation(); // Prevent event from bubbling to handleMouseDown
+
+    const cellKey = `r${rowIndex}c${columnIndex}`;
+    const cellIndex = selectedCells.findIndex(cell => cell.key === cellKey);
+    if (cellIndex >= 0) {
+      const newSelectedCells = [...selectedCells];
+      newSelectedCells.splice(cellIndex, 1);
+      setSelectedCells(newSelectedCells);
+    } else {
+      const newSelectedCells = [...selectedCells, { key: cellKey, rowIndex, columnIndex, column: `colname-${columnIndex}` }];
+      setSelectedCells(newSelectedCells);
     }
+    e.target.classList.toggle('selected');
+  };
+
+  const updateSelection = () => {
+    const newSelectedCells = [];
+    const cells = parentRef.current.querySelectorAll('.cell-container');
+
+    cells.forEach(cell => {
+      const cellRect = cell.getBoundingClientRect();
+      const parentRect = parentRef.current.getBoundingClientRect();
+      const cellTop = cellRect.top - parentRect.top + parentRef.current.scrollTop;
+      const cellLeft = cellRect.left - parentRect.left + parentRef.current.scrollLeft;
+      const cellBottom = cellTop + cellRect.height;
+      const cellRight = cellLeft + cellRect.width;
+
+      const isInSelectionBox =
+        cellRight > selectionBox.x &&
+        cellLeft < selectionBox.x + selectionBox.width &&
+        cellBottom > selectionBox.y &&
+        cellTop < selectionBox.y + selectionBox.height;
+
+      if (isInSelectionBox) {
+        cell.classList.add('selected');
+        const rowIndex = parseInt(cell.dataset.rowIndex, 10);
+        const columnIndex = parseInt(cell.dataset.columnIndex, 10);
+        newSelectedCells.push({
+          rowIndex,
+          columnIndex,
+          column: cell.dataset.column,
+        });
+      } else {
+        cell.classList.remove('selected');
+      }
+    });
+
+    setSelectedCells(newSelectedCells);
+  };
+
+  const handleMouseDown = (e) => {
+    setIsSelecting(true);
+    const rect = parentRef.current.getBoundingClientRect();
+    const startX = e.clientX - rect.left;
+    const startY = e.clientY - rect.top;
+    setStartPoint({ x: startX, y: startY });
+    setSelectionBox({ x: startX, y: startY, width: 0, height: 0 });
+    e.stopPropagation(); // Prevent event from bubbling
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isSelecting) return;
+    const rect = parentRef.current.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    setSelectionBox({
+      x: Math.min(startPoint.x, currentX),
+      y: Math.min(startPoint.y, currentY),
+      width: Math.abs(currentX - startPoint.x),
+      height: Math.abs(currentY - startPoint.y),
+    });
+
+    updateSelection();
   };
 
   const handleMouseUp = () => {
     setIsSelecting(false);
-    console.log('Selected Cells:', selectedCellsRef.current);
-    Array.from(parentRef.current.querySelectorAll('.selected')).forEach(cell => cell.classList.remove('selected'));
+    console.log(selectedCells); // Log the selected cells for debugging
+    setSelectionBox({ x: 0, y: 0, width: 0, height: 0 });
   };
 
   const renderGrid = () => {
@@ -64,12 +151,13 @@ export default () => {
       <Row key={rowIndex}>
         {Array.from({ length: cols }, (_, colIndex) => (
           <Col
-            key={colIndex}
-            data-row={rowIndex}
-            data-column={colIndex}
+            key={`${rowIndex}-${colIndex}`}
+            className="cell-container"
+            data-row-index={rowIndex}
+            data-column-index={colIndex}
+            data-column={`colname-${colIndex}`}
             onMouseDown={handleMouseDown}
-            onMouseOver={handleMouseOver}
-            onMouseUp={handleMouseUp} // Mouse up can be handled on individual cells too
+            onClick={(e) => handleCellClick(rowIndex, colIndex, e)}
           >
             {colIndex + 1}
           </Col>
@@ -79,8 +167,22 @@ export default () => {
   };
 
   return (
-    <ParentContainer ref={parentRef}>
+    <ParentContainer
+      ref={parentRef}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    >
       {renderGrid()}
+      {isSelecting && (
+        <SelectionBox
+          style={{
+            left: `${selectionBox.x}px`,
+            top: `${selectionBox.y}px`,
+            width: `${selectionBox.width}px`,
+            height: `${selectionBox.height}px`,
+          }}
+        />
+      )}
     </ParentContainer>
   );
 };
