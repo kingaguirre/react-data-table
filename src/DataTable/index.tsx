@@ -19,7 +19,7 @@ import {
   getValue
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
-import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA } from "./context/actions";
+import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA, SET_SELECTED_ROWS, SET_ACTIVE_ROW } from "./context/actions";
 import * as SC from "./styled";
 import { Rows } from "./components/Rows";
 import { LoadingPanel } from "./components/Rows/styled";
@@ -34,9 +34,9 @@ import Ajv from 'ajv';
 export const DataTableContext = createContext<any>(null);
 
 export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref<any>) => {
-// export const DataTable = (props: DataTableProps) => {
   /** Refs */
   const tableRef = useRef<HTMLDivElement>(null);
+  const selectionRangeRef = useRef<any>(null);
 
   const {
     dataSource,
@@ -64,10 +64,12 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     onPageSizeChange,
     onPageIndexChange,
     onSelectedRowsChange,
+    selectionRange,
   } = props;
 
   const [canPaste, setCanPaste] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<any>(null);
+  const [selectedCells, setSelectedCells] = useState<any>(null);
   const [editingCells, setEditingCells] = useState<Array<{
     cancelledRowIndex
     columnIndex: number;
@@ -145,6 +147,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   /** Callback Start */
   const onAddRow = useCallback((data, rowIndex, isNewAddedRow = false) => {
     try {
+      /** Clear selection if there's any */
+      selectionRangeRef?.current?.clearSelection();
+
       const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
       const rowKeyValue = getDeepValue(parsedData, rowKey);
       const intentAction = getDeepValue(parsedData, 'intentAction');
@@ -191,7 +196,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         // Remove row values in state
         setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== cancelledRowIndex));
         // When permanent delete, remove selected cell if its same row
-        setSelectedColumn(prev => prev.rowIndex === cancelledRowIndex ? null : prev);
+        setSelectedColumn(prev => prev?.rowIndex === cancelledRowIndex ? null : prev);
 
         if (fetchConfig) {
           setState({
@@ -244,12 +249,15 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   };
 
   const onDeleteRow = useCallback((data, rowIndex) => {
+    /** Clear selection if there's any */
+    selectionRangeRef?.current?.clearSelection();
+
     if (isPermanentDelete) {
       doPermanentDelete(data);
       // When permanent delete, remove all data with same row in editingCells state
       setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== rowIndex));
       // When permanent delete, remove selected cell if its same row
-      setSelectedColumn(prev => prev.rowIndex === rowIndex ? null : prev);
+      setSelectedColumn(prev => prev?.rowIndex === rowIndex ? null : prev);
     } else {
       doUpdateRowIntentAction(data);
     }
@@ -407,7 +415,10 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   }, [state.localData, state.fetchedData.data, state.columns])
 
   React.useImperativeHandle(ref, () => ({
-    validate: validateData
+    validate: validateData,
+    getSelectedRows: () => state.selectedRows,
+    clearSelectedRows: () => setState({ type: SET_SELECTED_ROWS, payload: [] }),
+    clearActiveRow: () => setState({ type: SET_ACTIVE_ROW, payload: null }),
   }));
 
   /** Custom Functions End */
@@ -495,7 +506,11 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         hasAnyFilterConfig,
         isSingleSelect,
         selectedColumn,
-        setSelectedColumn
+        setSelectedColumn,
+        selectedCells,
+        setSelectedCells,
+        selectionRange,
+        selectionRangeRef
       }}
     >
       <SC.TableWrapper>

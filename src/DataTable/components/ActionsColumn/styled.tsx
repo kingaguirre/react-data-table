@@ -24,7 +24,7 @@ export const DropdownContainer = styled.div`
   background: white;
   margin: 0;
   display: block;
-  z-index: 10001;
+  z-index: 20001;
   > div {
     color: black;
     padding: 4px 8px;

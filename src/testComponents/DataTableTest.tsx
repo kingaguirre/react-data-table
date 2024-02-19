@@ -57,6 +57,7 @@ const dataSource = Array(5).fill("").map((_, i) => ({
   username: i === 0 ? ['test1', 'test2', 'test3'] : `test-username${i}`,
   password: `test-password${i}`,
   userDetails: {
+    image: "asdasdasd",
     email: `test${i}@email.com`,
     isAdmin: {
       value: (i % 2 === 0).toString()
@@ -384,11 +385,11 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
-const ACTIONS_LIST = [Actions.DELETE, Actions.ADD]
+const ACTIONS_LIST = [Actions.DELETE, Actions.ADD, Actions.COPY, Actions.DUPLICATE, Actions.EDIT]
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
   const menuFormRef = React.createRef<any>();
-  const dataTablemRef = React.createRef<any>();
+  const dataTableRef = React.createRef<any>();
   const [actions, setActions] = useState<any>(ACTIONS_LIST)
   const [colSettings, setColSettings] = useState<any>(columnSettings)
 
@@ -397,8 +398,8 @@ export default () => {
       const isValid = menuFormRef.current.validate();
       console.log("Form is valid:", isValid);
     }
-    if (dataTablemRef.current) {
-      const isValid = dataTablemRef.current.validate();
+    if (dataTableRef.current) {
+      const isValid = dataTableRef.current.validate();
       console.log("validate data-table:", isValid);
     }
   };
@@ -415,9 +416,25 @@ export default () => {
     console.log("Column settings:", newColumnSettings);
   };
 
+  const handleGetSelectedRows = () => {
+    const selectedRows = dataTableRef.current.getSelectedRows();
+    console.log('Selected Rows:', selectedRows);
+  };
+
+  const handleClearSelectedRows = () => {
+    dataTableRef.current.clearSelectedRows();
+  };
+
+  const handleClearActiveRow = () => {
+    dataTableRef.current.clearActiveRow();
+  };
+
   return (
     <div style={{padding: 16}}>
       <button onClick={handleClick}>Validate</button>
+      <button onClick={handleGetSelectedRows}>Get Selected Rows</button>
+      <button onClick={handleClearSelectedRows}>Clear Selected Rows</button>
+      <button onClick={handleClearActiveRow}>Clear Active Rows</button>
       {/* <MenuForm
         ref={menuFormRef}
         formSettings={FORM_MENU_FIELD_SETTINGS}
@@ -426,7 +443,7 @@ export default () => {
       /> */}
       <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <button onClick={() => {
-        setActions([Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.EDIT])
+        setActions([Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE])
       }}>Remove "Add Action"</button>
       <button onClick={() => setActions(ACTIONS_LIST)}>Add "Add Action"</button>
 
@@ -454,14 +471,14 @@ export default () => {
       }}>Remove "Column Filter"</button>
 
       <DataTable
-        ref={dataTablemRef}
+        ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
         columnSettings={colSettings}
         // onRowClick={handleRowClick}
         // onRowDoubleClick={handleRowDoubleClick}
         rowKey="userID.value"
-        // activeRow="user-id2"
+        activeRow="user-id2"
         // selectedRows={[{"userID": { "value": "user-id0" }}]}
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
@@ -528,6 +545,7 @@ export default () => {
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         // onSelectedRowsChange={rows => setSselectedRow(rows)}
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
+        selectionRange
 
       />
     <div style={{height: 100}}/>

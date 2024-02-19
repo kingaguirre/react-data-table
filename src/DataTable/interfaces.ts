@@ -58,6 +58,7 @@ export interface DataTableProps {
   customRowSettings?: CustomRowSettings[]; // (Optional) Custom settings for rows based on column values.
   actions?: Actions | Actions[]; // (Optional) Actions available in the table.
   isPermanentDelete?: boolean; // (Optional) If delete action permanently removes data.
+  selectionRange?: boolean; // (Optional) Enable cell selction for copy or paste data from excel.
   onChange?: (updatedData: any[]) => void; // (Optional) Callback when table data is updated.
   onRowClick?: (rowData: any) => void; // (Optional) Callback when a row is clicked.
   onRowDoubleClick?: (rowData: any) => void; // (Optional) Callback when a row is double-clicked.
@@ -84,5 +85,7 @@ export interface ColumnSettings {
   actionConfig?: any; // (Optional) Configuration for actions specific to this column.
   class?: string; // (Optional) CSS class for styling the column.
   selectable?: boolean; // (Optional) If selecting the column is disabled.
+  disableSelection?: boolean; // (Optional) If column cannot be selected when selection is enabled.
+  disableCopy?: boolean // (Optional) If column cannot be copy when selection is enabled and user press copy.
   columnCustomRenderer?: (value: any, rowData: any, index?: number) => React.ReactNode; // (Optional) Custom renderer for column data, can be any component.
 }

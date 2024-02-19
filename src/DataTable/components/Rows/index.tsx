@@ -7,10 +7,11 @@ import {
   mergeCustomStylesForRow,
   setDeepValue,
   isStringExist,
-  areArraysOfObjectsEqual,
   findUpdatedIndex,
   getValue,
-  useCheckOverflow
+  useCheckOverflow,
+  copyDataWithExcelFormat,
+  getTableCellClass
 } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -21,7 +22,7 @@ import { Actions } from "../../interfaces";
 import Ajv from "ajv";
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css'; // optional
-import DraggedElements from '../DraggedElements';
+import SelectionRange from '../SelectionRange';
 
 export const Rows = () => {
   const {
@@ -46,7 +47,11 @@ export const Rows = () => {
     hasAction,
     isSingleSelect,
     selectedColumn,
-    setSelectedColumn
+    setSelectedColumn,
+    selectedCells,
+    setSelectedCells,
+    selectionRange,
+    selectionRangeRef
   } = useContext(DataTableContext);
 
   const cellRefs = useRef({});
@@ -260,10 +265,9 @@ export const Rows = () => {
 
   useEffect(() => {
     const handleCopyToClipboard = (e) => {
-      if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedColumn !== null) {
-        const rowData = rows?.[selectedColumn.rowIndex];
-        const columnText = getDeepValue(rowData, selectedColumn.column);
-        navigator.clipboard.writeText(columnText);
+      if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
+        const texts = copyDataWithExcelFormat(rows, selectedCells);
+        navigator.clipboard.writeText(texts);
       }
     };
   
@@ -272,7 +276,23 @@ export const Rows = () => {
     return () => {
       document.removeEventListener('keydown', handleCopyToClipboard);
     };
-  }, [selectedColumn, rows]);
+  }, [selectedCells, rows]);
+
+  // useEffect(() => {
+  //   const handleCopyToClipboard = (e) => {
+  //     if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedColumn !== null) {
+  //       const rowData = rows?.[selectedColumn.rowIndex];
+  //       const columnText = getDeepValue(rowData, selectedColumn.column);
+  //       navigator.clipboard.writeText(columnText);
+  //     }
+  //   };
+  
+  //   document.addEventListener('keydown', handleCopyToClipboard);
+  
+  //   return () => {
+  //     document.removeEventListener('keydown', handleCopyToClipboard);
+  //   };
+  // }, [selectedColumn, rows]);
 
   const checkEditability = (columnEditable, isEditable, isColumnNew) => {
     if (columnEditable === undefined) {
@@ -341,9 +361,9 @@ export const Rows = () => {
   );
 
   const handleCellClick = useCallback((props) => {
-    const { event, editingCell, rowIndex, colIndex: columnIndex, cellValue } = props;
-    const columnEditable = columns[columnIndex].actionConfig;
-    const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === columnIndex)?.isNew;
+    const { event, col, rowIndex, colIndex, cellValue, editingCell } = props;
+    const columnEditable = col.actionConfig;
+    const isColumnNew = editingCells.find(i => i.rowIndex === rowIndex && i.columnIndex === colIndex)?.isNew;
     const _val = getValue(cellValue);
     const value = _val !== "null" ? _val : "";
 
@@ -352,18 +372,19 @@ export const Rows = () => {
     }
 
     if (checkEditability(columnEditable, isEditable, isColumnNew)) {
+      
       setEditingCells(prev => {
-        const isExist = prev?.find(i => rowIndex === i.rowIndex && columnIndex === i.columnIndex);
+        const isExist = prev?.find(i => rowIndex === i.rowIndex && colIndex === i.columnIndex);
         return isExist ? prev?.map(i => {
-          return rowIndex === i.rowIndex && columnIndex === i.columnIndex ? {
+          return rowIndex === i.rowIndex && colIndex === i.columnIndex ? {
             ...i,
             value,
             editable: true
           } : i
-        }) : [...prev, { rowIndex, columnIndex, value, editable: true }]
+        }) : [...prev, { rowIndex, columnIndex: colIndex, value, editable: true }]
       });
 
-      setSelectedColumn({rowIndex, column: columns[columnIndex]?.column})
+      setSelectedColumn({rowIndex, column: col?.column})
     }
   }, [isEditable, columns, editingCells]);
 
@@ -417,184 +438,193 @@ export const Rows = () => {
   }
 
   return (
-    <SC.TableRowsContainer isFetching={isFetching}>
-      {rows?.map((row, rowIndex) => {
-        const rowKeyValue = getDeepValue(row, rowKey);
-        let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
-        const isRowCollapsed = collapsedRows.includes(rowKeyValue);
-        const isActiveRow = rowKeyValue === activeRow;
-        const isSelectedRow =
-          !!selectedRows.find(selectedRow => {
-            // This will get the deep value if it's an object or just return the value if it's a string or number.
-            const selectedRowKeyValue = typeof selectedRow === 'object' ? getDeepValue(selectedRow, rowKey) : selectedRow;
-            return selectedRowKeyValue === rowKeyValue;
-          });
+    <SelectionRange ref={selectionRangeRef} {...(selectionRange ? {onSelectionChange: (cells) => setSelectedCells(cells)} : {})}>
+      <SC.TableRowsContainer isFetching={isFetching}>
+        {rows?.map((row, rowIndex) => {
+          const rowKeyValue = getDeepValue(row, rowKey);
+          let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
+          const isRowCollapsed = collapsedRows.includes(rowKeyValue);
+          const isActiveRow = rowKeyValue === activeRow;
+          const isSelectedRow =
+            !!selectedRows.find(selectedRow => {
+              // This will get the deep value if it's an object or just return the value if it's a string or number.
+              const selectedRowKeyValue = typeof selectedRow === 'object' ? getDeepValue(selectedRow, rowKey) : selectedRow;
+              return selectedRowKeyValue === rowKeyValue;
+            });
 
-        const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
+          const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
 
-        return (
-          <Fragment key={rowIndex}>
-            <SC.TableRow
-              {...(!!clickableRow ? {
-                onClick: () => handleRowClick(row)
-              } : {})}
-              className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${addedRow === rowIndex ? 'highlighted' : ''}`}
-            >
-              <CollapsibleRowColumn
-                onClick={() => toggleRowCollapse(rowKeyValue)}
-                isRowCollapsed={isRowCollapsed}
-              />
-              <SelectCheckboxColumn
-                checked={isSelectedRow}
-                onChange={() => toggleRowSelection(row)}
-              />
-              {columns.map((col, colIndex) => {
-                if (col.hidden) return null;
+          return (
+            <Fragment key={rowIndex}>
+              <SC.TableRow
+                {...(!!clickableRow ? {
+                  onClick: () => handleRowClick(row)
+                } : {})}
+                className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${addedRow === rowIndex ? 'highlighted' : ''}`}
+              >
+                <CollapsibleRowColumn
+                  onClick={() => toggleRowCollapse(rowKeyValue)}
+                  isRowCollapsed={isRowCollapsed}
+                />
+                <SelectCheckboxColumn
+                  checked={isSelectedRow}
+                  onChange={() => toggleRowSelection(row)}
+                />
+                {columns.map((col, colIndex) => {
+                  if (col.hidden) return null;
 
-                const isSelectedColumn = selectedColumn?.rowIndex === rowIndex && selectedColumn?.column === col.column;
-                const ref = cellRefs.current[`${rowIndex}-${colIndex}`];
-                const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
+                  const isSelectedColumn = selectedColumn?.rowIndex === rowIndex && selectedColumn?.column === col.column;
+                  const ref = cellRefs.current[`${rowIndex}-${colIndex}`];
+                  const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
 
-                if (isPinned) {
-                  pinnedWidth += colWidth;
-                }
-
-                let cellContent;
-                let _isColumnInValid = false;
-                let _hasOldValue = "";
-
-                const editingCell = editingCells.find(cell => 
-                  cell.rowIndex === rowIndex && cell.columnIndex === colIndex
-                );
-
-                const cellValue = getDeepValue(row, col.column);
-                const isDeletedRow = getDeepValue(row, "intentAction") === "R";
-                const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
-                const isNewRow = checkIsNewRow(row);
-                const hasEditAction = hasAction(Actions.EDIT);
-                const isNotEditable = col?.actionConfig === false || !hasEditAction;
-
-                // Render the cell based on whether it's being edited or not
-                if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && !isDeletedRow && isNewRow) {
-                  const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
-                  const isInvalid = editingCell?.invalid;
-                  const error = editingCell?.error;
-                  const inputType = columnActionConfig?.type || "text";
-
-                  // Upload
-                  if (inputType === "select") {
-                    cellContent = (
-                      <div>
-                        <select
-                          value={editingCell.value}
-                          onChange={handleCellChange(rowIndex, colIndex)}
-                          onBlur={() => handleDoEdit(rowIndex, colIndex)}
-                          onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                          // autoFocus
-                          className={isInvalid ? "invalid" : ""}
-                        >
-                          {columnActionConfig.options.map(opt => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.text}
-                            </option>
-                          ))}
-                        </select>
-                        {isInvalid && <span>{error}</span>}
-                      </div>
-                    );
-                  } else {
-                    // Assuming type "text" for now, but you can add more types
-                    cellContent = (
-                      <div>
-                        <input
-                          type="text"
-                          value={editingCell.value || ""}
-                          onChange={handleCellChange(rowIndex, colIndex)}
-                          onBlur={() => handleDoEdit(rowIndex, colIndex)}
-                          onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                          // autoFocus
-                          className={isInvalid ? "invalid" : ""}
-                        />
-                        {isInvalid && <span>{error}</span>}
-                      </div>
-                    );
+                  if (isPinned) {
+                    pinnedWidth += colWidth;
                   }
-                } else {
-                  // Render normal cell content
-                  if (col.columnCustomRenderer) {
-                    cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
-                    _isColumnInValid = false;
-                  } else {
-                    if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
-                      cellContent = JSON.stringify(cellValue)
+
+                  let cellContent;
+                  let _isColumnInValid = false;
+                  let _hasOldValue = "";
+
+                  const editingCell = editingCells.find(cell => 
+                    cell.rowIndex === rowIndex && cell.columnIndex === colIndex
+                  );
+
+                  const cellValue = getDeepValue(row, col.column);
+                  const isDeletedRow = getDeepValue(row, "intentAction") === "R";
+                  const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
+                  const isNewRow = getDeepValue(row, "intentAction") === "*";
+                  const hasEditAction = hasAction(Actions.EDIT);
+
+                  const isColumnEditable = isNewRow ? true : col?.actionConfig !== false && hasEditAction && !isDeletedRow;
+
+                  // Render the cell based on whether it's being edited or not
+                  if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && isColumnEditable) {
+                    const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
+                    const isInvalid = editingCell?.invalid;
+                    const error = editingCell?.error;
+                    const inputType = columnActionConfig?.type || "text";
+
+                    // Upload
+                    if (inputType === "select") {
+                      cellContent = (
+                        <div>
+                          <select
+                            value={editingCell.value}
+                            onChange={handleCellChange(rowIndex, colIndex)}
+                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
+                            // autoFocus
+                            className={isInvalid ? "invalid" : ""}
+                          >
+                            {columnActionConfig.options.map(opt => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.text}
+                              </option>
+                            ))}
+                          </select>
+                          {isInvalid && <span>{error}</span>}
+                        </div>
+                      );
                     } else {
-                      cellContent = cellValue !== "null" ? cellValue : "";
+                      // Assuming type "text" for now, but you can add more types
+                      cellContent = (
+                        <div>
+                          <input
+                            type="text"
+                            value={editingCell.value || ""}
+                            onChange={handleCellChange(rowIndex, colIndex)}
+                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
+                            // autoFocus
+                            className={isInvalid ? "invalid" : ""}
+                          />
+                          {isInvalid && <span>{error}</span>}
+                        </div>
+                      );
                     }
-                    cellContent = getValue(cellContent);
-                    _isColumnInValid = !isColumnValid(columns, colIndex, cellContent);
-                    _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
-                    
-                    if (search) {
-                      cellContent = highlightText(cellContent, search);
+                  } else {
+                    // Render normal cell content
+                    if (col.columnCustomRenderer) {
+                      cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
+                      _isColumnInValid = false;
+                    } else {
+                      if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
+                        cellContent = JSON.stringify(cellValue)
+                      } else {
+                        cellContent = cellValue !== "null" ? cellValue : "";
+                      }
+                      cellContent = getValue(cellContent);
+                      _isColumnInValid = !isColumnValid(columns, colIndex, cellContent);
+                      _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
+                      
+                      if (search) {
+                        cellContent = highlightText(cellContent, search);
+                      }
                     }
                   }
-                }
 
-                const cellKey = `row-${rowIndex}-col-${colIndex}`;
-                const hasEllipsis = ellipsisMap.get(cellKey);
-                // const columnRef = refsMap.current.get(cellKey); // way to get each column ref
+                  const cellKey = `row-${rowIndex}-col-${colIndex}`;
+                  const hasEllipsis = ellipsisMap.get(cellKey);
+                  // const columnRef = refsMap.current.get(cellKey); // way to get each column ref
 
-                return (
-                  <Fragment key={colIndex}>
-                    <SC.TableCell
-                      ref={ref}
-                      width={col.width}
-                      minWidth={col.minWidth}
-                      align={col.align}
-                      isPinned={isPinned}
-                      style={{
-                        ...pinnedStyle,
-                        ...(isUpdatedRow ? {
-                          backgroundColor: _hasOldValue ? "yellow" : "white"
-                        } : customRowStyle)
-                      }}
-                      {...((!isNotEditable && !isDeletedRow || isNewRow) ? {
-                        onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell, isNotEditable})
-                      } : {})}
-                      className={`${isSelectedColumn ? 'selected' : ''} ${hasEditAction ? isNotEditable ? 'is-not-editable' : !isDeletedRow ? 'is-editable' : '' : ''} ${col?.class}`}
-                    >
-                      <SC.CellContent
-                        className="cell-content"
-                        isCustomColumn={!!col.columnCustomRenderer}
-                        style={{ maxWidth: col.width }}
-                        ref={node => addElement(node, cellKey)}
+                  return (
+                    <Fragment key={colIndex}>
+                      <SC.TableCell
+                        ref={ref}
+                        width={col.width}
+                        minWidth={col.minWidth}
+                        align={col.align}
+                        isPinned={isPinned}
+                        style={{
+                          ...pinnedStyle,
+                          ...(isUpdatedRow ? {
+                            backgroundColor: _hasOldValue ? "yellow" : "white"
+                          } : customRowStyle)
+                        }}
+                        {...(isColumnEditable ? {
+                          onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell})
+                        } : {})}
+                        className={getTableCellClass({isSelectedColumn, hasEditAction, isColumnEditable, col})}
+                        data-row-index={rowIndex}
+                        data-column-index={colIndex}
+                        data-column={col.column}
+                        data-disable-selection={col.disableSelection}
+                        data-disable-copy={col.disableCopy || !!col.columnCustomRenderer}
+                        data-column-name={col.title}
                       >
-                        {cellContent}
-                      </SC.CellContent>
-                      <ColumnDragHighlighter index={colIndex} />
-                      <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
-                      {_isColumnInValid && <SC.InvalidBorder/>}
-                    </SC.TableCell>
-                    {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
-                    {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
-                  </Fragment>
-                )
-              })}
-            </SC.TableRow>
-            {isRowCollapsed && collapsibleRowRender && (
-              <SC.TableRow style={{ height: collapsibleRowHeight }}>
-                <SC.CollapsibleRowRenderContainer>
-                  {collapsibleRowRender(row)}
-                </SC.CollapsibleRowRenderContainer>
+                        <SC.CellContent
+                          className="cell-content"
+                          isCustomColumn={!!col.columnCustomRenderer}
+                          style={{ maxWidth: col.width }}
+                          ref={node => addElement(node, cellKey)}
+                        >
+                          {cellContent}
+                        </SC.CellContent>
+                        <ColumnDragHighlighter index={colIndex} />
+                        <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
+                        {_isColumnInValid && <SC.InvalidBorder/>}
+                      </SC.TableCell>
+                      {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
+                      {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
+                    </Fragment>
+                  )
+                })}
               </SC.TableRow>
-            )}
-          </Fragment>
-        )
-      })}
-      <DraggedElements/>
-      {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
-      <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
-    </SC.TableRowsContainer>
+              {isRowCollapsed && collapsibleRowRender && (
+                <SC.TableRow style={{ height: collapsibleRowHeight }}>
+                  <SC.CollapsibleRowRenderContainer>
+                    {collapsibleRowRender(row)}
+                  </SC.CollapsibleRowRenderContainer>
+                </SC.TableRow>
+              )}
+            </Fragment>
+          )
+        })}
+        {/* <SelectionRange onSelectionChange={(e) => console.log(e)}/> */}
+        {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
+        <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
+      </SC.TableRowsContainer>
+    </SelectionRange>
   )
 }
 

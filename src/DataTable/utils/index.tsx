@@ -38,16 +38,16 @@ export const useDoubleClick = (onClick, onDoubleClick, delay = 150) => {
   return handleClick;
 };
 
-export const getDeepValue = (obj: any, path: string, returnObj = false) => {
+export const getDeepValue = (obj, path, returnObj = false) => {
   const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
 
   if (value instanceof Date) {
-    return value; /** Return date objects as they are */
-  } else if (typeof value === 'boolean' || typeof value === 'object') {
-    return returnObj ? value : JSON.stringify(value);
+    return value.toISOString(); // Format Date objects as ISO strings
+  } else if (typeof value === 'boolean' || typeof value === 'object' && !returnObj) {
+    return JSON.stringify(value); // Convert booleans and objects to strings, unless returnObj is true
   }
 
-  return value;
+  return value || ""; // Return the value or an empty string if undefined
 };
 
 const deepClone = (obj) => {
@@ -262,6 +262,7 @@ export const setColumnSettings = (
       draggable: false,
       actionConfig: false,
       selectable: false,
+      disableSelection: true,
       class: 'custom-action-column',
     })) : [];
 
@@ -288,6 +289,7 @@ export const setColumnSettings = (
     draggable: false,
     actionConfig: false,
     selectable: false,
+    disableSelection: true,
     class: 'custom-action-column',
     columnCustomRenderer: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex} />
   }] : [];
@@ -689,6 +691,63 @@ export const updateSchemaObjectProperties = (obj) => {
   
   // If 'value' doesn't exist, return a shallow copy of the object as is
   return { ...obj };
+}
+
+export const getTableCellClass = (props: any) => {
+  const { isSelectedColumn, hasEditAction, isColumnEditable, col } = props;
+  const isNotEditable = col?.actionConfig === false;
+
+  return [
+    'table-cell',
+    ...(isSelectedColumn ? ['selected'] : ''),
+    ...(hasEditAction ? [
+      ...(isColumnEditable ? ['is-editable'] : [ ...(isNotEditable ? ['is-not-editable'] : '') ])
+    ] : ''),
+    ...(col?.class ? [col?.class] : '')
+  ].join(' ')
+};
+
+export const copyDataWithExcelFormat = (data, selectedCells) => {
+  let grid: any = [];
+
+  // Initialize the header row with undefined values to avoid empty cells at the beginning
+  const headerRow = Array.from({ length: Math.max(...selectedCells.map(cell => cell.columnIndex + 1)) }, () => undefined);
+
+  // Populate the header row based on selectedCells.columnName
+  selectedCells.forEach(cell => {
+    headerRow[cell.columnIndex] = cell.columnName;
+  });
+
+  // Add the header row to the grid
+  grid[0] = headerRow.filter(cell => cell !== undefined); // Remove leading undefined cells in the header row
+
+  // Populate the grid with data from selectedCells
+  selectedCells.forEach(cell => {
+    const dataSourceItem = data[cell.rowIndex];
+    let value = ""; // Initialize value as empty string
+
+    // Check if disableCopy is not true before fetching the value
+    if (!cell.disableCopy) {
+      value = getValue(getDeepValue(dataSourceItem, cell.column)) || "";
+    }
+
+    // Ensure row exists in grid, considering the header row offset (+1)
+    if (!grid[cell.rowIndex + 1]) {
+      grid[cell.rowIndex + 1] = Array.from({ length: headerRow.length }, () => undefined); // Initialize with undefined
+    }
+
+    // Populate the cell directly based on columnIndex
+    grid[cell.rowIndex + 1][cell.columnIndex] = value; // Use the determined value
+  });
+
+  // Adjust each row to ensure no leading undefined cells and join cells with "\t"
+  const excelReadyText = grid.map(row => {
+    // Remove leading undefined cells in each data row
+    const firstNonEmptyIndex = row.findIndex(cell => cell !== undefined);
+    return row.slice(firstNonEmptyIndex).map(cell => cell === undefined ? "" : cell).join("\t");
+  }).join("\n");
+
+  return excelReadyText;
 }
 
 export * from "./useDragDropManager";
