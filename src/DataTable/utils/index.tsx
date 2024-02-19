@@ -697,14 +697,29 @@ export const getTableCellClass = (props: any) => {
   const { isSelectedColumn, hasEditAction, isColumnEditable, col } = props;
   const isNotEditable = col?.actionConfig === false;
 
-  return [
-    'table-cell',
-    ...(isSelectedColumn ? ['selected'] : ''),
-    ...(hasEditAction ? [
-      ...(isColumnEditable ? ['is-editable'] : [ ...(isNotEditable ? ['is-not-editable'] : '') ])
-    ] : ''),
-    ...(col?.class ? [col?.class] : '')
-  ].join(' ')
+  // Initialize the class array with the default class
+  let classes = ['table-cell'];
+
+  // Conditionally add 'selected' class
+  if (isSelectedColumn) {
+    classes = classes.concat('selected');
+  }
+
+  // Conditionally add classes based on edit actions and editability
+  if (hasEditAction) {
+    if (isColumnEditable) {
+      classes = classes.concat('is-editable');
+    } else if (isNotEditable) {
+      classes = classes.concat('is-not-editable');
+    }
+  }
+
+  // Conditionally add a class from the col object
+  if (col?.class) {
+    classes = classes.concat(col.class);
+  }
+
+  return classes.join(' ');
 };
 
 export const copyDataWithExcelFormat = (data, selectedCells) => {
