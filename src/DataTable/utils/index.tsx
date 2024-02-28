@@ -548,16 +548,40 @@ const extractValueFromObject = (obj) => {
       // Handle when 'value' is an array
       return obj.value.join(', ');
     } else if (typeof obj.value === 'string') {
-      // Handle when 'value' is a string
+      // Check if 'value' is a date string
+      if (isDateString(obj.value)) {
+        // 'value' is a valid date string, format the date
+        return format(new Date(obj.value));
+      }
+      // Handle when 'value' is a string but not a date
       return obj.value;
+    } else if (obj.value instanceof Date) {
+      // Directly handle if 'value' is a Date object
+      return format(obj.value);
     }
   }
-  return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string
+  return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string/date
+};
+
+
+const isDateString = (input) => {
+  const date = new Date(input);
+  return !isNaN(date.getTime()); // Check if the date is valid
+};
+
+const format = (date) => {
+  // Assuming format() is defined to format a Date object into a string
+  // This is a placeholder; you should replace it with actual date formatting logic
+  return date.toISOString(); // Example formatting
 };
 
 export const getValue = (input) => {
   // Check if input is a string
   if (typeof input === 'string') {
+    if (isDateString(input)) {
+      // Input is a valid date string, format the date
+      return format(new Date(input));
+    }
     try {
       const parsedObject = JSON.parse(input);
       if (Array.isArray(parsedObject)) {
