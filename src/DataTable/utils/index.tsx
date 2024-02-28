@@ -39,7 +39,7 @@ export const useDoubleClick = (onClick, onDoubleClick, delay = 150) => {
 };
 
 export const getDeepValue = (obj, path, returnObj = false) => {
-  const value = path.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
+  const value = path?.split(/[\.\[\]]+/).filter(Boolean).reduce((acc, part) => acc && acc[part], obj);
 
   if (value instanceof Date) {
     return value.toISOString(); // Format Date objects as ISO strings
@@ -193,19 +193,35 @@ export const debounce = (func, wait) => {
 
 export const filterCheck = (filterValue: any, rowValue: string, filterType: string = "number-range") => {
   const isNumberRange = filterType === "number-range";
-  const parsedRowValue = isNumberRange ? parseFloat(rowValue) : new Date(rowValue);
+  let parsedRowValue: any = isNumberRange ? parseFloat(rowValue) : new Date(rowValue);
+
+  if (!isNumberRange) {
+    // Adjust parsedRowValue to the start of the day for consistent comparison
+    parsedRowValue = new Date(parsedRowValue.setHours(0, 0, 0, 0));
+  }
 
   switch (true) {
     case (!!filterValue && (!filterValue.min || !filterValue.max)):
     case (!filterValue || (filterValue.min === "" && filterValue.max === "")):
-    case (parsedRowValue >= (isNumberRange ? parseFloat(filterValue.min) : new Date(filterValue.min)) &&
-      parsedRowValue <= (isNumberRange ? parseFloat(filterValue.max) : new Date(filterValue.max))):
       return true;
 
+    case isNumberRange:
+      return (
+        parsedRowValue >= parseFloat(filterValue.min) &&
+        parsedRowValue <= parseFloat(filterValue.max)
+      );
+
     default:
-      return false;
+      // Create date objects for comparison, adjusting the max date to the end of the day
+      const minDate = new Date(filterValue.min);
+      minDate.setHours(0, 0, 0, 0); // Start of the min day
+      const maxDate = new Date(filterValue.max);
+      maxDate.setHours(23, 59, 59, 999); // End of the max day
+
+      return parsedRowValue >= minDate && parsedRowValue <= maxDate;
   }
 }
+
 
 export const mergeColumnSettings = (originalColumns, savedColumns) => {
   return originalColumns.map((originalColumn) => {
@@ -253,7 +269,7 @@ export const setColumnSettings = (
   let customColumns = (!!customRowSettings && customRowSettings.length > 0)
     ? customRowSettings.filter(i => i.showColumn !== false).map(i => ({
       column: i.column,
-      title: "#",
+      title: i.title || "#",
       align: "center",
       order: 0,
       pinned: "none",
