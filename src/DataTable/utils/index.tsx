@@ -805,6 +805,70 @@ export const copyDataWithExcelFormat = (data, selectedCells) => {
   return excelReadyText;
 }
 
+export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_cells, excelData) => {
+  // Deep clone function to avoid mutating the original data_source
+  const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+  // Step 1: Parse the Excel copied data
+  const rows = excelData.split('\n').map(row => row.split('\t'));
+
+  // Helper function to get column data from Excel data based on rowIndex and columnIndex
+  const getExcelData = (rowIndex, columnIndex, lowestColumnIndex) => {
+      const row = rows[rowIndex];
+      if (!row) return null;
+      // Adjust columnIndex based on the lowest columnIndex in selected_cells for correct mapping
+      return row[columnIndex - lowestColumnIndex] || null;
+  }
+
+  // Step 2: Deep clone the original data_source to avoid mutations
+  const newData = deepClone(data_source);
+
+  // Find the lowest columnIndex for adjustment
+  const lowestColumnIndex = Math.min(...selected_cells.map(cell => cell.columnIndex));
+
+  // Step 3: Iterate over selected_cells to update newData
+  selected_cells.forEach(cell => {
+      const { rowIndex, columnIndex, column } = cell;
+      const excelValue = getExcelData(rowIndex, columnIndex, lowestColumnIndex);
+
+      if (excelValue !== null) {
+          // Navigate to the correct location in newData and update it
+          const pathParts = column.split('.');
+          let currentObj = newData[rowIndex];
+          for (let i = 0; i < pathParts.length - 1; i++) {
+              currentObj = currentObj[pathParts[i]];
+          }
+          // Assuming the value to update is directly under the last part of the path
+          currentObj[pathParts[pathParts.length - 1]] = excelValue; // Directly update without assuming a 'value' key
+      }
+  });
+
+  return newData;
+}
+
+export const parseAndCheckIfValidNumber = (str) => {
+  // First, trim the string to remove any leading/trailing spaces
+  str = str.trim();
+
+  // Use regular expression to check if the string is a valid number
+  // This regex matches optional leading + or -, digits, optional decimal point, and more digits
+  const isValidFormat = /^-?\d+(\.\d+)?$/.test(str);
+
+  if (!isValidFormat) {
+    return false;
+  }
+
+  // Parse the string to a number
+  const num = Number(str);
+
+  // Check if the result is a valid number
+  if (isNaN(num)) {
+    return false;
+  }
+
+  return true;
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
