@@ -207,6 +207,7 @@ const columnSettings = [
     width: '200px',
     sorted: 'none',
     order: 1,
+    hidden: true
   },
   {
     column: 'userDetails.image',
@@ -274,9 +275,12 @@ const columnSettings = [
     title: 'Birth Day',
     groupTitle: 'User Details',
     order: 5,
-    // filterConfig: {
-    //   type: 'date-range',
-    // },
+    filterConfig: {
+      type: 'date-range',
+    },
+    actionConfig: {
+      type: 'date'
+    }
   },
   {
     column: 'userDetails.age',
@@ -483,7 +487,7 @@ export default () => {
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
         selectable
-        isSingleSelect
+        multiSelect
         downloadCSV
         onChange={v => console.log("New Value: ", v)}
         isPermanentDelete
@@ -491,6 +495,8 @@ export default () => {
           {
             column: "intentAction",
             value: "R",
+            title: "Action",
+            width: "60px",
             showColumn: true,
             styles: {
               backgroundColor: "red",
@@ -500,6 +506,8 @@ export default () => {
           {
             column: "intentAction",
             value: "U",
+            title: "Action",
+            width: "60px",
             showColumn: true,
             styles: {
               backgroundColor: "orange",
@@ -508,6 +516,8 @@ export default () => {
           {
             column: "intentAction",
             value: "O",
+            title: "Action",
+            width: "60px",
             showColumn: false,
             styles: {
               backgroundColor: "rgba(0,0,0,0.3)",
@@ -516,6 +526,8 @@ export default () => {
           {
             column: "intentAction",
             value: "N",
+            title: "Action",
+            width: "60px",
             showColumn: false,
             styles: {
               backgroundColor: "#a3ee9e",

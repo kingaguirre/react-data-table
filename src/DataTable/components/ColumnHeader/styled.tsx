@@ -4,7 +4,11 @@ export const TitleWrapper = styled.div<{hasControls?: boolean, align?: string}>`
   display: flex;
   align-items: center;
   justify-content: ${({hasControls, align}) => !!hasControls ? "space-between" : !!align ? align === 'right' ? 'flex-end' : 'flex-start' : 'center'};
-  ${({hasControls}) => !!hasControls ? `width: 100%;` : ""}
+  width: 100%;
+  text-align: ${({align}) => align || 'center'};
+  > * {
+    flex: 1;
+  }
 `
 
 export const TitleContainer = styled.div<{isDraggedOver?: boolean, hasControls?: boolean, align?: string}>`
@@ -56,6 +60,7 @@ export const TitleControlsContainer = styled.div`
   align-items: center;
   justify-content: flex-end;
   padding-left: 5px;
+  flex: none;
 `;
 
 export const SortContainer = styled.div`

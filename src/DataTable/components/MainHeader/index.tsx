@@ -111,10 +111,10 @@ export const MainHeader = () => {
     onAddRow(newData, undefined, true);
   };
 
-  const handleColumnVisibilityChange = useCallback((columnName) => {
+  const handleColumnVisibilityChange = useCallback((columnName, isVisible) => {
     setTempColumnVisibility(prevState => ({
       ...prevState,
-      [columnName]: !prevState[columnName],
+      [columnName]: isVisible,
     }));
   }, [tempColumnVisibility]);
 
@@ -208,7 +208,7 @@ export const MainHeader = () => {
             <input
               type="checkbox"
               checked={col.column in tempColumnVisibility ? tempColumnVisibility[col.column] : !col.hidden}
-              onChange={() => handleColumnVisibilityChange(col.column)}
+              onChange={(e) => handleColumnVisibilityChange(col.column, e.target.checked)}
             />
             <span>{col.title}</span>
           </label>

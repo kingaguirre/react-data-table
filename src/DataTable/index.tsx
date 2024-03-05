@@ -55,7 +55,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     customRowSettings,
     actions,
     isPermanentDelete = false,
-    isSingleSelect = false,
+    multiSelect = false,
     onChange,
     onColumnSettingsChange,
     onRowClick,
@@ -69,7 +69,6 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
 
   const [canPaste, setCanPaste] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<any>(null);
-  const [selectedCells, setSelectedCells] = useState<any>(null);
   const [editingCells, setEditingCells] = useState<Array<{
     cancelledRowIndex
     columnIndex: number;
@@ -504,11 +503,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         setCanPaste,
         hasAction,
         hasAnyFilterConfig,
-        isSingleSelect,
+        multiSelect,
         selectedColumn,
         setSelectedColumn,
-        selectedCells,
-        setSelectedCells,
         selectionRange,
         selectionRangeRef
       }}

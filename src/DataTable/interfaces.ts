@@ -20,6 +20,7 @@ interface CustomRowSettings {
   value: string; // The specific value in the column that triggers these custom settings.
   showColumn?: boolean; // Optional. Whether the column should be displayed.
   width?: string; // Optional. The width of the column, specified as a CSS value (e.g., '100px', '10%').
+  title?: string;
   styles?: { // Optional. CSS style properties to apply to the row.
     backgroundColor?: string;
     textDecoration?: string;
@@ -43,8 +44,7 @@ export interface DataTableProps {
   pageSize?: number; // (Optional) Number of rows per page.
   pageIndex?: number; // (Optional) Current page number.
   selectable?: boolean; // (Optional) If rows can be selected, it will add checkbox at left most of each row.
-  isSingleSelect?: boolean; // (Optional) If row selection is one at a time
-  rowKey: string; // (Required) Key from the data source for uniquely identifying each row.
+  multiSelect?: boolean; // (Optional) If row selection is one at a time
   tableHeight?: string; // (Optional) Table height as a CSS value.
   tableMaxHeight?: string; // (Optional) Maximum table height as a CSS value.
   hideHeader?: boolean; // (Optional) If the table header should be hidden.
@@ -57,6 +57,7 @@ export interface DataTableProps {
   clickableRow?: boolean; // (Optional) If rows are clickable.
   customRowSettings?: CustomRowSettings[]; // (Optional) Custom settings for rows based on column values.
   actions?: Actions | Actions[]; // (Optional) Actions available in the table.
+  rowKey?: string; // (Required) Key from the data source for uniquely identifying each row.
   isPermanentDelete?: boolean; // (Optional) If delete action permanently removes data.
   selectionRange?: boolean; // (Optional) Enable cell selction for copy or paste data from excel.
   onChange?: (updatedData: any[]) => void; // (Optional) Callback when table data is updated.

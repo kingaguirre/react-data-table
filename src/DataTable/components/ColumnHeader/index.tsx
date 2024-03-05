@@ -23,7 +23,7 @@ export const ColumnHeader = () => {
     onSelectedRowsChange,
     collapsibleRowRender,
     selectable,
-    isSingleSelect
+    multiSelect
   } = React.useContext(DataTableContext);
 
   const rows = fetchConfig ? fetchedData.data : filteredData;
@@ -43,7 +43,7 @@ export const ColumnHeader = () => {
     <TableRow className="column-header-container">
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
-        {...(!isSingleSelect ? {
+        {...(!multiSelect ? {
           checked: (!!rows && !!rows.length) && selectedRows.length === rows.length,
           onChange: (e) => e.target.checked ? selectAllRows() : deselectAllRows()
         } : {})}

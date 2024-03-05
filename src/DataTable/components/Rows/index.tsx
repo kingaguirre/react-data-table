@@ -10,8 +10,7 @@ import {
   findUpdatedIndex,
   getValue,
   useCheckOverflow,
-  copyDataWithExcelFormat,
-  getTableCellClass
+  getTableCellClass,
 } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -45,11 +44,9 @@ export const Rows = () => {
     editingCells,
     setEditingCells,
     hasAction,
-    isSingleSelect,
+    multiSelect,
     selectedColumn,
     setSelectedColumn,
-    selectedCells,
-    setSelectedCells,
     selectionRange,
     selectionRangeRef
   } = useContext(DataTableContext);
@@ -220,8 +217,8 @@ export const Rows = () => {
 
   // Update state when actions prop is changed
   useEffect(() => {
-    const hasAddAction = !!actions.find(i => i === Actions.ADD);
-    const hasAddRow = !!dataSource.find(i => i.intentAction === "*")
+    const hasAddAction = !!actions?.find(i => i === Actions.ADD);
+    const hasAddRow = !!dataSource?.find(i => i.intentAction === "*")
     if (!hasAddAction && hasAddRow) {
       if (fetchConfig) {
         const newFetchedData = [...(fetchedData.data || [])].filter(i => i.intentAction !== "*");
@@ -262,37 +259,6 @@ export const Rows = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [editingCells, handleDoEdit]);
-
-  useEffect(() => {
-    const handleCopyToClipboard = (e) => {
-      if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
-        const texts = copyDataWithExcelFormat(rows, selectedCells);
-        navigator.clipboard.writeText(texts);
-      }
-    };
-  
-    document.addEventListener('keydown', handleCopyToClipboard);
-  
-    return () => {
-      document.removeEventListener('keydown', handleCopyToClipboard);
-    };
-  }, [selectedCells, rows]);
-
-  // useEffect(() => {
-  //   const handleCopyToClipboard = (e) => {
-  //     if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedColumn !== null) {
-  //       const rowData = rows?.[selectedColumn.rowIndex];
-  //       const columnText = getDeepValue(rowData, selectedColumn.column);
-  //       navigator.clipboard.writeText(columnText);
-  //     }
-  //   };
-  
-  //   document.addEventListener('keydown', handleCopyToClipboard);
-  
-  //   return () => {
-  //     document.removeEventListener('keydown', handleCopyToClipboard);
-  //   };
-  // }, [selectedColumn, rows]);
 
   const checkEditability = (columnEditable, isEditable, isColumnNew) => {
     if (columnEditable === undefined) {
@@ -393,7 +359,7 @@ export const Rows = () => {
   }, [collapsibleRowHeight]);
 
   const toggleRowSelection = useCallback((row: any) => {
-    if (isSingleSelect) {
+    if (multiSelect) {
       // For single select, directly set the selectedRows with the current row
       const payload = [row];
       onSelectedRowsChange?.(payload);
@@ -415,7 +381,7 @@ export const Rows = () => {
       onSelectedRowsChange?.(payload);
       setState({ type: SET_SELECTED_ROWS, payload });
     }
-  }, [selectedRows, rowKey, onSelectedRowsChange, setState, isSingleSelect]);
+  }, [selectedRows, rowKey, onSelectedRowsChange, setState, multiSelect]);
 
   const isColumnValid = (columns, colIndex, value) => {
     const columnSchema = columns[colIndex]?.actionConfig?.schema;
@@ -438,7 +404,7 @@ export const Rows = () => {
   }
 
   return (
-    <SelectionRange ref={selectionRangeRef} {...(selectionRange ? {onSelectionChange: (cells) => setSelectedCells(cells)} : {})}>
+    <SelectionRange ref={selectionRangeRef} selectionRange={selectionRange} rows={rows}>
       <SC.TableRowsContainer isFetching={isFetching}>
         {rows?.map((row, rowIndex) => {
           const rowKeyValue = getDeepValue(row, rowKey);
@@ -525,6 +491,22 @@ export const Rows = () => {
                           {isInvalid && <span>{error}</span>}
                         </div>
                       );
+                      
+                    } else if (inputType === "date") {
+                      cellContent = (
+                        <div>
+                          <input
+                            type="date"
+                            value={editingCell.value || ""}
+                            onChange={handleCellChange(rowIndex, colIndex)}
+                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
+                            // autoFocus
+                            className={isInvalid ? "invalid" : ""}
+                          />
+                          {isInvalid && <span>{error}</span>}
+                        </div>
+                      );
                     } else {
                       // Assuming type "text" for now, but you can add more types
                       cellContent = (
@@ -590,6 +572,7 @@ export const Rows = () => {
                         data-column={col.column}
                         data-disable-selection={col.disableSelection}
                         data-disable-copy={col.disableCopy || !!col.columnCustomRenderer}
+                        data-disable-paste={col?.actionConfig === false}
                         data-column-name={col.title}
                       >
                         <SC.CellContent
@@ -620,9 +603,6 @@ export const Rows = () => {
             </Fragment>
           )
         })}
-        {/* <SelectionRange onSelectionChange={(e) => console.log(e)}/> */}
-        {/* <div className="test-123" style={{height: 100, background: 'black'}}></div>
-        <div className="test-1234" style={{height: 100, background: 'red'}}></div> */}
       </SC.TableRowsContainer>
     </SelectionRange>
   )

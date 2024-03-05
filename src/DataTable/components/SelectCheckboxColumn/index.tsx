@@ -9,7 +9,7 @@ interface IProps {
 }
 export const SelectCheckboxColumn = (props: IProps) => {
   const { checked, onChange } = props;
-  const { selectable, collapsibleRowRender, isSingleSelect } = React.useContext(DataTableContext); // Added isSingleSelect to context
+  const { selectable, collapsibleRowRender, multiSelect } = React.useContext(DataTableContext); // Added multiSelect to context
 
   return selectable ? (
     <TableCell
@@ -22,7 +22,7 @@ export const SelectCheckboxColumn = (props: IProps) => {
       }}
     >
       {!!onChange && (
-        isSingleSelect ? (
+        multiSelect ? (
           <Radio // Use Radio instead of Checkbox for single select
             type="radio"
             checked={checked}

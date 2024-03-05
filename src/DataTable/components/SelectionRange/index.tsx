@@ -1,15 +1,26 @@
-import React, { useState, useRef, useEffect, ReactNode } from 'react';
+import React, { useState, useRef, useEffect, ReactNode, useContext } from 'react';
 import { ParentContainer, Row, Col, SelectionBox } from "./styled";
+import { DataTableContext } from "../../index";
+import { copyDataWithExcelFormat, updateDataSourceFromExcelWithoutMutation, readClipboardText } from "../../utils"
+import { SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 
 interface IProps {
   children: ReactNode;
+  selectionRange?: boolean;
   onSelectionChange?: (selectedCells?: any[]) => void;
+  rows: any
 }
 
 export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
-  const { onSelectionChange, children } = props;
+  const { onSelectionChange, selectionRange = false, children, rows } = props;
 
-  if (!onSelectionChange) {
+  const {
+    fetchConfig,
+    state: { fetchedData },
+    setState,
+  } = useContext(DataTableContext);
+
+  if (!selectionRange) {
     return children
   };
 
@@ -34,7 +45,7 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
           setIsSelecting(false);
           setSelectionBox({ x: 0, y: 0, width: 0, height: 0 });
           calculateBoundsOfSelectedCells();
-          onSelectionChange(selectedCells);
+          onSelectionChange?.(selectedCells);
         } else if (selectedCells.length > 0) {
           // This will now also call onSelectionChange with an empty array
           clearSelection();
@@ -50,6 +61,37 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
   }, [isSelecting, onSelectionChange, selectedCells]); // Add onSelectionChange as a dependency
+
+  useEffect(() => {
+    const handleCopyAndPasteClipboard = (e) => {
+      if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
+        const texts = copyDataWithExcelFormat(rows, selectedCells);
+        navigator.clipboard.writeText(texts);
+      }
+
+      if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
+        readClipboardText().then(text => {
+          // Use the text from the clipboard here
+          const updatedRows = updateDataSourceFromExcelWithoutMutation(rows, selectedCells, text);
+
+          if (fetchConfig) {
+            setState({
+              type: SET_FETCHED_DATA,
+              payload: { ...fetchedData, data: updatedRows }
+            });
+          } else {
+            setState({ type: SET_LOCAL_DATA, payload: updatedRows });
+          }
+        });
+      }
+    };
+  
+    document.addEventListener('keydown', handleCopyAndPasteClipboard);
+  
+    return () => {
+      document.removeEventListener('keydown', handleCopyAndPasteClipboard);
+    };
+  }, [selectedCells, rows]);
 
   React.useImperativeHandle(ref, () => ({
     clearSelection: clearSelection
@@ -88,7 +130,7 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
     // Clear selected cells state
     setSelectedCells([]);
     // Call onSelectionChange with empty array when clearing selection
-    onSelectionChange([]);
+    onSelectionChange?.([]);
   };
 
   const updateSelection = () => {
@@ -115,13 +157,14 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
         cellLeft < selectionBox.x + selectionBox.width &&
         cellBottom > selectionBox.y &&
         cellTop < selectionBox.y + selectionBox.height;
-  
+
       if (isInSelectionBox) {
         cell.classList.add('selected');
         const rowIndex = parseInt(cell.dataset.rowIndex, 10);
         const columnIndex = parseInt(cell.dataset.columnIndex, 10);
         // Capture the disable-copy value
         const disableCopy = cell.dataset.disableCopy === 'true';
+        const disablePaste = cell.dataset.disablePaste === 'true';
         const columnName = cell.dataset.columnName;
   
         newSelectedCells.push({
@@ -129,6 +172,7 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
           columnIndex,
           column: cell.dataset.column,
           disableCopy, // Include disableCopy in the object
+          disablePaste, // Include disablePaste in object
           columnName
         });
       } else {
@@ -208,6 +252,7 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
             data-column={`colname-${colIndex}`}
             data-disable-selection={colIndex === 0} // First column disables selection
             data-disable-copy={colIndex === 2} // Third column disables copy
+            data-disable-paste={colIndex === 2} // fourth column disables paste
             data-column-name={`Column ${colIndex + 1}`}
           >
             {colIndex + 1}

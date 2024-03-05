@@ -66,7 +66,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   width: ${({ width }) => width || 'auto'};
   min-width: ${({ width }) => width || 'auto'};
   position: relative;
-  background-color: white;se
+  background-color: white;
   display: flex;
   align-items: center;
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};

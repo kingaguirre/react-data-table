@@ -549,7 +549,7 @@ const extractValueFromObject = (obj) => {
       return obj.value.join(', ');
     } else if (typeof obj.value === 'string') {
       // Check if 'value' is a date string
-      if (isDateString(obj.value)) {
+      if (isDateString(obj.value) && !parseAndCheckIfValidNumber(obj.value)) {
         // 'value' is a valid date string, format the date
         return format(new Date(obj.value));
       }
@@ -575,10 +575,33 @@ const format = (date) => {
   return date.toISOString(); // Example formatting
 };
 
+export const parseAndCheckIfValidNumber = (str) => {
+  // First, trim the string to remove any leading/trailing spaces
+  str = str.trim();
+
+  // Use regular expression to check if the string is a valid number
+  // This regex matches optional leading + or -, digits, optional decimal point, and more digits
+  const isValidFormat = /^-?\d+(\.\d+)?$/.test(str);
+
+  if (!isValidFormat) {
+    return false;
+  }
+
+  // Parse the string to a number
+  const num = Number(str);
+
+  // Check if the result is a valid number
+  if (isNaN(num)) {
+    return false;
+  }
+
+  return true;
+}
+
 export const getValue = (input) => {
   // Check if input is a string
   if (typeof input === 'string') {
-    if (isDateString(input)) {
+    if (isDateString(input) && !parseAndCheckIfValidNumber(input)) {
       // Input is a valid date string, format the date
       return format(new Date(input));
     }
@@ -681,7 +704,7 @@ export const isValidDataWithSchema = (columns, data, dataSource) => {
 
     const isUnique = columnsWithIsUnique[cell.column];
     let isDuplicate = false;
-  
+
     if (isUnique) {
       // Check if the value is unique across the dataSource
       isDuplicate = dataSource.some((row, index) => {
@@ -701,19 +724,19 @@ export const isValidDataWithSchema = (columns, data, dataSource) => {
     }
 
     const schema = columnsWithSchema[cell.column];
-      // Only validate if columnSchema is defined and its not duplicae
-      if (schema && !isDuplicate) {
-        const validate = ajv.compile(schema);
-        if (!validate(cell.value)) {
-          // If validation fails, push the cell info and validation errors
-          validationResults.push({
-            rowIndex: cell.rowIndex,
-            columnIndex: cell.columnIndex,
-            column: cell.column,
-            errors: validate.errors
-          });
-        }
+    // Only validate if columnSchema is defined and its not duplicae
+    if (schema && !isDuplicate) {
+      const validate = ajv.compile(schema);
+      if (!validate(cell.value)) {
+        // If validation fails, push the cell info and validation errors
+        validationResults.push({
+          rowIndex: cell.rowIndex,
+          columnIndex: cell.columnIndex,
+          column: cell.column,
+          errors: validate.errors
+        });
       }
+    }
   });
 
   return !(validationResults.length > 0);
@@ -728,7 +751,7 @@ export const updateSchemaObjectProperties = (obj) => {
     // Return a new object with the updated structure
     return updatedProperties;
   }
-  
+
   // If 'value' doesn't exist, return a shallow copy of the object as is
   return { ...obj };
 }
@@ -765,45 +788,54 @@ export const getTableCellClass = (props: any) => {
 export const copyDataWithExcelFormat = (data, selectedCells) => {
   let grid: any = [];
 
-  // Initialize the header row with undefined values to avoid empty cells at the beginning
-  const headerRow = Array.from({ length: Math.max(...selectedCells.map(cell => cell.columnIndex + 1)) }, () => undefined);
+  // Sort selectedCells by rowIndex
+  selectedCells.sort((a, b) => a.rowIndex - b.rowIndex);
 
-  // Populate the header row based on selectedCells.columnName
+  // Calculate the required length for the header row
+  const headerLength = Math.max(...selectedCells.map(cell => cell.columnIndex + 1));
+  
+  // Initialize the header row
+  const headerRow = new Array(headerLength).fill(null);
+
+  // Populate the header row
   selectedCells.forEach(cell => {
-    headerRow[cell.columnIndex] = cell.columnName;
+    if (headerRow[cell.columnIndex] === null) { // Ensure not to overwrite existing headers
+      headerRow[cell.columnIndex] = cell.columnName;
+    }
   });
 
-  // Add the header row to the grid
-  grid[0] = headerRow.filter(cell => cell !== undefined); // Remove leading undefined cells in the header row
+  // Filter out null values and adjust the header row
+  grid[0] = headerRow.filter(cell => cell !== null);
 
-  // Populate the grid with data from selectedCells
+  // Populate the grid with data
   selectedCells.forEach(cell => {
-    const dataSourceItem = data[cell.rowIndex];
-    let value = ""; // Initialize value as empty string
-
-    // Check if disableCopy is not true before fetching the value
-    if (!cell.disableCopy) {
-      value = getValue(getDeepValue(dataSourceItem, cell.column)) || "";
-    }
-
-    // Ensure row exists in grid, considering the header row offset (+1)
     if (!grid[cell.rowIndex + 1]) {
-      grid[cell.rowIndex + 1] = Array.from({ length: headerRow.length }, () => undefined); // Initialize with undefined
+      grid[cell.rowIndex + 1] = new Array(headerRow.length).fill(null);
     }
 
-    // Populate the cell directly based on columnIndex
-    grid[cell.rowIndex + 1][cell.columnIndex] = value; // Use the determined value
+    if (!cell.disableCopy) {
+      const dataSourceItem = data[cell.rowIndex];
+      const value = getValue(getDeepValue(dataSourceItem, cell.column)) || "";
+      grid[cell.rowIndex + 1][cell.columnIndex] = value;
+    } else {
+      grid[cell.rowIndex + 1][cell.columnIndex] = "";
+    }
   });
 
-  // Adjust each row to ensure no leading undefined cells and join cells with "\t"
+  // Filter out completely empty rows
+  grid = grid.filter(row => row.some(cell => cell !== null && cell !== ""));
+
+  // Adjust each row and prepare for Excel
   const excelReadyText = grid.map(row => {
-    // Remove leading undefined cells in each data row
-    const firstNonEmptyIndex = row.findIndex(cell => cell !== undefined);
-    return row.slice(firstNonEmptyIndex).map(cell => cell === undefined ? "" : cell).join("\t");
+    const firstNonEmptyIndex = row.findIndex(cell => cell !== null && cell !== "");
+    return row.slice(firstNonEmptyIndex).filter(cell => cell !== null).join("\t");
   }).join("\n");
 
   return excelReadyText;
 }
+
+// Assuming getValue and getDeepValue are utility functions you've defined elsewhere
+
 
 export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_cells, excelData) => {
   // Deep clone function to avoid mutating the original data_source
@@ -813,61 +845,63 @@ export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_c
   const rows = excelData.split('\n').map(row => row.split('\t'));
 
   // Helper function to get column data from Excel data based on rowIndex and columnIndex
-  const getExcelData = (rowIndex, columnIndex, lowestColumnIndex) => {
-      const row = rows[rowIndex];
-      if (!row) return null;
-      // Adjust columnIndex based on the lowest columnIndex in selected_cells for correct mapping
-      return row[columnIndex - lowestColumnIndex] || null;
+  const getExcelData = (rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex) => {
+    const adjustedRowIndex = rowIndex - lowestRowIndex;
+    if (adjustedRowIndex < 0 || adjustedRowIndex >= rows.length) return null;
+    const row = rows[adjustedRowIndex];
+    const adjustedColumnIndex = columnIndex - lowestColumnIndex;
+    return row && adjustedColumnIndex >= 0 && adjustedColumnIndex < row.length ? row[adjustedColumnIndex] : null;
   }
 
   // Step 2: Deep clone the original data_source to avoid mutations
   const newData = deepClone(data_source);
 
-  // Find the lowest columnIndex for adjustment
+  // Find the lowest rowIndex and columnIndex for adjustment
+  const lowestRowIndex = Math.min(...selected_cells.map(cell => cell.rowIndex));
   const lowestColumnIndex = Math.min(...selected_cells.map(cell => cell.columnIndex));
 
   // Step 3: Iterate over selected_cells to update newData
   selected_cells.forEach(cell => {
-      const { rowIndex, columnIndex, column } = cell;
-      const excelValue = getExcelData(rowIndex, columnIndex, lowestColumnIndex);
+    const { rowIndex, columnIndex, column, disablePaste } = cell;
 
-      if (excelValue !== null) {
-          // Navigate to the correct location in newData and update it
-          const pathParts = column.split('.');
-          let currentObj = newData[rowIndex];
-          for (let i = 0; i < pathParts.length - 1; i++) {
-              currentObj = currentObj[pathParts[i]];
-          }
-          // Assuming the value to update is directly under the last part of the path
-          currentObj[pathParts[pathParts.length - 1]] = excelValue; // Directly update without assuming a 'value' key
+    // Skip update if disablePaste is true
+    if (disablePaste) {
+      return;
+    }
+
+    const excelValue = getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex);
+
+    if (excelValue !== null) {
+      // Navigate to the correct location in newData and update it
+      const pathParts = column.split('.');
+      let currentObj = newData[rowIndex];
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        if (!currentObj[pathParts[i]]) {
+          currentObj[pathParts[i]] = {}; // Create nested objects if they don't exist
+        }
+        currentObj = currentObj[pathParts[i]];
       }
+      // Directly update the last part of the path with the excel value
+      currentObj[pathParts[pathParts.length - 1]] = excelValue;
+    }
   });
 
   return newData;
-}
+};
 
-export const parseAndCheckIfValidNumber = (str) => {
-  // First, trim the string to remove any leading/trailing spaces
-  str = str.trim();
 
-  // Use regular expression to check if the string is a valid number
-  // This regex matches optional leading + or -, digits, optional decimal point, and more digits
-  const isValidFormat = /^-?\d+(\.\d+)?$/.test(str);
-
-  if (!isValidFormat) {
-    return false;
+export const readClipboardText = async () => {
+  if (navigator.clipboard) {
+    try {
+      const text = await navigator.clipboard.readText();
+      return text;
+    } catch (err) {
+      console.error('Failed to read clipboard contents:', err);
+    }
+  } else {
+    console.error('Clipboard API not available.');
   }
-
-  // Parse the string to a number
-  const num = Number(str);
-
-  // Check if the result is a valid number
-  if (isNaN(num)) {
-    return false;
-  }
-
-  return true;
-}
+};
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
