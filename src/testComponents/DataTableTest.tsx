@@ -39,7 +39,7 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(5).fill("").map((_, i) => ({
+const dataSource = Array(25).fill("").map((_, i) => ({
   intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "U",
   ...((i === 0 || i === 1 || i === 2) ? {
     acknowledgementNumber: {
@@ -54,7 +54,7 @@ const dataSource = Array(5).fill("").map((_, i) => ({
   }),
   userID: { value: `user-id${i}` },
   // userID: `user-id${i}`,
-  username: i === 0 ? ['test1', 'test2', 'test3'] : `test-username${i}`,
+  username: i === 0 ? ['test1', 'test2', 'test3'] : i === 2 ? 'new item must not be 2' : i === 1 ? ['2020', '12', '24'] : `test-username${i}`,
   password: `test-password${i}`,
   userDetails: {
     image: "asdasdasd",

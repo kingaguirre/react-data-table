@@ -8,11 +8,11 @@ interface IProps {
   children: ReactNode;
   selectionRange?: boolean;
   onSelectionChange?: (selectedCells?: any[]) => void;
-  rows: any
+  data: any
 }
 
 export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
-  const { onSelectionChange, selectionRange = false, children, rows } = props;
+  const { onSelectionChange, selectionRange = false, children, data } = props;
 
   const {
     fetchConfig,
@@ -65,15 +65,14 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
   useEffect(() => {
     const handleCopyAndPasteClipboard = async (e) => {
       if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
-        const texts = copyDataWithExcelFormat(rows, selectedCells);
-        console.log(navigator)
+        const texts = copyDataWithExcelFormat(data, selectedCells);
         await navigator.clipboard.writeText(texts);
       }
 
       if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
         readClipboardText().then(text => {
           // Use the text from the clipboard here
-          const updatedRows = updateDataSourceFromExcelWithoutMutation(rows, selectedCells, text);
+          const updatedRows = updateDataSourceFromExcelWithoutMutation(data, selectedCells, text);
 
           if (fetchConfig) {
             setState({
@@ -92,7 +91,7 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
     return () => {
       document.removeEventListener('keydown', handleCopyAndPasteClipboard);
     };
-  }, [selectedCells, rows]);
+  }, [selectedCells, data]);
 
   React.useImperativeHandle(ref, () => ({
     clearSelection: clearSelection

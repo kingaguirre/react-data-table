@@ -34,7 +34,7 @@ export const Rows = () => {
     customRowSettings,
     actions,
     onChange,
-    state: { selectedRows, activeRow, columns, search, fetchedData, localData },
+    state: { selectedRows, activeRow, columns, search, fetchedData, localData, localPageSize, localPageIndex },
     setState,
     onMouseDown,
     onRowClick,
@@ -404,9 +404,9 @@ export const Rows = () => {
   }
 
   return (
-    <SelectionRange ref={selectionRangeRef} selectionRange={selectionRange} rows={rows}>
+    <SelectionRange ref={selectionRangeRef} selectionRange={selectionRange} data={localData}>
       <SC.TableRowsContainer isFetching={isFetching}>
-        {rows?.map((row, rowIndex) => {
+        {rows?.map((row, _rowIndex) => {
           const rowKeyValue = getDeepValue(row, rowKey);
           let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
           const isRowCollapsed = collapsedRows.includes(rowKeyValue);
@@ -420,6 +420,7 @@ export const Rows = () => {
 
           const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
 
+          const rowIndex = (localPageIndex * localPageSize) + _rowIndex;
           return (
             <Fragment key={rowIndex}>
               <SC.TableRow
@@ -572,7 +573,7 @@ export const Rows = () => {
                         data-column={col.column}
                         data-disable-selection={col.disableSelection}
                         data-disable-copy={col.disableCopy || !!col.columnCustomRenderer}
-                        data-disable-paste={col?.actionConfig === false}
+                        data-disable-paste={col?.actionConfig === false || isDeletedRow}
                         data-column-name={col.title}
                       >
                         <SC.CellContent

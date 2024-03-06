@@ -546,10 +546,15 @@ const extractValueFromObject = (obj) => {
   if ('value' in obj) {
     if (Array.isArray(obj.value)) {
       // Handle when 'value' is an array
-      return obj.value.join(', ');
+      const commaSeparatedString = obj.value.join(', ');
+      if (isValidDate(commaSeparatedString)) {
+        // Input is a valid date string, format the date
+        return format(new Date(commaSeparatedString));
+      }
+      return commaSeparatedString;
     } else if (typeof obj.value === 'string') {
       // Check if 'value' is a date string
-      if (isDateString(obj.value) && !parseAndCheckIfValidNumber(obj.value)) {
+      if (isValidDate(obj.value)) {
         // 'value' is a valid date string, format the date
         return format(new Date(obj.value));
       }
@@ -563,65 +568,70 @@ const extractValueFromObject = (obj) => {
   return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string/date
 };
 
+const isValidDate = (str) => {
+  // Updated regular expression to include comma-separated date formats
+  const likelyDatePattern = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)|(\d+[\/\-.]\d+[\/\-.]\d+)|(\d{4}-\d{2}-\d{2})|(\d{4},\s*\d{1,2},\s*\d{1,2})/;
 
-const isDateString = (input) => {
-  // First, check if the input is directly a number or a string that could be a number
-  if (!isNaN(input) || !isNaN(parseFloat(input))) {
+  // Try to match the input string against the likely date pattern
+  if (!likelyDatePattern.test(str)) {
+    // If the input doesn't match the pattern, it's not a likely date format
     return false;
   }
 
-  // Check if the input matches a common date format (e.g., YYYY-MM-DD, MM/DD/YYYY, etc.)
-  // This regex is basic and can be adjusted based on the expected date formats
-  const datePattern = /^\d{4}-\d{2}-\d{2}$|^\d{2}\/\d{2}\/\d{4}$/;
-  if (!datePattern.test(input)) {
-    return false;
-  }
+  // Check for comma-separated date strings
+  if (str.includes(',')) {
+    const parts = str.split(',').map(part => part.trim());
+    
+    // If there are more than 3 parts, it's not a valid date format
+    if (parts.length > 3) {
+      return false;
+    }
 
-  const date = new Date(input);
-  // Check if the date is valid
-  if (!isNaN(date.getTime())) {
-    // Additionally, verify that the input string matches the date to avoid false positives
-    // like "0000-00-00" being treated as a valid date
-    const dateString = date.toISOString().split('T')[0];
-    return input === dateString || input === dateString.replace(/-/g, '/');
+    // Attempt to convert the parts to a date
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+    const day = parseInt(parts[2], 10);
+    
+    // Construct a date object using the parts
+    const date = new Date(year, month, day);
+
+    // Check if the constructed date is valid
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+
+    // Successfully parsed a valid date
+    return true;
+  } else {
+    // Try to parse the string as a date for other formats
+    const date = new Date(str);
+
+    // Check if the parsed date is an Invalid Date
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+
+    // Successfully parsed a valid date
+    return true;
   }
-  return false;
-};
+}
 
 
 const format = (date) => {
-  // Assuming format() is defined to format a Date object into a string
-  // This is a placeholder; you should replace it with actual date formatting logic
-  return date.toISOString(); // Example formatting
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  const year = date.getFullYear(); // Gets the full year (4 digits)
+  const monthIndex = date.getMonth(); // Gets the month index (0-11)
+  const day = date.getDate(); // Gets the day of the month (1-31)
+  
+  const formattedDate = `${year}-${monthNames[monthIndex]}-${day < 10 ? '0' + day : day}`;
+  return formattedDate;
 };
-
-export const parseAndCheckIfValidNumber = (str) => {
-  // First, trim the string to remove any leading/trailing spaces
-  str = str.trim();
-
-  // Use regular expression to check if the string is a valid number
-  // This regex matches optional leading + or -, digits, optional decimal point, and more digits
-  const isValidFormat = /^-?\d+(\.\d+)?$/.test(str);
-
-  if (!isValidFormat) {
-    return false;
-  }
-
-  // Parse the string to a number
-  const num = Number(str);
-
-  // Check if the result is a valid number
-  if (isNaN(num)) {
-    return false;
-  }
-
-  return true;
-}
 
 export const getValue = (input) => {
   // Check if input is a string
   if (typeof input === 'string') {
-    if (isDateString(input) && !parseAndCheckIfValidNumber(input)) {
+    if (isValidDate(input)) {
       // Input is a valid date string, format the date
       return format(new Date(input));
     }
@@ -629,7 +639,12 @@ export const getValue = (input) => {
       const parsedObject = JSON.parse(input);
       if (Array.isArray(parsedObject)) {
         // Handle case when input is a JSON string representing an array
-        return parsedObject.join(', ');
+        const commaSeparatedString = parsedObject.join(', ');
+        if (isValidDate(commaSeparatedString)) {
+          // Input is a valid date string, format the date
+          return format(new Date(commaSeparatedString));
+        }
+        return commaSeparatedString;
       } else {
         // Handle case when input is a JSON string representing an object
         return extractValueFromObject(parsedObject);
