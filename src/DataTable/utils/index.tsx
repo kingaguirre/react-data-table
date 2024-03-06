@@ -565,9 +565,29 @@ const extractValueFromObject = (obj) => {
 
 
 const isDateString = (input) => {
+  // First, check if the input is directly a number or a string that could be a number
+  if (!isNaN(input) || !isNaN(parseFloat(input))) {
+    return false;
+  }
+
+  // Check if the input matches a common date format (e.g., YYYY-MM-DD, MM/DD/YYYY, etc.)
+  // This regex is basic and can be adjusted based on the expected date formats
+  const datePattern = /^\d{4}-\d{2}-\d{2}$|^\d{2}\/\d{2}\/\d{4}$/;
+  if (!datePattern.test(input)) {
+    return false;
+  }
+
   const date = new Date(input);
-  return !isNaN(date.getTime()); // Check if the date is valid
+  // Check if the date is valid
+  if (!isNaN(date.getTime())) {
+    // Additionally, verify that the input string matches the date to avoid false positives
+    // like "0000-00-00" being treated as a valid date
+    const dateString = date.toISOString().split('T')[0];
+    return input === dateString || input === dateString.replace(/-/g, '/');
+  }
+  return false;
 };
+
 
 const format = (date) => {
   // Assuming format() is defined to format a Date object into a string

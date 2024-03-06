@@ -63,10 +63,11 @@ export default React.forwardRef((props: IProps, ref: React.Ref<any>) => {
   }, [isSelecting, onSelectionChange, selectedCells]); // Add onSelectionChange as a dependency
 
   useEffect(() => {
-    const handleCopyAndPasteClipboard = (e) => {
+    const handleCopyAndPasteClipboard = async (e) => {
       if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
         const texts = copyDataWithExcelFormat(rows, selectedCells);
-        navigator.clipboard.writeText(texts);
+        console.log(navigator)
+        await navigator.clipboard.writeText(texts);
       }
 
       if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey) && selectedCells !== null) {
