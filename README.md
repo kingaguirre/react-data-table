@@ -44,7 +44,7 @@ Here's a simple example of how to use the DataTable:
 - **collapsibleRowHeight**: Height of the row when expanded. Useful when rows have additional data to show on click.
 - **fetchConfig**: Configuration related to fetching data, especially when data is fetched remotely or in chunks.
 - **filterAll**: Whether all columns should be searchable with a single search query or not.
-- **downloadCSV**: Allows users to download the table data as a CSV file.
+- **downloadXLS**: Allows users to download the table data as a CSV file.
 - **activeRow**: Indicates which row is currently active. Useful for highlighting or taking action on a specific row.
 - **selectedRows**: An array of currently selected rows.
 - **onRowClick**: A callback function that fires when a row is clicked.

@@ -135,7 +135,7 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
     return columns
       .filter(col => !col.hidden)
       .map(col => {
-        let cell = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
+        let cell = col.cell ? col.cell(row[col.column], row) : getDeepValue(row, col.column);
         cell = (cell === null || cell === undefined) ? '' : cell.toString();
         if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
           cell = `"${cell.replace(/"/g, '""')}"`;
@@ -307,7 +307,7 @@ export const setColumnSettings = (
     selectable: false,
     disableSelection: true,
     class: 'custom-action-column',
-    columnCustomRenderer: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex} />
+    cell: (data, _, rowIndex) => <ActionsColumn data={data} rowIndex={rowIndex} />
   }] : [];
 
   const localStorageColumnSettings = getLocalStorageColumnSettings(columnSettings);
@@ -342,7 +342,7 @@ export const setColumnSettings = (
 };
 
 export const serializeColumns = (columns) => {
-  return columns.map(({ columnCustomRenderer, ...rest }) => rest);
+  return columns.map(({ cell, ...rest }) => rest);
 }
 
 export const mergeFilters = (defaultFilter: { [key: string]: any } | undefined, filterValues: { [key: string]: any }): { [key: string]: any } => {
@@ -689,7 +689,7 @@ const getNestedValue = (obj, path) => {
  */
 export const downloadExcel = (headers, rows, fileName = "data") => {
   // Filter out headers that are hidden or have a custom renderer
-  const filteredHeaders = headers.filter(header => !header.hidden && !header.columnCustomRenderer);
+  const filteredHeaders = headers.filter(header => !header.hidden && !header.cell);
 
   // Process rows to extract deep values
   const processedRows = rows.map(row => {
@@ -870,8 +870,6 @@ export const copyDataWithExcelFormat = (data, selectedCells) => {
 }
 
 // Assuming getValue and getDeepValue are utility functions you've defined elsewhere
-
-
 export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_cells, excelData) => {
   // Deep clone function to avoid mutating the original data_source
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -936,6 +934,88 @@ export const readClipboardText = async () => {
   } else {
     console.error('Clipboard API not available.');
   }
+};
+
+export const mergeWithPrevious = (obj1, obj2, rowKey?) => {
+  const result = {};
+
+  // Resolve the value of rowKey within obj1 to determine if it should be skipped
+  const skipValue = getDeepValue(obj1, rowKey, true);
+
+  // Helper function to check if an object has the specific format { value: ... }
+  const isSpecialFormat = obj => typeof obj === 'object' && !Array.isArray(obj) && obj !== null && 'value' in obj;
+
+  Object.keys(obj1).forEach(key => {
+    const currentPath = rowKey?.startsWith(key) ? rowKey?.slice(key.length) : '';
+    const isRowKey = rowKey === currentPath || rowKey?.startsWith(key + '.');
+
+    if (key === 'intentAction') {
+      // Directly set value to 'U' for intentAction key and skip object format
+      result[key] = 'U';
+    } else if (isRowKey && skipValue !== undefined) {
+      // If current key matches rowKey, use obj1's value directly
+      result[key] = obj1[key];
+    } else if (!obj2.hasOwnProperty(key)) {
+      result[key] = obj1[key]; // Retain values in obj1 not overwritten by obj2
+    } else if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object' && !Array.isArray(obj1[key]) && !isSpecialFormat(obj1[key]) && !isSpecialFormat(obj2[key])) {
+      // Recursive merge for nested objects
+      result[key] = mergeWithPrevious(obj1[key], obj2[key]);
+    } else if (Array.isArray(obj1[key]) && Array.isArray(obj2[key])) {
+      // Handle arrays
+      result[key] = obj1[key].map((item, index) => {
+        if (obj2[key][index] !== undefined) {
+          return mergeWithPrevious([item], [obj2[key][index]])[0];
+        }
+        return item;
+      });
+    } else {
+      if (isSpecialFormat(obj1[key]) || isSpecialFormat(obj2[key])) {
+        const previousValue = isSpecialFormat(obj1[key]) ? obj1[key].value : obj1[key];
+        result[key] = {
+          previous: { value: previousValue },
+          isChanged: obj1[key] !== obj2[key],
+          value: isSpecialFormat(obj2[key]) ? obj2[key].value : obj2[key]
+        };
+      } else {
+        result[key] = {
+          previous: {
+            value: obj1[key]
+          },
+          isChanged: obj1[key] !== obj2[key],
+          value: obj2[key]
+        };
+      }
+    }
+  });
+
+  // Process keys in obj2 that are not in obj1
+  Object.keys(obj2).forEach(key => {
+    if (!obj1.hasOwnProperty(key) && key !== 'intentAction') {
+      result[key] = obj2[key]; // Add new values from obj2
+    }
+    // Existing keys have been processed in the first loop
+  });
+
+  return result;
+};
+
+export const getHightLightedRow = (updatedRows, rowKeyValue) => updatedRows?.includes(rowKeyValue) ? 'highlighted' : '';
+
+export const generateSelectedCells = (data, columns) => {
+  // Remove other columns that is not visible to data-table
+  const visibleCol = [...columns]?.filter(i => i.class !== "custom-action-column" && i.hidden !== true);
+
+  // Generate selected_cells array to pass in updateDataSourceFromExcelWithoutMutation function
+  return data.map((row: any, rowIndex) => 
+    Object.values(row).map((_: any, itemIndex: number) => ({
+      column: visibleCol[itemIndex]?.column,
+      columnIndex: itemIndex,
+      columnName: visibleCol[itemIndex]?.title,
+      disableCopy: false,
+      disablePaste: false,
+      rowIndex: rowIndex
+    })
+  )).flat();
 };
 
 export * from "./useDragDropManager";

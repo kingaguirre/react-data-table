@@ -16,7 +16,8 @@ import {
   updateDataByRowKey,
   hasDomain,
   arrayToEmptyObject,
-  getValue
+  getValue,
+  mergeWithPrevious,
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA, SET_SELECTED_ROWS, SET_ACTIVE_ROW } from "./context/actions";
@@ -28,6 +29,7 @@ import { ColumnGroupHeader } from "./components/ColumnGroupHeader";
 import { ColumnFilters } from "./components/ColumnFilters";
 import { MainHeader } from "./components/MainHeader";
 import { Footer } from "./components/Footer";
+import { RightPanel } from "./components/MainHeader/RightPanel";
 import UploadCell from "./components/CustomCell/UploadCell";
 import Ajv from 'ajv';
 
@@ -36,6 +38,7 @@ export const DataTableContext = createContext<any>(null);
 export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref<any>) => {
   /** Refs */
   const tableRef = useRef<HTMLDivElement>(null);
+  const rightPanelToggleButtonRef: any = useRef<any>(null);
   const selectionRangeRef = useRef<any>(null);
 
   const {
@@ -48,7 +51,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     rowKey,
     collapsibleRowHeight,
     filterAll = true,
-    downloadCSV = false,
+    downloadXLS = false,
+    uploadXLS = false,
     activeRow = null,
     selectedRows = [],
     clickableRow = false,
@@ -65,10 +69,15 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     onPageIndexChange,
     onSelectedRowsChange,
     selectionRange,
+    actionsDropdownItems,
+    tableHeight,
+    tableMaxHeight
   } = props;
 
   const [canPaste, setCanPaste] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<any>(null);
+  const [updatedRows, setUpdatedRows] = useState<string[]>([]);
+  const [rightPanelToggle, setRightPanelToggle] = useState(false);
   const [editingCells, setEditingCells] = useState<Array<{
     cancelledRowIndex
     columnIndex: number;
@@ -174,9 +183,41 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
           newLocalData.splice(rowIndex + 1, 0, newData);
           setState({ type: SET_LOCAL_DATA, payload: newLocalData });
         }
+
+        setUpdatedRows(prev => ([...prev, rowKeyValue]));
       } else {
         console.error("Invalid data.");
       }
+    } catch (error) {
+      console.error("Invalid data.");
+    }
+  }, [state.localData, state.fetchedData.data, columnSettings]);
+
+  const onPasteRow = useCallback((rowData, copiedData) => {
+    try {
+      /** Clear selection if there's any */
+      selectionRangeRef?.current?.clearSelection();
+      const updatedData = mergeWithPrevious(rowData, copiedData, rowKey);
+      const currentRowKeyValue = getDeepValue(rowData, rowKey);
+      setUpdatedRows(prev => ([...prev, currentRowKeyValue]));
+
+      if (fetchConfig) {
+        const newFetchedData = [...(state.fetchedData.data || [])]?.map(i => ({
+          ...i,
+          ...(getDeepValue(i, rowKey) === currentRowKeyValue ? { ...updatedData } : {})
+        }));
+        setState({
+          type: SET_FETCHED_DATA,
+          payload: { ...state.fetchedData, data: newFetchedData },
+        });
+      } else {
+        const newLocalData = [...(state.localData || [])]?.map(i => ({
+          ...i,
+          ...(getDeepValue(i, rowKey) === currentRowKeyValue ? {...updatedData} : {})
+        }));
+        setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+      }
+
     } catch (error) {
       console.error("Invalid data.");
     }
@@ -215,6 +256,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
 
   const doUpdateRowIntentAction = (data, intentAction = "R") => {
     const parsedNewData = !!data ? JSON.parse(data) : {};
+    const rowKeyValue = getDeepValue(parsedNewData, rowKey);
+    setUpdatedRows(prev => ([...prev, rowKeyValue]));
 
     if (fetchConfig) {
       const newFetchedData = updateDataByRowKey(parsedNewData, state.fetchedData.data, rowKey, intentAction);
@@ -263,7 +306,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   }, [state.localData, state.fetchedData.data]);
 
   const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
-  
+
   const onUndo = useCallback((data) => doUpdateRowIntentAction(data, "U"), [state.localData, state.fetchedData.data]);
 
   const fetchWithPagination = useCallback(async (
@@ -471,7 +514,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         draggedColumnIndex,
         collapsibleRowHeight,
         filterAll,
-        downloadCSV,
+        downloadXLS,
+        uploadXLS,
         clickableRow,
         filterSettings: fetchConfig?.filterSettings,
         columnSettings,
@@ -499,6 +543,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         onUndo,
         editingCells,
         setEditingCells,
+        onPasteRow,
         canPaste,
         setCanPaste,
         hasAction,
@@ -507,18 +552,30 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         selectedColumn,
         setSelectedColumn,
         selectionRange,
-        selectionRangeRef
+        selectionRangeRef,
+        actionsDropdownItems,
+        tableHeight,
+        tableMaxHeight,
+        updatedRows,
+        setUpdatedRows,
+        rightPanelToggleButtonRef,
+        rightPanelToggle,
+        setRightPanelToggle
       }}
     >
       <SC.TableWrapper>
         <MainHeader />
         <SC.Table ref={tableRef}>
+          <RightPanel/>
           {state.tableWidth !== null ? (
             <SC.TableInnerWrapper>
-              <div style={{ ...getTableWidth({ state, selectable, collapsibleRowRender }) }}>
+              <div style={{
+                ...getTableWidth({ state, selectable, collapsibleRowRender }),
+                height: tableHeight, maxHeight: tableMaxHeight
+              }}>
                 <ColumnGroupHeader />
-                <ColumnHeader />
-                <ColumnFilters />
+                  <ColumnHeader />
+                  <ColumnFilters />
                 <Rows />
               </div>
             </SC.TableInnerWrapper>

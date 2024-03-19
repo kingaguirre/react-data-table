@@ -215,7 +215,7 @@ const columnSettings = [
     width: '120px',
     sorted: 'none',
     order: 1,
-    columnCustomRenderer: () => {
+    cell: () => {
       return (
         <UploadCell
           editable
@@ -348,7 +348,7 @@ const columnSettings = [
     pinned: "none",
     sorted: "none",
     align: "center",
-    columnCustomRenderer: (value) => <button onClick={e => {
+    cell: (value) => <button onClick={e => {
       e.stopPropagation();
       console.log(`button ${value} clicked`)
     }} style={{fontSize: 5}}>Button {value}</button>
@@ -389,7 +389,7 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
-const ACTIONS_LIST = [Actions.DELETE, Actions.ADD, Actions.COPY, Actions.DUPLICATE, Actions.EDIT]
+const ACTIONS_LIST = [Actions.DELETE, Actions.ADD, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.EDIT]
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
   const menuFormRef = React.createRef<any>();
@@ -488,9 +488,16 @@ export default () => {
         // selectedRows={["user-id0"]}
         selectable
         multiSelect
-        downloadCSV
+        downloadXLS
+        uploadXLS
         onChange={v => console.log("New Value: ", v)}
-        isPermanentDelete
+        // isPermanentDelete
+        pageSize={10}
+        tableHeight='200px'
+        actionsDropdownItems={[{
+          text: "test",
+          onClick: (data) => console.log(data)
+        }]}
         customRowSettings={[
           {
             column: "intentAction",
@@ -635,7 +642,7 @@ export default () => {
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
         selectable
-        downloadCSV
+        downloadXLS
         collapsibleRowRender={() => (
           <DataTable
             dataSource={dataSource}
@@ -734,7 +741,7 @@ export default () => {
         // selectedRows={[{"userID": "user-id0"}]}
         // selectedRows={["user-id0"]}
         selectable
-        downloadCSV
+        downloadXLS
         // collapsibleRowRender={() => (
         //   <DataTable
         //     dataSource={dataSource}

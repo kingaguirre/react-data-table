@@ -49,7 +49,7 @@ export const exportToCsv = (filename: string, rows: any[], columns: any) => {
     return columns
       .filter(col => !col.hidden)
       .map(col => {
-        let cell = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
+        let cell = col.cell ? col.cell(row[col.column], row) : getDeepValue(row, col.column);
         cell = (cell === null || cell === undefined) ? '' : cell.toString();
         if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
           cell = `"${cell.replace(/"/g, '""')}"`;
@@ -99,7 +99,7 @@ export const exportToExcel = (filename: string, rows: any[], columns: any) => {
 
   const dataRows = rows.map(row => {
     return createRow(columns.filter(col => !col.hidden).map(col => {
-      const cellValue = col.columnCustomRenderer ? col.columnCustomRenderer(row[col.column], row) : getDeepValue(row, col.column);
+      const cellValue = col.cell ? col.cell(row[col.column], row) : getDeepValue(row, col.column);
       return cellValue === null || cellValue === undefined ? '' : cellValue.toString();
     }));
   });

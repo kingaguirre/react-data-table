@@ -38,6 +38,10 @@ export enum Actions {
   PASTE = "PASTE", // Paste a copied row or item.
 }
 
+interface IActionsDropdownItems {
+  text: string;
+  onClick?: (data?: any) => void
+}
 export interface DataTableProps {
   dataSource?: any[]; // (Optional) Array of data objects for table rows.
   columnSettings: ColumnSettings[]; // Configuration for each column.
@@ -51,12 +55,14 @@ export interface DataTableProps {
   collapsibleRowHeight?: string; // (Optional) Height of collapsible rows as a CSS value.
   fetchConfig?: FetchConfig; // (Optional) Configuration for data fetching.
   filterAll?: boolean; // (Optional) Show or hide main search box at main header.
-  downloadCSV?: boolean; // (Optional) If downloading table data as XLXS is enabled.
+  downloadXLS?: boolean; // (Optional) If downloading table data as XLXS is enabled.
+  uploadXLS?: boolean; // (Optional) If uploading table data as XLXS is enabled.
   activeRow?: string; // (Optional) Key of the currently active row.
   selectedRows?: any[]; // (Optional) Array of keys identifying selected rows.
   clickableRow?: boolean; // (Optional) If rows are clickable.
   customRowSettings?: CustomRowSettings[]; // (Optional) Custom settings for rows based on column values.
   actions?: Actions | Actions[]; // (Optional) Actions available in the table.
+  actionsDropdownItems?: IActionsDropdownItems[]; // (Optional) Add additional dropdown item in actions row
   rowKey?: string; // (Required) Key from the data source for uniquely identifying each row.
   isPermanentDelete?: boolean; // (Optional) If delete action permanently removes data.
   selectionRange?: boolean; // (Optional) Enable cell selction for copy or paste data from excel.
@@ -88,5 +94,5 @@ export interface ColumnSettings {
   selectable?: boolean; // (Optional) If selecting the column is disabled.
   disableSelection?: boolean; // (Optional) If column cannot be selected when selection is enabled.
   disableCopy?: boolean // (Optional) If column cannot be copy when selection is enabled and user press copy.
-  columnCustomRenderer?: (value: any, rowData: any, index?: number) => React.ReactNode; // (Optional) Custom renderer for column data, can be any component.
+  cell?: (value: any, rowData: any, index?: number) => React.ReactNode; // (Optional) Custom renderer for column data, can be any component.
 }

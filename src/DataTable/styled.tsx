@@ -99,6 +99,8 @@ export const TableInnerWrapper = styled.div`
   overflow-x: auto;
   width: 100%;
   font-family: 'Helvetica';
+  z-index: 1;
+  position: relative;
 `;
 
 export const Table = styled.div`

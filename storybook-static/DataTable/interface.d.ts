@@ -9,5 +9,5 @@ export interface ColumnSettings {
     minWidth?: string;
     groupTitle?: string;
     order?: number;
-    columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
+    cell?: (value: any, rowData: any) => React.ReactNode;
 }

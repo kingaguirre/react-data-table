@@ -78,7 +78,8 @@ export const ControlsWrapper = styled.div`
       color: grey;
     }
   }
-  > ${DownloadWrapper} > *,
+
+  > div > button,
   > * {
     height: 100%;
     background-color: #e1e1e1;
@@ -91,6 +92,9 @@ export const ControlsWrapper = styled.div`
     &:hover {
       background-color: #d1d1d1;
     }
+  }
+  > div > button {
+    padding: 0;
   }
 `;
 

@@ -40,7 +40,7 @@ export const ColumnFilters = () => {
   };
 
   return (
-    <TableRow>
+    <TableRow className="column-filter-container">
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn/>
       {columns.map((col, index) => {

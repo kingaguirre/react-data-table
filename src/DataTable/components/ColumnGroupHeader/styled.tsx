@@ -1,6 +1,10 @@
 import styled from 'styled-components';
 
-export const GroupHeaderWrapper = styled.div``;
+export const GroupHeaderWrapper = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 10009;
+`;
 
 export const GroupHeader = styled.div<{ width?: string; minWidth?: string; align?: string }> `
   display: block;

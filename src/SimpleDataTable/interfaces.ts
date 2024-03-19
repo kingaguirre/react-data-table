@@ -15,7 +15,7 @@ export interface DataTableProps {
   collapsibleRowHeight?: string;
   fetchConfig?: FetchConfig;
   filterAll?: boolean;
-  downloadCSV?: boolean;
+  downloadXLS?: boolean;
   activeRow?: string;
   selectedRows?: any[];
   clickableRow?: boolean;
@@ -40,6 +40,6 @@ export interface ColumnSettings {
   groupTitle?: string;
   order?: number;
   sorted?: 'asc' | 'desc' | string;
-  columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode;
+  cell?: (value: any, rowData: any) => React.ReactNode;
 }
 

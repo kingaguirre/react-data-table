@@ -5,6 +5,9 @@ export const ParentContainer = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  .table-cell {
+    user-select: none;
+  }
 `;
 
 export const Row = styled.div`

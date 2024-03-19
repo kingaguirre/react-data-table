@@ -7,10 +7,10 @@ import {
   mergeCustomStylesForRow,
   setDeepValue,
   isStringExist,
-  findUpdatedIndex,
   getValue,
   useCheckOverflow,
   getTableCellClass,
+  getHightLightedRow,
 } from "../../utils"
 import { SET_ACTIVE_ROW, SET_SELECTED_ROWS, SET_LOCAL_DATA, SET_FETCHED_DATA } from "../../context/actions";
 import { DataTableContext } from "../../index";
@@ -48,12 +48,16 @@ export const Rows = () => {
     selectedColumn,
     setSelectedColumn,
     selectionRange,
-    selectionRangeRef
+    selectionRangeRef,
+    tableHeight,
+    tableMaxHeight,
+    updatedRows,
+    setUpdatedRows
   } = useContext(DataTableContext);
 
   const cellRefs = useRef({});
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
-  const [addedRow, setAddedRow] = useState<number>(-1);
+  // const [addedRow, setAddedRow] = useState<number>(-1);
   // At the beginning of your functional component
 
   const isEditable = isStringExist(actions, Actions.EDIT);
@@ -75,7 +79,8 @@ export const Rows = () => {
     if (cell) {
       const { value } = cell;
       const currentRow = dataSource[rowIndex];
-      const saveDataSourceCurrentRow = savedDataSourceRef?.current?.find(i => getDeepValue(i, rowKey) === getDeepValue(currentRow, rowKey));
+      const rowKeyValue = getDeepValue(currentRow, rowKey);
+      const saveDataSourceCurrentRow = savedDataSourceRef?.current?.find(i => getDeepValue(i, rowKey) === rowKeyValue);
       const columnKey = columns[columnIndex].column;
       const columnSchema = columns[columnIndex]?.actionConfig?.schema;
       const isUnique = columns[columnIndex]?.actionConfig?.isUnique;
@@ -138,6 +143,8 @@ export const Rows = () => {
             onChange?.(updatedRows);
           }
 
+          // Do highlight
+          setUpdatedRows(prev => ([...prev, rowKeyValue]));
           setEditingCells(prev => prev.map(cell => 
             cell.rowIndex === rowIndex && cell.columnIndex === columnIndex 
               ? { ...cell, editable: false, invalid: false, erorr: null } 
@@ -177,7 +184,7 @@ export const Rows = () => {
       const isNewRow = checkIsNewRow(row);
       if (isNewRow) {
         columns.forEach((col, colIndex) => {
-          if (!col.hidden && !col.columnCustomRenderer) {
+          if (!col.hidden && !col.cell) {
             setEditingCells(prev => {
               // Check if this cell is already initialized
               if (prev.some(cell => cell.rowIndex === rowIndex && cell.columnIndex === colIndex)) {
@@ -203,17 +210,17 @@ export const Rows = () => {
       }
     });
 
-    setAddedRow(findUpdatedIndex(savedDataSourceRef.current, dataSource));
+  }, [dataSource, columns]);
 
-    // Use setTimeout to reset addedRow after 2 seconds
-    const timeoutId = setTimeout(() => {
-      setAddedRow(-1);
+  useEffect(() => {
+    const highlightId = setTimeout(() => {
+      setUpdatedRows([]);
     }, 2000);
 
     return () => {
-      clearTimeout(timeoutId); // Cleanup the timeout to avoid memory leaks
+      clearTimeout(highlightId);
     };
-  }, [dataSource, columns]);
+  }, [updatedRows]);
 
   // Update state when actions prop is changed
   useEffect(() => {
@@ -338,7 +345,8 @@ export const Rows = () => {
     }
 
     if (checkEditability(columnEditable, isEditable, isColumnNew)) {
-      
+      // Remove selection when editing
+      selectionRangeRef?.current?.clearSelection();
       setEditingCells(prev => {
         const isExist = prev?.find(i => rowIndex === i.rowIndex && colIndex === i.columnIndex);
         return isExist ? prev?.map(i => {
@@ -427,7 +435,7 @@ export const Rows = () => {
                 {...(!!clickableRow ? {
                   onClick: () => handleRowClick(row)
                 } : {})}
-                className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${addedRow === rowIndex ? 'highlighted' : ''}`}
+                className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${getHightLightedRow(updatedRows, rowKeyValue)}`}
               >
                 <CollapsibleRowColumn
                   onClick={() => toggleRowCollapse(rowKeyValue)}
@@ -465,7 +473,7 @@ export const Rows = () => {
                   const isColumnEditable = isNewRow ? true : col?.actionConfig !== false && hasEditAction && !isDeletedRow;
 
                   // Render the cell based on whether it's being edited or not
-                  if (editingCell && editingCell.editable === true && !col?.columnCustomRenderer && isColumnEditable) {
+                  if (editingCell && editingCell.editable === true && !col?.cell && isColumnEditable) {
                     const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
                     const isInvalid = editingCell?.invalid;
                     const error = editingCell?.error;
@@ -527,8 +535,8 @@ export const Rows = () => {
                     }
                   } else {
                     // Render normal cell content
-                    if (col.columnCustomRenderer) {
-                      cellContent = col.columnCustomRenderer(cellValue, row, rowIndex);
+                    if (col.cell) {
+                      cellContent = col.cell(cellValue, row, rowIndex);
                       _isColumnInValid = false;
                     } else {
                       if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
@@ -572,13 +580,13 @@ export const Rows = () => {
                         data-column-index={colIndex}
                         data-column={col.column}
                         data-disable-selection={col.disableSelection}
-                        data-disable-copy={col.disableCopy || !!col.columnCustomRenderer}
+                        data-disable-copy={col.disableCopy || !!col.cell}
                         data-disable-paste={col?.actionConfig === false || isDeletedRow}
                         data-column-name={col.title}
                       >
                         <SC.CellContent
                           className="cell-content"
-                          isCustomColumn={!!col.columnCustomRenderer}
+                          isCustomColumn={!!col.cell}
                           style={{ maxWidth: col.width }}
                           ref={node => addElement(node, cellKey)}
                         >

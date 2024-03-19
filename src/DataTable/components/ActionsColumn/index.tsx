@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { ActionsContainer, DropdownContainer, ActionsIconContainer } from './styled';
 import { Actions } from '../../interfaces';
 import { DataTableContext } from "../../index";
-import { isStringExist, isValidDataWithSchema } from "../../utils/index";
+import { isStringExist, isValidDataWithSchema, getDeepValue, getValue } from "../../utils/index";
 
 interface IProps {
   data?: any;
@@ -24,6 +24,9 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
     hasAction,
     editingCells,
     fetchConfig,
+    actionsDropdownItems,
+    rowKey,
+    onPasteRow,
     state: { columns, fetchedData, localData }
   } = useContext(DataTableContext);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -74,11 +77,25 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
   const handlePaste = async () => {
     try {
       const clipboardText = await navigator.clipboard.readText();
-      onAddRow?.(clipboardText, rowIndex);
-  
-      // Clear the clipboard after pasting
-      await navigator.clipboard.writeText('');
-      setCanPaste(false); // Update the canPaste state to reflect the cleared clipboard
+
+      const parsedData = !!data ? (typeof data === "string" ? JSON.parse(data) : data) : {};
+      const parsedClipboardText = !!clipboardText ? (typeof clipboardText === "string" ? JSON.parse(clipboardText) : clipboardText) : {};
+      const dataRowKeyValue = getDeepValue(parsedData, rowKey);
+      const clipboardRowKeyValue = getDeepValue(parsedClipboardText, rowKey);
+
+      if (dataRowKeyValue === clipboardRowKeyValue) {
+        alert("copied text and row data are the same");
+      } else {
+        const userChoice = confirm("Do you want to proceed?");
+        // Check the user's choice
+        if (userChoice) {
+          // User clicked on "OK"
+          onPasteRow?.(parsedData, parsedClipboardText);
+          // Clear the clipboard after pasting
+          await navigator.clipboard.writeText('');
+          setCanPaste(false);
+        }
+      }
     } catch (err) {
       console.error("Error pasting or clearing clipboard:", err);
     } finally {
@@ -119,6 +136,7 @@ export const ActionsColumn: React.FC<IProps> = (props: IProps) => {
         {hasAction(Actions.COPY) && <div onClick={handleCopy}>Copy</div>}
         {hasAction(Actions.PASTE) && <div onClick={handlePaste} style={{ color: canPaste ? 'inherit' : 'gray', pointerEvents: canPaste ? 'auto' : 'none' }}>Paste</div>}
         {hasAction(Actions.DUPLICATE) && <div onClick={() => handleDuplicate(data)}>Duplicate</div>}
+        {actionsDropdownItems?.map((d, i) => <div key={i} onClick={() => d.onClick(JSON.parse(data))}>{d.text}</div>)}
       </DropdownContainer>,
       document.body
     )

@@ -93,8 +93,8 @@ export const Rows = () => {
                 }
 
                 const rowValue = getDeepValue(row, col.column);
-                let cellContent = col.columnCustomRenderer
-                  ? col.columnCustomRenderer(row[col.column], row)
+                let cellContent = col.cell
+                  ? col.cell(row[col.column], row)
                   : typeof rowValue === "object" ? JSON.stringify(rowValue) : rowValue;
 
                 return (

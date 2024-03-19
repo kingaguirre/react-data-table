@@ -30,7 +30,16 @@ export const TableRowsContainer = styled.div<{ isFetching?: boolean }>`
 export const TableRow = styled.div`
   display: flex;
   position: relative;
+
+  &.column-filter-container {
+    position: sticky;
+    top: 0;
+    z-index: 10008;
+  }
   &.column-header-container {
+    position: sticky;
+    top: 1px;
+    z-index: 10010;
     > * {
       border-top: 1px solid #ddd;
       background-color: #eaeaea;
@@ -72,7 +81,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
-  user-select: none;
+
   &.is-not-editable:not(.custom-action-column) {
     background-color: grey!important;
   }
@@ -84,18 +93,6 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   &.table-cell.selected {
     background-color: lightblue!important;
   }
-  // &.selected {
-  //   &:before {
-  //     position: absolute;
-  //     top: 0;
-  //     left: 0;
-  //     right: 0;
-  //     bottom: 1px;
-  //     border: 1px solid blue;
-  //     content: "";
-  //     z-index: 1;
-  //   }
-  // }
   ${({ isPinned }) => !!isPinned ? `
     position: sticky;
     z-index: 10;
