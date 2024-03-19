@@ -389,6 +389,44 @@ const generateRandomTransactions = (num = 100) => {
   }))
 }
 
+const openJsonInNewWindow = (jsonObject) => {
+  // Convert the JSON object to a pretty-printed string
+  const jsonString = JSON.stringify(jsonObject, null, 2);
+
+  // Open a new window
+  const newWindow: any = window.open('', 'JSON');
+
+  // Escape HTML to prevent XSS attacks
+  const escapedJsonString = jsonString.replace(/[&<>"']/g, (match) => {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[match];
+  });
+
+  // Add some basic styling and pre-formatting to the new window's document for readability
+  newWindow.document.write(`
+    <html>
+      <head>
+        <title>JSON Data</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <pre>${escapedJsonString}</pre>
+      </body>
+    </html>
+  `);
+
+  // Ensure the new window's document is closed so it displays correctly
+  newWindow.document.close();
+};
+
 const ACTIONS_LIST = [Actions.DELETE, Actions.ADD, Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.EDIT]
 export default () => {
   const [selectedRow, setSselectedRow] = useState<any>(null);
@@ -496,7 +534,7 @@ export default () => {
         tableHeight='200px'
         actionsDropdownItems={[{
           text: "test",
-          onClick: (data) => console.log(data)
+          onClick: (data) => openJsonInNewWindow(data)
         }]}
         customRowSettings={[
           {
