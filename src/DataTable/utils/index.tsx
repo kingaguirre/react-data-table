@@ -563,6 +563,9 @@ const extractValueFromObject = (obj) => {
     } else if (obj.value instanceof Date) {
       // Directly handle if 'value' is a Date object
       return format(obj.value);
+    } else if (typeof obj.value === 'number') {
+      // Directly handle if 'value' is a number
+      return obj.value?.toString();
     }
   }
   return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string/date
@@ -922,7 +925,6 @@ export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_c
   return newData;
 };
 
-
 export const readClipboardText = async () => {
   if (navigator.clipboard) {
     try {
@@ -956,8 +958,13 @@ export const mergeWithPrevious = (obj1, obj2, rowKey?) => {
       // If current key matches rowKey, use obj1's value directly
       result[key] = obj1[key];
     } else if (!obj2.hasOwnProperty(key)) {
-      result[key] = obj1[key]; // Retain values in obj1 not overwritten by obj2
-    } else if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object' && !Array.isArray(obj1[key]) && !isSpecialFormat(obj1[key]) && !isSpecialFormat(obj2[key])) {
+      // Handle null and undefined explicitly
+      if (obj1[key] === null || obj1[key] === undefined) {
+        result[key] = { previous: obj1[key], isChanged: false };
+      } else {
+        result[key] = obj1[key];
+      }
+    } else if (typeof obj1[key] === 'object' && obj1[key] !== null && typeof obj2[key] === 'object' && obj2[key] !== null && !Array.isArray(obj1[key]) && !isSpecialFormat(obj1[key]) && !isSpecialFormat(obj2[key])) {
       // Recursive merge for nested objects
       result[key] = mergeWithPrevious(obj1[key], obj2[key]);
     } else if (Array.isArray(obj1[key]) && Array.isArray(obj2[key])) {
@@ -1002,11 +1009,18 @@ export const mergeWithPrevious = (obj1, obj2, rowKey?) => {
 export const getHightLightedRow = (updatedRows, rowKeyValue) => updatedRows?.includes(rowKeyValue) ? 'highlighted' : '';
 
 export const generateSelectedCells = (data, columns) => {
+  // Ensure all data objects have the same keys, filling missing ones with null
+  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+  const normalizedData = data.map(obj =>
+    allKeys.reduce((acc: any, key: any) => ({ ...acc, [key]: obj.hasOwnProperty(key) ? obj[key] : null }), {})
+  );
+
   // Remove other columns that is not visible to data-table
   const visibleCol = [...columns]?.filter(i => i.class !== "custom-action-column" && i.hidden !== true);
 
+  console.log(normalizedData)
   // Generate selected_cells array to pass in updateDataSourceFromExcelWithoutMutation function
-  return data.map((row: any, rowIndex) => 
+  return normalizedData.map((row: any, rowIndex) => 
     Object.values(row).map((_: any, itemIndex: number) => ({
       column: visibleCol[itemIndex]?.column,
       columnIndex: itemIndex,
@@ -1017,6 +1031,24 @@ export const generateSelectedCells = (data, columns) => {
     })
   )).flat();
 };
+
+export const toExcelFormat = (data) => {
+  // Ensure all data objects have the same keys, filling missing ones with null
+  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+  const normalizedData = data.map(obj =>
+    allKeys.reduce((acc: any, key: any) => ({ ...acc, [key]: obj.hasOwnProperty(key) ? obj[key] : null }), {})
+  );
+  
+  // Assuming all objects in `data` have the same keys.
+  // Convert each object to a string, with values separated by tabs (\t)
+  const rows = normalizedData.map(obj => {
+    // Get all values for the current object, separated by tabs
+    return Object.values(obj).join('\t');
+  });
+
+  // Join all rows with newlines (\n) to get the final string
+  return rows.join('\n');
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

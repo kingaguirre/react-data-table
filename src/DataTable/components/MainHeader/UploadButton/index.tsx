@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useCallback, ChangeEvent } from "react";
-import { setDeepValue, updateDataSourceFromExcelWithoutMutation, generateSelectedCells } from "../../../utils";
+import { setDeepValue, updateDataSourceFromExcelWithoutMutation, generateSelectedCells, toExcelFormat } from "../../../utils";
 import { SET_FETCHED_DATA, SET_LOCAL_DATA } from "../../../context/actions";
 import { DataTableContext } from "../../../index";
 import * as XLSX from 'xlsx';
@@ -22,18 +22,6 @@ export const UploadButton = () => {
     if (files && files[0]) {
       const file = files[0];
       const reader = new FileReader();
-      
-      const toExcelFormat = (data) => {
-        // Assuming all objects in `data` have the same keys.
-        // Convert each object to a string, with values separated by tabs (\t)
-        const rows = data.map(obj => {
-          // Get all values for the current object, separated by tabs
-          return Object.values(obj).join('\t');
-        });
-      
-        // Join all rows with newlines (\n) to get the final string
-        return rows.join('\n');
-      }
 
       reader.onload = (e: any) => {
         const binaryStr = e.target.result;

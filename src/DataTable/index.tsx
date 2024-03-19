@@ -219,7 +219,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
       }
 
     } catch (error) {
-      console.error("Invalid data.");
+      console.error("Error: ", error);
     }
   }, [state.localData, state.fetchedData.data, columnSettings]);
 
