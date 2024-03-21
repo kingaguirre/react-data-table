@@ -1018,7 +1018,6 @@ export const generateSelectedCells = (data, columns) => {
   // Remove other columns that is not visible to data-table
   const visibleCol = [...columns]?.filter(i => i.class !== "custom-action-column" && i.hidden !== true);
 
-  console.log(normalizedData)
   // Generate selected_cells array to pass in updateDataSourceFromExcelWithoutMutation function
   return normalizedData.map((row: any, rowIndex) => 
     Object.values(row).map((_: any, itemIndex: number) => ({
@@ -1048,6 +1047,34 @@ export const toExcelFormat = (data) => {
 
   // Join all rows with newlines (\n) to get the final string
   return rows.join('\n');
+}
+
+export const checkMinLength = (obj) => {
+  // Check if the current value is an object, necessary for recursion
+  const isObject = (value) => {
+      return value && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  // Recursive function to search for the minLength key
+  const searchForObjectWithMinLength = (currentObj) => {
+      // Iterate through each property in the current object
+      for (let key in currentObj) {
+          // Check if the current property is an object for recursion
+          if (isObject(currentObj[key])) {
+              // If the recursive call finds a minLength, return true immediately
+              if (searchForObjectWithMinLength(currentObj[key])) {
+                  return true;
+              }
+          } else if (key === 'minLength' && currentObj[key] > 0) {
+              // If the current key is minLength and its value is greater than 0
+              return true;
+          }
+      }
+      // If no minLength key with a value > 0 is found in the current branch
+      return false;
+  }
+
+  return searchForObjectWithMinLength(obj);
 }
 
 export * from "./useDragDropManager";

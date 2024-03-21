@@ -79,8 +79,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
   const [updatedRows, setUpdatedRows] = useState<string[]>([]);
   const [rightPanelToggle, setRightPanelToggle] = useState(false);
   const [editingCells, setEditingCells] = useState<Array<{
-    cancelledRowIndex
+    rowIndex: number,
     columnIndex: number;
+    column?: string;
     value: string;
     editable?: boolean;
     invalid?: boolean;
@@ -435,7 +436,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         // Check if column has an actionConfig with a schema
         if (column.actionConfig?.schema) {
           const value = getDeepValue(item, column.column, true); // True to potentially return objects
-          const parsedValue = getValue(value); // Ensure the value is correctly formatted for validation
+          const currentEditingValue = editingCells?.find(i => i?.column === column.column && i?.rowIndex === rowIndex)?.value;
+          const parsedValue = getValue(currentEditingValue !== undefined ? currentEditingValue : value); // Ensure the value is correctly formatted for validation
   
           const schema = column.actionConfig.schema;
           const isSchemaInvalid = ajv.validate(schema, parsedValue);
@@ -454,7 +456,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     });
 
     return invalidData;
-  }, [state.localData, state.fetchedData.data, state.columns])
+  }, [state.localData, state.fetchedData.data, state.columns, editingCells])
 
   React.useImperativeHandle(ref, () => ({
     validate: validateData,

@@ -49,8 +49,6 @@ export const Rows = () => {
     setSelectedColumn,
     selectionRange,
     selectionRangeRef,
-    tableHeight,
-    tableMaxHeight,
     updatedRows,
     setUpdatedRows
   } = useContext(DataTableContext);
@@ -353,7 +351,8 @@ export const Rows = () => {
           return rowIndex === i.rowIndex && colIndex === i.columnIndex ? {
             ...i,
             value,
-            editable: true
+            editable: true,
+            column: col?.column
           } : i
         }) : [...prev, { rowIndex, columnIndex: colIndex, value, editable: true }]
       });
