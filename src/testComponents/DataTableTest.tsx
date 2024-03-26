@@ -235,6 +235,13 @@ const columnSettings = [
     pinned: true,
   },
   {
+    column: 'userDetails',
+    title: 'Emails and other',
+    groupTitle: 'User Details',
+    order: 4,
+    cell: (_, data) => `${data.userDetails.email} ${data.userDetails.other}`
+  },
+  {
     column: 'userDetails.isAdmin',
     title: 'Is Admin',
     groupTitle: 'User Details',

@@ -241,7 +241,7 @@ export const Rows = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (event.target.closest('.test-123') || event.target.closest('.test-1234')) {
+      if (event.target.closest('.table-cell') || event.target.closest('.test-1234')) {
         // If clicked inside an element with the '.test-123' class, do nothing
         return;
       }
@@ -485,7 +485,7 @@ export const Rows = () => {
                           <select
                             value={editingCell.value}
                             onChange={handleCellChange(rowIndex, colIndex)}
-                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
                             onKeyDown={handleKeyDown(rowIndex, colIndex)}
                             // autoFocus
                             className={isInvalid ? "invalid" : ""}
@@ -507,7 +507,7 @@ export const Rows = () => {
                             type="date"
                             value={editingCell.value || ""}
                             onChange={handleCellChange(rowIndex, colIndex)}
-                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
                             onKeyDown={handleKeyDown(rowIndex, colIndex)}
                             // autoFocus
                             className={isInvalid ? "invalid" : ""}
@@ -523,7 +523,7 @@ export const Rows = () => {
                             type="text"
                             value={editingCell.value || ""}
                             onChange={handleCellChange(rowIndex, colIndex)}
-                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
                             onKeyDown={handleKeyDown(rowIndex, colIndex)}
                             // autoFocus
                             className={isInvalid ? "invalid" : ""}
@@ -555,7 +555,7 @@ export const Rows = () => {
 
                   const cellKey = `row-${rowIndex}-col-${colIndex}`;
                   const hasEllipsis = ellipsisMap.get(cellKey);
-                  // const columnRef = refsMap.current.get(cellKey); // way to get each column ref
+                  const customCellIsString = typeof cellContent === 'string';
 
                   return (
                     <Fragment key={colIndex}>
@@ -585,7 +585,7 @@ export const Rows = () => {
                       >
                         <SC.CellContent
                           className="cell-content"
-                          isCustomColumn={!!col.cell}
+                          isCustomColumn={!!col.cell && !customCellIsString}
                           style={{ maxWidth: col.width }}
                           ref={node => addElement(node, cellKey)}
                         >
