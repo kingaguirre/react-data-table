@@ -453,7 +453,7 @@ export const updateDataByRowKey = (rowData, data, rowKey, intentAction = "R") =>
   const rowDataRowKey = getDeepValue(rowData, rowKey);
   const dataRowKey = getDeepValue(d, rowKey);
   if (rowDataRowKey === dataRowKey) {
-    return { ...d, intentAction }
+    return { ...d, ...rowData, intentAction }
   }
   return d;
 });
@@ -1076,6 +1076,43 @@ export const checkMinLength = (obj) => {
 
   return searchForObjectWithMinLength(obj);
 }
+
+export const processData = (input) => {
+  const result = {};
+
+  input.forEach(({ column, value }) => {
+    // Check if the column name indicates a nested object
+    if (column.includes('.')) {
+      // Split the column name into parts to build the nested structure
+      const parts = column.split('.');
+      let current = result;
+
+      // Iterate over the parts to build the nested structure
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+
+        // If we're at the last part, assign the value
+        if (i === parts.length - 1) {
+          current[part] = value;
+        } else {
+          // If the next part of the structure doesn't exist, create it
+          if (!current[part]) {
+            current[part] = {};
+          }
+
+          // Move deeper into the structure
+          current = current[part];
+        }
+      }
+    } else {
+      // If it's not a nested object, simply assign the value to the key
+      result[column] = value;
+    }
+  });
+
+  return result;
+}
+
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

@@ -218,7 +218,7 @@ export const Rows = () => {
     return () => {
       clearTimeout(highlightId);
     };
-  }, [updatedRows]);
+  }, []);
 
   // Update state when actions prop is changed
   useEffect(() => {
@@ -469,10 +469,11 @@ export const Rows = () => {
                   const isNewRow = getDeepValue(row, "intentAction") === "*";
                   const hasEditAction = hasAction(Actions.EDIT);
 
+                  const isInEditableStatus = editingCell && editingCell.editable === true;
                   const isColumnEditable = isNewRow ? true : col?.actionConfig !== false && hasEditAction && !isDeletedRow;
 
                   // Render the cell based on whether it's being edited or not
-                  if (editingCell && editingCell.editable === true && !col?.cell && isColumnEditable) {
+                  if (isInEditableStatus && !col?.cell && isColumnEditable) {
                     const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
                     const isInvalid = editingCell?.invalid;
                     const error = editingCell?.error;
@@ -523,7 +524,7 @@ export const Rows = () => {
                             type="text"
                             value={editingCell.value || ""}
                             onChange={handleCellChange(rowIndex, colIndex)}
-                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
                             onKeyDown={handleKeyDown(rowIndex, colIndex)}
                             // autoFocus
                             className={isInvalid ? "invalid" : ""}
@@ -571,7 +572,7 @@ export const Rows = () => {
                             backgroundColor: _hasOldValue ? "yellow" : "white"
                           } : customRowStyle)
                         }}
-                        {...(isColumnEditable ? {
+                        {...((isColumnEditable && !isInEditableStatus) ? {
                           onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell})
                         } : {})}
                         className={getTableCellClass({isSelectedColumn, hasEditAction, isColumnEditable, col})}

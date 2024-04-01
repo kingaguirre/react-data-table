@@ -61,10 +61,16 @@ const dataSource = Array(25).fill("").map((_, i) => ({
   userDetails: {
     image: "asdasdasd",
     email: `test${i}@email.com`,
+    email1: {
+      value: `test${i}@email1.com`
+    },
     isAdmin: {
       value: (i % 2 === 0).toString()
     },
     other: `other value${i}`,
+    other1: {
+      value: `other1 value${i}`
+    },
     birthDay: getRandomBirthdate().birthdate,
     firstName: `John${i}`,
     lastName: `Doe${i}`,
@@ -234,13 +240,23 @@ const columnSettings = [
     order: 3,
     pinned: true,
   },
+
+
+  {
+    column: 'userDetails.email1',
+    title: 'Emails1',
+    groupTitle: 'User Details',
+  },
+
   {
     column: 'userDetails',
     title: 'Emails and other',
     groupTitle: 'User Details',
     order: 4,
-    cell: (_, data) => `${data.userDetails.email} ${data.userDetails.other}`
+    cell: (_, data) => `${data?.userDetails?.email1?.value} ${data?.userDetails?.other1}`
   },
+
+
   {
     column: 'userDetails.isAdmin',
     title: 'Is Admin',

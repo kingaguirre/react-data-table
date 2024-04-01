@@ -18,6 +18,7 @@ import {
   arrayToEmptyObject,
   getValue,
   mergeWithPrevious,
+  processData,
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA, SET_SELECTED_ROWS, SET_ACTIVE_ROW } from "./context/actions";
@@ -255,7 +256,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     }
   }, [state.localData, state.fetchedData.data, editingCells, setEditingCells]);
 
-  const doUpdateRowIntentAction = (data, intentAction = "R") => {
+  const doUpdateRowIntentAction = useCallback((data, intentAction = "R") => {
     const parsedNewData = !!data ? JSON.parse(data) : {};
     const rowKeyValue = getDeepValue(parsedNewData, rowKey);
     setUpdatedRows(prev => ([...prev, rowKeyValue]));
@@ -272,9 +273,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
       setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       onChange?.(newLocalData);
     }
-  };
+  }, [state.localData, state.fetchedData.data]);
 
-  const doPermanentDelete = (data) => {
+  const doPermanentDelete = useCallback((data) => {
     const parsedNewData = !!data ? JSON.parse(data) : {};
     const rowKeyValue = getValue(getDeepValue(parsedNewData, rowKey));
     if (fetchConfig) {
@@ -289,26 +290,29 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
       setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       onChange?.(newLocalData);
     }
-  };
+  }, [state.localData, state.fetchedData.data]);
 
-  const onDeleteRow = useCallback((data, rowIndex) => {
+  const onDeleteRow = (data, rowIndex) => {
     /** Clear selection if there's any */
     selectionRangeRef?.current?.clearSelection();
 
     if (isPermanentDelete) {
       doPermanentDelete(data);
-      // When permanent delete, remove all data with same row in editingCells state
-      setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== rowIndex));
-      // When permanent delete, remove selected cell if its same row
-      setSelectedColumn(prev => prev?.rowIndex === rowIndex ? null : prev);
     } else {
       doUpdateRowIntentAction(data);
     }
-  }, [state.localData, state.fetchedData.data]);
 
-  const onSave = useCallback((data) => doUpdateRowIntentAction(data, "N"), [state.localData, state.fetchedData.data]);
+    // Remove all data with same row in editingCells state
+    setEditingCells(prev => prev.filter((cell: any) => cell.rowIndex !== rowIndex));
+    // Remove selected cell if its same row
+    setSelectedColumn(prev => prev?.rowIndex === rowIndex ? null : prev);
+  };
 
-  const onUndo = useCallback((data) => doUpdateRowIntentAction(data, "U"), [state.localData, state.fetchedData.data]);
+  const onSave = useCallback((data) => {
+    doUpdateRowIntentAction(JSON.stringify({...processData(editingCells), ...JSON.parse(data)}), "N");
+  }, [editingCells]);
+
+  const onUndo = (data) => doUpdateRowIntentAction(data, "U");
 
   const fetchWithPagination = useCallback(async (
     pageIndex, pageSize, searchString = '', sortColumn = 'none', sortDirection = 'none', filter, advanceFilter
@@ -576,8 +580,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
                 height: tableHeight, maxHeight: tableMaxHeight
               }}>
                 <ColumnGroupHeader />
-                  <ColumnHeader />
-                  <ColumnFilters />
+                <ColumnHeader />
+                <ColumnFilters />
                 <Rows />
               </div>
             </SC.TableInnerWrapper>
