@@ -563,8 +563,8 @@ const extractValueFromObject = (obj) => {
     } else if (obj.value instanceof Date) {
       // Directly handle if 'value' is a Date object
       return format(obj.value);
-    } else if (typeof obj.value === 'number') {
-      // Directly handle if 'value' is a number
+    } else {
+      // Return any kind of value as string
       return obj.value?.toString();
     }
   }
@@ -1113,6 +1113,26 @@ export const processData = (input) => {
   return result;
 }
 
+export const filterQueryObjByColumns = (queryObj, columns, requestData) => {
+  // Initialize an empty object to hold the filtered results
+  const filteredQuery = {
+    ...requestData,
+    ...requestData?.filter
+  };
+
+  delete filteredQuery?.filter
+
+  // Iterate over the columns array
+  columns.forEach(column => {
+    // Only add the key from queryObj to filteredQuery if filterConfig is defined for the column
+    if (column.filterConfig && queryObj.hasOwnProperty(column.column)) {
+      filteredQuery[column.column] = queryObj[column.column];
+    }
+  });
+
+  // Return the filtered object
+  return filteredQuery;
+};
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
