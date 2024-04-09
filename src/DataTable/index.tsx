@@ -19,6 +19,8 @@ import {
   getValue,
   mergeWithPrevious,
   processData,
+  filterQueryObjByColumns,
+  replaceEndpointValues
 } from "./utils";
 import dataTableReducer, { IReducerState, initialState } from "./context/reducer";
 import { SET_COLUMNS, SET_TABLE_WIDTH, SET_FETCHED_DATA, SET_LOCAL_DATA, SET_SELECTED_ROWS, SET_ACTIVE_ROW } from "./context/actions";
@@ -353,7 +355,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
       } else {
         const queryObj = {
           ...requestData,
-          ...requestData!.filter,
+          ...requestData?.filter,
           pageNumber: pageIndex + 1,
           pageSize,
           sortColumn,
@@ -362,6 +364,11 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
           ...advanceFilter,
           acknowledgementNumber: searchString,
         };
+        console.log(queryObj)
+        console.log(endpoint)
+        console.log(replaceEndpointValues(queryObj, endpoint))
+        const endpointDetails = replaceEndpointValues(queryObj, endpoint);
+        console.log(filterQueryObjByColumns(queryObj, columnSettings, requestData, endpointDetails.parameters))
         delete queryObj.filter;
 
         // Ensure all undefined values in queryObj are replaced with an empty string
@@ -411,7 +418,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         console.error(error)
       }
     }
-  }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData]);
+  }, [fetchConfig, state.fetchedData.data, state.fetchedData.totalData, state.columns]);
 
   const hasAction = (action: Actions) => Array.isArray(actions) ? actions.includes(action) : actions === action;
   /** Callback End */

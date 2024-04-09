@@ -1113,26 +1113,60 @@ export const processData = (input) => {
   return result;
 }
 
-export const filterQueryObjByColumns = (queryObj, columns, requestData) => {
+export const filterQueryObjByColumns = (queryObj, columns, requestData, parameters) => {
   // Initialize an empty object to hold the filtered results
   const filteredQuery = {
     ...requestData,
     ...requestData?.filter
   };
 
-  delete filteredQuery?.filter
+  // Remove the 'filter' key if it exists
+  delete filteredQuery?.filter;
 
   // Iterate over the columns array
   columns.forEach(column => {
     // Only add the key from queryObj to filteredQuery if filterConfig is defined for the column
-    if (column.filterConfig && queryObj.hasOwnProperty(column.column)) {
+    // and the column's key is not listed in the parameters array
+    if (column.filterConfig && queryObj.hasOwnProperty(column.column) && !parameters.includes(column.column)) {
       filteredQuery[column.column] = queryObj[column.column];
+    }
+  });
+
+  // Additionally, remove any keys that are explicitly listed in the parameters array
+  parameters.forEach(param => {
+    if (filteredQuery.hasOwnProperty(param)) {
+      delete filteredQuery[param];
     }
   });
 
   // Return the filtered object
   return filteredQuery;
 };
+
+export const replaceEndpointValues = (queryObj, endpoint) => {
+  const regex = /{{(.*?)}}/g;
+  let match;
+  const parameters = new Set(); // Use a Set to automatically ensure uniqueness
+
+  // First, find and collect all unique parameters
+  while ((match = regex.exec(endpoint)) !== null) {
+    const paramName = match[1];
+    if (queryObj.hasOwnProperty(paramName)) {
+      parameters.add(paramName);
+    }
+  }
+
+  // Then, for each unique parameter found, replace all its occurrences in the endpoint
+  parameters.forEach(paramName => {
+    const value = queryObj[paramName];
+    // This creates a new global regex for each parameter to replace all occurrences
+    const globalRegex = new RegExp(`{{${paramName}}}`, 'g');
+    endpoint = endpoint.replace(globalRegex, value);
+  });
+
+  // Convert parameters Set to Array for the output
+  return { endpoint, parameters: Array.from(parameters) };
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

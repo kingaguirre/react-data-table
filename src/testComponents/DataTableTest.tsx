@@ -300,9 +300,9 @@ const columnSettings = [
     title: 'Birth Day',
     groupTitle: 'User Details',
     order: 5,
-    filterConfig: {
-      type: 'date-range',
-    },
+    // filterConfig: {
+    //   type: 'date-range',
+    // },
     actionConfig: {
       type: 'date'
     }
@@ -537,7 +537,7 @@ export default () => {
         })))
       }}>Remove "Column Filter"</button>
 
-      <DataTable
+      {/* <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -629,12 +629,12 @@ export default () => {
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
         selectionRange
 
-      />
+      /> */}
     <div style={{height: 100}}/>
-      {/* <DataTable
+      <DataTable
         fetchConfig={{
-          // endpoint: "http://localhost:3002/custom-items",
-          endpoint: replaceLocalhostWithDomain("http://localhost:3002/custom-items", "http://localhost:3002"),
+          endpoint: "http://localhost:3001/custom-items/{{pageNumber}}/{{pageSize}}",
+          // endpoint: replaceLocalhostWithDomain("http://localhost:3002/custom-items", "http://localhost:3002"),
           responseTotalDataPath: "data.count",
           responseDataPath: "data.dataTableItem",
           requestData: {
@@ -642,6 +642,7 @@ export default () => {
             pageSize: 10,
             filter: {
               username: "test-username1",
+              test: 'ss'
             }
           },
           filterSettings: [{
@@ -728,7 +729,7 @@ export default () => {
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
-      /> */}
+      />
       <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{

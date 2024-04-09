@@ -524,7 +524,7 @@ export const Rows = () => {
                             type="text"
                             value={editingCell.value || ""}
                             onChange={handleCellChange(rowIndex, colIndex)}
-                            onBlur={() => handleDoEdit(rowIndex, colIndex)}
+                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
                             onKeyDown={handleKeyDown(rowIndex, colIndex)}
                             // autoFocus
                             className={isInvalid ? "invalid" : ""}
