@@ -537,7 +537,7 @@ export default () => {
         })))
       }}>Remove "Column Filter"</button>
 
-      {/* <DataTable
+      <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -629,9 +629,9 @@ export default () => {
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
         selectionRange
 
-      /> */}
+      />
     <div style={{height: 100}}/>
-      <DataTable
+      {/* <DataTable
         fetchConfig={{
           endpoint: "http://localhost:3001/custom-items/{{pageNumber}}/{{pageSize}}",
           // endpoint: replaceLocalhostWithDomain("http://localhost:3002/custom-items", "http://localhost:3002"),
@@ -641,8 +641,8 @@ export default () => {
             pageNumber: 1,
             pageSize: 10,
             filter: {
-              username: "test-username1",
-              test: 'ss'
+              username: ['TEST1','TEST2','TEST3'],
+              test: ['TEST1','TEST2','TEST3'],
             }
           },
           filterSettings: [{
@@ -729,7 +729,7 @@ export default () => {
         onPageIndexChange={e => console.log(`Page index: ${e}`)}
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
-      />
+      /> */}
       <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{

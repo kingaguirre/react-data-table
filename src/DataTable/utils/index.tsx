@@ -259,7 +259,6 @@ export const getLocalStorageColumnSettings = (columnSettings) => {
   }
 };
 
-
 export const setColumnSettings = (
   columnSettings: any,
   tableWidth: any,
@@ -1128,7 +1127,8 @@ export const filterQueryObjByColumns = (queryObj, columns, requestData, paramete
     // Only add the key from queryObj to filteredQuery if filterConfig is defined for the column
     // and the column's key is not listed in the parameters array
     if (column.filterConfig && queryObj.hasOwnProperty(column.column) && !parameters.includes(column.column)) {
-      filteredQuery[column.column] = queryObj[column.column];
+      const value = queryObj[column.column];
+      filteredQuery[column.column] = Array.isArray(value) ? value.join(',') : value;
     }
   });
 
@@ -1136,6 +1136,13 @@ export const filterQueryObjByColumns = (queryObj, columns, requestData, paramete
   parameters.forEach(param => {
     if (filteredQuery.hasOwnProperty(param)) {
       delete filteredQuery[param];
+    }
+  });
+
+  // Convert any array values in filteredQuery to comma-separated strings
+  Object.keys(filteredQuery).forEach(key => {
+    if (Array.isArray(filteredQuery[key])) {
+      filteredQuery[key] = filteredQuery[key].join(',');
     }
   });
 

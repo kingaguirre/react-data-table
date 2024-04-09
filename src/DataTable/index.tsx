@@ -91,6 +91,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     error?: string | null;
     isNew?: boolean
   }>>([]);
+  const [observedWidth, setObservedWidth] = useState(0);
   const ajv = new Ajv();
 
   /** Reducer Start */
@@ -364,11 +365,11 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
           ...advanceFilter,
           acknowledgementNumber: searchString,
         };
-        console.log(queryObj)
-        console.log(endpoint)
-        console.log(replaceEndpointValues(queryObj, endpoint))
+        // console.log(queryObj)
+        // console.log(endpoint)
+        // console.log(replaceEndpointValues(queryObj, endpoint))
         const endpointDetails = replaceEndpointValues(queryObj, endpoint);
-        console.log(filterQueryObjByColumns(queryObj, columnSettings, requestData, endpointDetails.parameters))
+        // console.log(filterQueryObjByColumns(queryObj, columnSettings, requestData, endpointDetails.parameters))
         delete queryObj.filter;
 
         // Ensure all undefined values in queryObj are replaced with an empty string
@@ -491,12 +492,28 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
     }
   }, []);
 
+  // Resize observer setup
   useEffect(() => {
-    if (tableRef && tableRef.current) {
+    const observeTable = tableRef.current;
+    if (observeTable) {
+      const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          // Assuming you want to track width only; adjust if necessary
+          setObservedWidth(entry.contentRect.width);
+        }
+      });
+      resizeObserver.observe(observeTable);
+      return () => resizeObserver.unobserve(observeTable);
+    }
+  }, [tableRef.current]); // Depend on tableRef.current so this effect re-runs if that changes
+  
+  useEffect(() => {
+    if (tableRef.current) {
+      console.log(tableRef.current.offsetWidth);
       setTableWidth(tableRef.current.offsetWidth);
       setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings, actions));
     }
-  }, [tableRef, customRowSettings, actions]);
+  }, [tableRef, customRowSettings, actions, observedWidth]); // Include observedWidth in the dependency array
 
   useEffect(() => {
     if (!!fetchConfig) {
