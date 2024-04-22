@@ -1175,6 +1175,38 @@ export const replaceEndpointValues = (queryObj, endpoint) => {
   return { endpoint, parameters: Array.from(parameters) };
 }
 
+export const parseAndCheck = (value) => {
+  let obj;
+
+  // If value is a string, try parsing it as JSON
+  if (typeof value === 'string') {
+      try {
+          obj = JSON.parse(value);
+          // Parse successful, continue to check if it's an object with the required keys
+      } catch (e) {
+          // Parsing failed, return undefined
+          return undefined;
+      }
+  } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // If value is already an object, assign it to obj for further processing
+      obj = value;
+  } else {
+      // If it's neither a parseable string nor an object, return undefined
+      return undefined;
+  }
+
+  // Check if the object has both 'currency' and 'formattedValue' keys
+  if ('currency' in obj && 'formattedValue' in obj) {
+      return {
+          currency: obj.currency,
+          formattedValue: obj.formattedValue
+      };
+  } else {
+      // Keys are missing, return undefined
+      return undefined;
+  }
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
