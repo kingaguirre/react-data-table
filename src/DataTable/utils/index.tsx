@@ -1178,31 +1178,44 @@ export const replaceEndpointValues = (queryObj, endpoint) => {
 export const parseAndCheck = (value) => {
   let obj;
 
+  // Check if the property exists, either as a direct key or nested under `.value`
+  function getNestedValue(object, key) {
+      if (key in object) {
+          return object[key];
+      } else if (key + '.value' in object && typeof object[key] === 'object') {
+          return object[key].value;
+      }
+      return undefined;
+  }
+
   // If value is a string, try parsing it as JSON
   if (typeof value === 'string') {
       try {
           obj = JSON.parse(value);
-          // Parse successful, continue to check if it's an object with the required keys
       } catch (e) {
           // Parsing failed, return undefined
           return undefined;
       }
   } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      // If value is already an object, assign it to obj for further processing
+      // If value is already an object, use it for further processing
       obj = value;
   } else {
-      // If it's neither a parseable string nor an object, return undefined
+      // Not a parseable string or a valid object
       return undefined;
   }
 
-  // Check if the object has both 'currency' and 'formattedValue' keys
-  if ('currency' in obj && 'formattedValue' in obj) {
+  // Extract the values for currency and formattedValue, considering nested scenarios
+  const currencyValue = getNestedValue(obj, 'currency');
+  const formattedValue = getNestedValue(obj, 'formattedValue');
+
+  // Check if both values are not undefined
+  if (currencyValue !== undefined && formattedValue !== undefined) {
       return {
-          currency: obj.currency,
-          formattedValue: obj.formattedValue
+          currency: currencyValue,
+          formattedValue: formattedValue
       };
   } else {
-      // Keys are missing, return undefined
+      // If any value is missing, return undefined
       return undefined;
   }
 }
