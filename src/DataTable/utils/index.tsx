@@ -1176,16 +1176,16 @@ export const replaceEndpointValues = (queryObj, endpoint) => {
 }
 
 export const parseAndCheck = (value) => {
-  let obj;
-
-  // Check if the property exists, either as a direct key or nested under `.value`
+  // Helper function to safely check for both direct and nested properties
   function getNestedValue(object, key) {
-      if (key in object) {
-          return object[key];
-      } else if (key + '.value' in object && typeof object[key] === 'object') {
-          return object[key].value;
-      }
-      return undefined;
+    if (typeof object === 'object' && object !== null && !Array.isArray(object)) {
+        if (key in object) {
+            return object[key];
+        } else if ((key + '.value') in object && typeof object[key] === 'object' && object[key] !== null) {
+            return object[key].value;
+        }
+    }
+    return undefined;
   }
 
   // If value is a string, try parsing it as JSON
