@@ -96,7 +96,7 @@ export const TableWrapper = styled.div`
 `;
 
 export const TableInnerWrapper = styled.div`
-  overflow-x: auto;
+  overflow: scroll;
   width: 100%;
   font-family: 'Helvetica';
   z-index: 1;

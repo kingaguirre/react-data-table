@@ -81,6 +81,7 @@ export const TableCell = styled.div<{ width?: string; minWidth?: string; align?:
   justify-content: ${({ align }) => !!align ? align === 'center' ? 'center' : 'flex-end' : 'flex-start'};
   border-right: 1px solid #ddd;
   border-left: 1px solid #ddd;
+  min-height: 22px;
 
   &.is-not-editable:not(.custom-action-column) {
     background-color: grey!important;

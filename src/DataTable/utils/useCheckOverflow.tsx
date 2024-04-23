@@ -11,28 +11,42 @@ export const useCheckOverflow = () => {
     }
   }, []);
 
+  // Debounce function
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func.apply(this, args);
+      }, wait);
+    };
+  };
+
   useEffect(() => {
     const updateStates = () => {
-      setEllipsisMap(new Map(ellipsisStatesRef.current));
-    };
-
-    const resizeObserver = new ResizeObserver(updateStates);
-    ellipsisStatesRef.current.forEach((_, key) => {
-      const element = document.querySelector(`[data-ellipsis-key='${key}']`);
-      if (element) {
-        resizeObserver.observe(element);
-      }
-    });
-
-    return () => {
       ellipsisStatesRef.current.forEach((_, key) => {
         const element = document.querySelector(`[data-ellipsis-key='${key}']`);
         if (element) {
-          resizeObserver.unobserve(element);
+          updateEllipsisState(element, key);
         }
       });
+      setEllipsisMap(new Map(ellipsisStatesRef.current));
     };
-  }, []);
+
+    const debouncedUpdateStates = debounce(updateStates, 100); // 100 ms debounce period
+
+    // Attach handlers for window resize and DOM content loaded
+    window.addEventListener('resize', debouncedUpdateStates);
+    document.addEventListener('DOMContentLoaded', updateStates);
+
+    // Initial check in case elements are already in the DOM
+    updateStates();
+
+    return () => {
+      window.removeEventListener('resize', debouncedUpdateStates);
+      document.removeEventListener('DOMContentLoaded', updateStates);
+    };
+  }, [updateEllipsisState]);
 
   const refsMap = useRef(new Map());
 
