@@ -1220,6 +1220,19 @@ export const parseAndCheck = (value) => {
   }
 }
 
+export const getTotalWidth = (width, collapsibleRowRender = false, selectable = false) => {
+  /** Remove some with if collapsibleRowRender is defined */
+  const hasCollapsibleRowRender = collapsibleRowRender ? 38 : 0;
+  /** Remove some with if selectable is true */
+  const hasSelectable = selectable ? 38 : 0;
+  /** Remove some with for horizontal scrollbar */
+  const horizontalScrollBarWidth = 10;
+
+  /** Return width */
+  return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
+export * from "./useResize";
