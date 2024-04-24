@@ -1232,6 +1232,47 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
+function setupWebComponentListeners(components, onAllLoaded) {
+  const loadedComponents = new Set();
+
+  const handleComponentLoaded = (e) => {
+    loadedComponents.add(e.target.tagName.toLowerCase());
+    // Check if all components are loaded
+    if (components.every(comp => loadedComponents.has(comp))) {
+      onAllLoaded();
+    }
+  };
+
+  components.forEach(comp => {
+    const elements = document.querySelectorAll(comp);
+    elements.forEach(el => el.addEventListener('loaded', handleComponentLoaded));
+  });
+
+  return () => {
+    components.forEach(comp => {
+      const elements = document.querySelectorAll(comp);
+      elements.forEach(el => el.removeEventListener('loaded', handleComponentLoaded));
+    });
+  };
+}
+
+const [isReady, setIsReady] = useState(false);
+
+useEffect(() => {
+  const components = ['tx-core-tab', 'tx-core-tab-item']; // List of components to check
+  const cleanup = setupWebComponentListeners(components, () => setIsReady(true));
+
+  return cleanup; // Cleanup on component unmount
+}, []);
+
+useEffect(() => {
+  if (isReady && tableRef.current) {
+    const currentWidth = tableRef.current.offsetWidth;
+    const columns = setColumnSettings(columnSettings, getTotalWidth(currentWidth, !!collapsibleRowRender, selectable), customRowSettings, actions);
+    // Assuming you have setter functions or other means to apply these
+  }
+}, [isReady, columnSettings, getTotalWidth, collapsibleRowRender, selectable, customRowSettings, actions]);
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";

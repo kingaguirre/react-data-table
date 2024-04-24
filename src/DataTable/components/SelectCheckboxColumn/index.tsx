@@ -24,13 +24,13 @@ export const SelectCheckboxColumn = (props: IProps) => {
       {!!onChange && (
         multiSelect ? (
           <Radio // Use Radio instead of Checkbox for single select
-            type="radio"
+            type="checkbox"
             checked={checked}
             onChange={onChange}
           />
         ) : (
           <Checkbox
-            type="checkbox"
+            type="radio"
             checked={checked}
             onChange={onChange}
           />

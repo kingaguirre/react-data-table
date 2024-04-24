@@ -366,7 +366,7 @@ export const Rows = () => {
   }, [collapsibleRowHeight]);
 
   const toggleRowSelection = useCallback((row: any) => {
-    if (multiSelect) {
+    if (!multiSelect) {
       // For single select, directly set the selectedRows with the current row
       const payload = [row];
       onSelectedRowsChange?.(payload);

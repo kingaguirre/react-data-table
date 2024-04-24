@@ -43,7 +43,7 @@ export const ColumnHeader = () => {
     <TableRow className="column-header-container">
       <CollapsibleRowColumn/>
       <SelectCheckboxColumn
-        {...(!multiSelect ? {
+        {...(multiSelect ? {
           checked: (!!rows && !!rows.length) && selectedRows.length === rows.length,
           onChange: (e) => e.target.checked ? selectAllRows() : deselectAllRows()
         } : {})}

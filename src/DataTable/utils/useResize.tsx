@@ -1,32 +1,46 @@
-import { useCallback, useLayoutEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  const handler: any = useRef();
+
+  useEffect(() => {
+    // Set debouncedValue to value (passed in) after the specified delay
+    handler.current = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      // Clear the timeout if value or delay changes
+      clearTimeout(handler.current);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 export const useResize = (tableRef, delay = 100) => {
   const [width, setWidth] = useState(0);
-  const handler = useRef();
-
   const updateTableWidth = useCallback(() => {
-    if (tableRef.current && tableRef.current.offsetWidth !== 0) {
+    if (tableRef.current) {
       setWidth(tableRef.current.offsetWidth);
     }
   }, [tableRef]);
 
-  useLayoutEffect(() => {
-    updateTableWidth(); // Initial measure
+  const debouncedWidth = useDebounce(width, delay);
 
+  useEffect(() => {
     const handleResize = () => {
-      // Debouncing resize updates
-      clearTimeout(handler.current);
-      handler.current = setTimeout(() => {
-        updateTableWidth();
-      }, delay);
+      updateTableWidth();
     };
 
-    window.addEventListener('resize', handleResize);
+    handleResize(); // Set initial width
+    window.addEventListener('resize', handleResize); // Add resize event listener
+
     return () => {
-      clearTimeout(handler.current);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', handleResize); // Clean up
     };
-  }, [updateTableWidth, delay]);
+  }, [updateTableWidth]);
 
-  return width;
+  return debouncedWidth;
 };

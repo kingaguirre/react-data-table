@@ -253,10 +253,8 @@ const columnSettings = [
     title: 'Emails and other',
     groupTitle: 'User Details',
     order: 4,
-    cell: (_, data) => `${data?.userDetails?.email1?.value} ${data?.userDetails?.other1}`
+    cell: (_, data) => `${data?.userDetails?.email1?.value} ${data?.userDetails?.other1.value}`
   },
-
-
   {
     column: 'userDetails.isAdmin',
     title: 'Is Admin',
@@ -643,6 +641,7 @@ export default () => {
             filter: {
               username: ['TEST1','TEST2','TEST3'],
               test: ['TEST1','TEST2','TEST3'],
+              password: ''
             }
           },
           filterSettings: [{
