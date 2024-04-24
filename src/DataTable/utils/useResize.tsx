@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useLayoutEffect, useEffect, useState, useRef } from 'react';
 
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -21,7 +21,9 @@ const useDebounce = (value, delay) => {
 
 export const useResize = (tableRef, delay = 100) => {
   const [width, setWidth] = useState(0);
+
   const updateTableWidth = useCallback(() => {
+    // Ensure the ref is attached and the element is in the DOM
     if (tableRef.current) {
       setWidth(tableRef.current.offsetWidth);
     }
@@ -29,16 +31,19 @@ export const useResize = (tableRef, delay = 100) => {
 
   const debouncedWidth = useDebounce(width, delay);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleResize = () => {
       updateTableWidth();
     };
 
-    handleResize(); // Set initial width
-    window.addEventListener('resize', handleResize); // Add resize event listener
+    if (tableRef.current) {
+      handleResize(); // Set initial width more reliably
+    }
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize); // Clean up
+      window.removeEventListener('resize', handleResize);
     };
   }, [updateTableWidth]);
 
