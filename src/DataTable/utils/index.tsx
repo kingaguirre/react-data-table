@@ -1232,47 +1232,28 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
-function setupWebComponentListeners(components, onAllLoaded) {
-  const loadedComponents = new Set();
-
-  const handleComponentLoaded = (e) => {
-    loadedComponents.add(e.target.tagName.toLowerCase());
-    // Check if all components are loaded
-    if (components.every(comp => loadedComponents.has(comp))) {
-      onAllLoaded();
-    }
-  };
-
-  components.forEach(comp => {
-    const elements = document.querySelectorAll(comp);
-    elements.forEach(el => el.addEventListener('loaded', handleComponentLoaded));
-  });
-
-  return () => {
-    components.forEach(comp => {
-      const elements = document.querySelectorAll(comp);
-      elements.forEach(el => el.removeEventListener('loaded', handleComponentLoaded));
+// Resize observer setup
+useEffect(() => {
+  const observeTable = tableRef.current;
+  if (observeTable) {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        // Assuming you want to track width only; adjust if necessary
+        setObservedWidth(entry.contentRect.width);
+      }
     });
-  };
-}
-
-const [isReady, setIsReady] = useState(false);
-
-useEffect(() => {
-  const components = ['tx-core-tab', 'tx-core-tab-item']; // List of components to check
-  const cleanup = setupWebComponentListeners(components, () => setIsReady(true));
-
-  return cleanup; // Cleanup on component unmount
-}, []);
-
-useEffect(() => {
-  if (isReady && tableRef.current) {
-    const currentWidth = tableRef.current.offsetWidth;
-    const columns = setColumnSettings(columnSettings, getTotalWidth(currentWidth, !!collapsibleRowRender, selectable), customRowSettings, actions);
-    // Assuming you have setter functions or other means to apply these
+    resizeObserver.observe(observeTable);
+    return () => resizeObserver.unobserve(observeTable);
   }
-}, [isReady, columnSettings, getTotalWidth, collapsibleRowRender, selectable, customRowSettings, actions]);
+}, [tableRef.current]); // Depend on tableRef.current so this effect re-runs if that changes
 
+useEffect(() => {
+  if (tableRef.current) {
+    console.log(tableRef.current.offsetWidth);
+    setTableWidth(tableRef.current.offsetWidth);
+    setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings, actions));
+  }
+}, [tableRef, customRowSettings, actions, observedWidth]); // Include observedWidth in the dependency array
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
