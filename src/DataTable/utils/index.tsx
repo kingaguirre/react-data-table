@@ -1232,28 +1232,31 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
-// Resize observer setup
+const timeoutRef = useRef();
+
 useEffect(() => {
   const observeTable = tableRef.current;
   if (observeTable) {
     const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        // Assuming you want to track width only; adjust if necessary
-        setObservedWidth(entry.contentRect.width);
-      }
-    });
-    resizeObserver.observe(observeTable);
-    return () => resizeObserver.unobserve(observeTable);
-  }
-}, [tableRef.current]); // Depend on tableRef.current so this effect re-runs if that changes
+      if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clear the existing timeout
 
-useEffect(() => {
-  if (tableRef.current) {
-    console.log(tableRef.current.offsetWidth);
-    setTableWidth(tableRef.current.offsetWidth);
-    setColumns(setColumnSettings(columnSettings, tableRef.current.offsetWidth, customRowSettings, actions));
+      // Set a new timeout to update the width
+      timeoutRef.current = setTimeout(() => {
+        for (let entry of entries) {
+          setObservedWidth(entry.contentRect.width);
+        }
+      }, 100); // Delay in ms, adjust as needed
+    });
+
+    resizeObserver.observe(observeTable);
+
+    return () => {
+      resizeObserver.unobserve(observeTable);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clean up the timeout
+    };
   }
-}, [tableRef, customRowSettings, actions, observedWidth]); // Include observedWidth in the dependency array
+}, [tableRef.current, setObservedWidth]); // Depend on tableRef.current and setObservedWidth to re-run if these change
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
