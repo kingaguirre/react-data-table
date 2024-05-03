@@ -1232,31 +1232,6 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
-const timeoutRef = useRef();
-
-useEffect(() => {
-  const observeTable = tableRef.current;
-  if (observeTable) {
-    const resizeObserver = new ResizeObserver(entries => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clear the existing timeout
-
-      // Set a new timeout to update the width
-      timeoutRef.current = setTimeout(() => {
-        for (let entry of entries) {
-          setObservedWidth(entry.contentRect.width);
-        }
-      }, 100); // Delay in ms, adjust as needed
-    });
-
-    resizeObserver.observe(observeTable);
-
-    return () => {
-      resizeObserver.unobserve(observeTable);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clean up the timeout
-    };
-  }
-}, [tableRef.current, setObservedWidth]); // Depend on tableRef.current and setObservedWidth to re-run if these change
-
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";

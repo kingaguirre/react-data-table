@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DataTable, exportToCsv, UploadCell } from '../DataTable';
 import { Actions } from "../DataTable/interfaces";
 import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
+import { App } from '../DataTable/components/GlobalStateTest'
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 import { type } from 'os';
@@ -496,6 +497,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <App/>
       <button onClick={handleClick}>Validate</button>
       <button onClick={handleGetSelectedRows}>Get Selected Rows</button>
       <button onClick={handleClearSelectedRows}>Clear Selected Rows</button>

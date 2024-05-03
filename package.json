@@ -12,6 +12,7 @@
     "build-app": "vite build --outDir dist/app"
   },
   "dependencies": {
+    "@material-ui/core": "^4.12.4",
     "@tippyjs/react": "^4.2.6",
     "ajv": "^8.12.0",
     "font-awesome": "^4.7.0",
