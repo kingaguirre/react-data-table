@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { DataTable, exportToCsv, UploadCell } from '../DataTable';
+import { DataTable as DataTable_ } from '../DataTable_';
 import { Actions } from "../DataTable/interfaces";
 import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
-import { App } from '../DataTable/components/GlobalStateTest'
+import { App } from '../DataTable_/components/GlobalStateTest'
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 import { type } from 'os';
@@ -537,6 +538,99 @@ export default () => {
         })))
       }}>Remove "Column Filter"</button>
 
+      <DataTable_
+        ref={dataTableRef}
+        actions={actions}
+        dataSource={dataSource}
+        columnSettings={colSettings}
+        // onRowClick={handleRowClick}
+        // onRowDoubleClick={handleRowDoubleClick}
+        rowKey="userID.value"
+        activeRow="user-id2"
+        // selectedRows={[{"userID": { "value": "user-id0" }}]}
+        // selectedRows={[{"userID": "user-id0"}]}
+        // selectedRows={["user-id0"]}
+        selectable
+        multiSelect
+        downloadXLS
+        uploadXLS
+        onChange={v => console.log("New Value: ", v)}
+        // isPermanentDelete
+        pageSize={10}
+        tableHeight='200px'
+        actionsDropdownItems={[{
+          text: "test",
+          onClick: (data) => openJsonInNewWindow(data)
+        }]}
+        customRowSettings={[
+          {
+            column: "intentAction",
+            value: "R",
+            title: "Action",
+            width: "60px",
+            showColumn: true,
+            styles: {
+              backgroundColor: "red",
+              textDecoration: "line-through"
+            }
+          },
+          {
+            column: "intentAction",
+            value: "U",
+            title: "Action",
+            width: "60px",
+            showColumn: true,
+            styles: {
+              backgroundColor: "orange",
+            }
+          },
+          {
+            column: "intentAction",
+            value: "O",
+            title: "Action",
+            width: "60px",
+            showColumn: false,
+            styles: {
+              backgroundColor: "rgba(0,0,0,0.3)",
+            }
+          },
+          {
+            column: "intentAction",
+            value: "N",
+            title: "Action",
+            width: "60px",
+            showColumn: false,
+            styles: {
+              backgroundColor: "#a3ee9e",
+            }
+          }
+        ]}
+        // collapsibleRowRender={() => (
+        //   <DataTable
+        //     dataSource={dataSource}
+        //     columnSettings={[{
+        //       column: 'userDetails.birthDay',
+        //       title: 'Birth Day',
+        //       order: 5,
+        //       width: "200px"
+        //     },
+        //     {
+        //       column: 'userDetails.firstName',
+        //       title: 'First Name',
+        //       width: "150px"
+        //     }]}
+        //     rowKey="userID.value"
+        //     clickableRow
+        //   />
+        // )}
+        onColumnSettingsChange={handleColumnSettingsChange}
+        onPageIndexChange={e => console.log(`Page index: ${e}`)}
+        onPageSizeChange={e => console.log(`Page size: ${e}`)}
+        // onSelectedRowsChange={rows => setSselectedRow(rows)}
+        onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
+        selectionRange
+
+      />
       <DataTable
         ref={dataTableRef}
         actions={actions}

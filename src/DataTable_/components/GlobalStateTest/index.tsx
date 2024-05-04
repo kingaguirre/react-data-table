@@ -16,9 +16,9 @@ const initialGlobalState = {
 };
 
 export const NumComponent = withState({
-  states: ['num'],
+  states: ['num', 'setGlobalState'],
 })(React.memo((props: IComponent) => {
-  const { num, setState, setNum } = props;
+  const { num, setGlobalState, setState } = props;
 
   const classes = useCardStyles();
   return (
@@ -26,13 +26,13 @@ export const NumComponent = withState({
       <CardHeader title={`num: ${num}`} />
       <CardActions className={classes.action}>
         <Button
-          onClick={() => setNum?.(num + 1, 'num')}
+          onClick={() => setGlobalState((prev) => ({...prev, num: prev.num + 1}))}
           variant="outlined"
         >
           Increase
         </Button>
         <Button
-          onClick={() => setNum?.(num - 1, 'num')}
+          onClick={() => setGlobalState((prev) => ({...prev, num: prev.num - 1}))}
           variant="outlined"
         >
           Decrease
@@ -44,9 +44,9 @@ export const NumComponent = withState({
 
 
 export const TextComponent = withState({
-  states: ['text'],
+  states: ['text', 'setGlobalState'],
 })(React.memo((props: IComponent) => {
-  const { text, setState } = props;
+  const { text, setGlobalState } = props;
 
   const classes = useCardStyles();
   return (
@@ -54,7 +54,8 @@ export const TextComponent = withState({
       <CardHeader title={`text: ${text}`} />
       <CardActions className={classes.action}>
         <TextField
-          onChange={event => setState?.(event.target.value, 'text')}
+          onChange={(event) => setGlobalState((prev) => ({...prev, text: event.target.value}))}
+          // onChange={event => setState?.(event.target.value, 'text')}
           value={text}
         />
       </CardActions>
@@ -63,9 +64,9 @@ export const TextComponent = withState({
 }));
 
 const BoolComponent = withState({
-  states: ['bool'],
+  states: ['bool', 'setGlobalState'],
 })(React.memo((props: IComponent) => {
-  const { bool, setState } = props;
+  const { bool, setGlobalState } = props;
 
   const classes = useCardStyles();
   return (
@@ -73,7 +74,8 @@ const BoolComponent = withState({
       <CardHeader title={`bool: ${bool}`} />
       <CardActions className={classes.action}>
         <Switch
-          onChange={event => setState?.(event.target.checked, 'bool')}
+          onChange={(event) => setGlobalState((prev) => ({...prev, bool: event.target.checked}))}
+          // onChange={event => setState?.(event.target.checked, 'bool')}
           checked={bool}
         />
       </CardActions>
@@ -83,7 +85,11 @@ const BoolComponent = withState({
 
 export const App = () => {
   const classes = useAppStyles();
-  const [num, setNum] = React.useState(0);
+  const [globalState, setGlobalState] = React.useState({
+    num: 0,
+    text: "foo",
+    bool: false,
+  })
 
   // React.useEffect(() => {
   //   // Update num to 1 after 2 seconds
@@ -97,14 +103,13 @@ export const App = () => {
 
   return (
     <GlobalStateProvider globalState={{
-      num: num,
-      text: "foo",
-      bool: false
+      ...globalState,
+      setGlobalState
     }}>
       <AppDescription />
-      <button onClick={() => setNum((prev) => prev + 1)}>Update</button>
+      <button onClick={() => setGlobalState((prev) => ({...prev, num: prev.num + 1}))}>Update</button>
       <div className={classes.appContainer}>
-        <NumComponent setNum={setNum}/>
+        <NumComponent/>
         <TextComponent/>
         <BoolComponent/>
       </div>

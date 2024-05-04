@@ -2,40 +2,72 @@ import React from "react";
 import * as SC from "./styled";
 import { SET_LOCAL_PAGE_INDEX, SET_LOCAL_PAGE_SIZE } from "../../context/actions";
 import { DataTableContext } from "../../index";
+import { withState, IComponent } from '../GlobalStateProvider';
+import { useFlasher } from '../GlobalStateTest/utils';
 
-export const Footer = () => {
+export const Footer = withState({
+  states: [
+    'filteredData',
+    'pageIndex',
+    'pageSize',
+    'fetchedData',
+    'fetchConfig',
+    // 'setState',
+    'onPageIndexChange',
+    'onPageSizeChange',
+    // 'setlocalPageIndex',
+    // 'setpageSize'
+    // 'setGlobalStateByKey'
+    'setGlobalState'
+  ],
+})(React.memo((props: IComponent) => {
   const {
     filteredData,
-    state: { localPageIndex, localPageSize, fetchedData },
+    pageIndex,
+    pageSize,
+    fetchedData,
     fetchConfig,
-    setState,
+    // setState,
     onPageIndexChange,
-    onPageSizeChange
-  } = React.useContext(DataTableContext);
+    onPageSizeChange,
+    // setlocalPageIndex,
+    // setpageSize
+    // setGlobalStateByKey
+    setGlobalState,
+  } = props;
 
-  // console.log(React.useContext(DataTableContext))
+  console.log(props)
   const totalData = fetchConfig ? fetchedData?.totalData : filteredData?.length;
-  const totalPages = Math.ceil(totalData / localPageSize);
-  const start = localPageIndex * localPageSize + 1;
-  const end = Math.min(start + localPageSize - 1, totalData);
-  const isLastPage = totalData === 0 || localPageIndex >= totalPages - 1;
-  const isFirstPage = localPageIndex === 0;
+  const totalPages = Math.ceil(totalData / pageSize);
+  const start = pageIndex * pageSize + 1;
+  const end = Math.min(start + pageSize - 1, totalData);
+  const isLastPage = totalData === 0 || pageIndex >= totalPages - 1;
+  const isFirstPage = pageIndex === 0;
 
   const handlePageIndexChange = React.useCallback((index: number) => {
     onPageIndexChange?.(index);
-    setState({ type: SET_LOCAL_PAGE_INDEX, payload: index });
-  }, [setState, localPageSize]);
+    // setGlobalStateByKey('pageIndex', index);
+    setGlobalState((prev) => ({...prev, pageIndex: index}))
+    // setlocalPageIndex(index);
+    // setState({ type: SET_LOCAL_PAGE_INDEX, payload: index });
+  }, []);
 
   const handlePageSizeChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = parseInt(e.target.value, 10);
     onPageSizeChange?.(newSize);
     onPageIndexChange?.(0);
-    setState({ type: SET_LOCAL_PAGE_SIZE, payload: newSize });
-    setState({ type: SET_LOCAL_PAGE_INDEX, payload: 0 });
-  }, [setState]);
+    // setState({ type: SET_LOCAL_PAGE_SIZE, payload: newSize });
+    // setGlobalStateByKey('pageSize', newSize);
+    setGlobalState((prev) => ({...prev, pageSize: newSize}))
+    // setpageSize(newSize)
+    // setState({ type: SET_LOCAL_PAGE_INDEX, payload: 0 });
+    // setGlobalStateByKey('pageIndex', 0);
+    setGlobalState((prev) => ({...prev, pageIndex: 0}))
+    // setlocalPageIndex(0);
+  }, []);
 
   return (
-    <SC.TableFooter>
+    <SC.TableFooter ref={useFlasher()}>
       {totalData > 0 ? (
         <SC.InfoContainer>
           Displaying <b>{totalData > start? start : totalData}</b> to <b>{end}</b> of <b>{totalData}</b> Records
@@ -48,7 +80,7 @@ export const Footer = () => {
       
       <SC.PaginationContainer>
         <b>Rows</b>
-        <select value={localPageSize} onChange={handlePageSizeChange}>
+        <select value={pageSize} onChange={handlePageSizeChange}>
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
@@ -62,14 +94,14 @@ export const Footer = () => {
           <i className="fa fa-angle-double-left"/>
         </button>
         <button
-          onClick={() => handlePageIndexChange(Math.max(localPageIndex - 1, 0))}
+          onClick={() => handlePageIndexChange(Math.max(pageIndex - 1, 0))}
           disabled={isFirstPage}
         >
           <i className="fa fa-angle-left"/>
         </button>
-        <span style={{ margin: '0 8px' }}>{localPageIndex + 1}</span>
+        <span style={{ margin: '0 8px' }}>{pageIndex + 1}</span>
         <button
-          onClick={() => handlePageIndexChange(Math.min(localPageIndex + 1, totalPages - 1))}
+          onClick={() => handlePageIndexChange(Math.min(pageIndex + 1, totalPages - 1))}
           disabled={isLastPage}
         >
           <i className="fa fa-angle-right"/>
@@ -83,4 +115,4 @@ export const Footer = () => {
       </SC.PaginationContainer>
     </SC.TableFooter>
   );
-}
+}));
