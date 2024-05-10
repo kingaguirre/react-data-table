@@ -538,7 +538,7 @@ export default () => {
         })))
       }}>Remove "Column Filter"</button>
 
-      <DataTable_
+      {/* <DataTable_
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -723,7 +723,7 @@ export default () => {
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
         selectionRange
 
-      />
+      /> */}
     <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{

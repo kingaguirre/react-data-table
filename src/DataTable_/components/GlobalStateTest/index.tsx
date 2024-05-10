@@ -16,9 +16,9 @@ const initialGlobalState = {
 };
 
 export const NumComponent = withState({
-  states: ['num', 'setGlobalState'],
+  states: ['num'],
 })(React.memo((props: IComponent) => {
-  const { num, setGlobalState, setState } = props;
+  const { num, setGlobalStateByKey } = props;
 
   const classes = useCardStyles();
   return (
@@ -26,13 +26,15 @@ export const NumComponent = withState({
       <CardHeader title={`num: ${num}`} />
       <CardActions className={classes.action}>
         <Button
-          onClick={() => setGlobalState((prev) => ({...prev, num: prev.num + 1}))}
+          onClick={() => setGlobalStateByKey('num', num + 1)}
+          // onClick={() => setState?.(num + 1, 'num')}
           variant="outlined"
         >
           Increase
         </Button>
         <Button
-          onClick={() => setGlobalState((prev) => ({...prev, num: prev.num - 1}))}
+          onClick={() => setGlobalStateByKey('num', num - 1)}
+          // onClick={() => setGlobalState((prev) => ({...prev, num: prev.num - 1}))}
           variant="outlined"
         >
           Decrease
@@ -44,14 +46,15 @@ export const NumComponent = withState({
 
 
 export const TextComponent = withState({
-  states: ['text', 'setGlobalState'],
+  states: ['text', 'setTestState'],
 })(React.memo((props: IComponent) => {
-  const { text, setGlobalState } = props;
+  const { text, setGlobalState, setTestState } = props;
 
   const classes = useCardStyles();
   return (
     <Card className={classes.root} ref={useFlasher()}>
       <CardHeader title={`text: ${text}`} />
+      <button onClick={() => setTestState(prev => prev + 1)}>test</button>
       <CardActions className={classes.action}>
         <TextField
           onChange={(event) => setGlobalState((prev) => ({...prev, text: event.target.value}))}
@@ -64,14 +67,16 @@ export const TextComponent = withState({
 }));
 
 const BoolComponent = withState({
-  states: ['bool', 'setGlobalState'],
+  states: ['bool', 'someProps', 'setTestState'],
 })(React.memo((props: IComponent) => {
-  const { bool, setGlobalState } = props;
+  const { bool, setGlobalState, someProps, setTestState } = props;
 
   const classes = useCardStyles();
   return (
     <Card className={classes.root} ref={useFlasher()}>
       <CardHeader title={`bool: ${bool}`} />
+      {someProps}
+      <button onClick={() => setTestState(prev => prev + 1)}>test</button>
       <CardActions className={classes.action}>
         <Switch
           onChange={(event) => setGlobalState((prev) => ({...prev, bool: event.target.checked}))}
@@ -85,29 +90,23 @@ const BoolComponent = withState({
 
 export const App = () => {
   const classes = useAppStyles();
+  const [testState, setTestState] = React.useState(11);
   const [globalState, setGlobalState] = React.useState({
     num: 0,
     text: "foo",
     bool: false,
   })
 
-  // React.useEffect(() => {
-  //   // Update num to 1 after 2 seconds
-  //   const timer = setTimeout(() => {
-  //     setNum(1);
-  //   }, 2000);
-
-  //   // Clear the timer on unmount to avoid memory leaks
-  //   return () => clearTimeout(timer);
-  // }, []); // Empty dependency array to run only on mount
-
   return (
-    <GlobalStateProvider globalState={{
-      ...globalState,
+    <GlobalStateProvider values={{
+      someProps: testState,
+      setTestState,
+      globalState,
       setGlobalState
     }}>
       <AppDescription />
       <button onClick={() => setGlobalState((prev) => ({...prev, num: prev.num + 1}))}>Update</button>
+      <button onClick={() => setTestState((prev) => prev + 1)}>test props update</button>
       <div className={classes.appContainer}>
         <NumComponent/>
         <TextComponent/>
