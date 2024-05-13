@@ -1232,6 +1232,31 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
+
+// Function to safely set a deep value if the object is initially undefined or null
+function safelySet(obj, path, value) {
+  if (_.isNil(obj)) {
+      obj = {};  // Initialize if null or undefined
+  }
+
+  let current = obj;
+  const parts = path.split('.');
+  for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (_.isNil(current[part])) {
+          current[part] = {};
+      }
+      current = current[part];
+  }
+
+  // Only set if the final property doesn't exist or is null/undefined
+  if (_.isNil(_.get(current, parts[parts.length - 1]))) {
+      _.set(current, parts[parts.length - 1], value);
+  }
+
+  return obj;
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
