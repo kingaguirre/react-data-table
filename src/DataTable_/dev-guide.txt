@@ -1,0 +1,104 @@
+h1. Data Table Component Developer Guide
+
+h2. About/Summary
+The Data Table component in ReactJS is designed to efficiently display large datasets with features such as sorting, pagination, and filtering. This flexible component can be easily integrated into any ReactJS application, enhancing data interaction with customizable settings.
+
+h2. Getting Started
+
+h3. Installation
+To use the Data Table component in your project, start by installing it via npm:
+{code:language=bash}
+npm install @example/data-table
+{code}
+
+h3. Importing
+After installation, import the component into your React file:
+{code:language=javascript}
+import DataTable from '@example/data-table';
+{code}
+
+h2. Data Table Component - Detailed Properties Guide
+
+h3. DataTableProps Properties
+
+|| Property || Type || Description ||
+| dataSource | any[] (optional) | Array of data objects for table rows. |
+| columnSettings | ColumnSettings[] | Configuration for each column. |
+| pageSize | number (optional) | Number of rows per page. |
+| pageIndex | number (optional) | Current page index. |
+| selectable | boolean (optional) | If rows can be selected, adds a checkbox to each row. |
+| multiSelect | boolean (optional) | If multiple rows can be selected at once. |
+| tableHeight | string (optional) | CSS value for the table's height. |
+| tableMaxHeight | string (optional) | CSS value for the table's maximum height. |
+| hideHeader | boolean (optional) | If set, the table header will be hidden. |
+| collapsibleRowHeight | string (optional) | CSS value for the height of collapsible rows. |
+| fetchConfig | FetchConfig (optional) | Configuration for data fetching from a remote source. |
+| filterAll | boolean (optional) | Show or hide the main search box at the header. |
+| downloadXLS | boolean (optional) | If enabled, allows downloading table data as XLSX. |
+| uploadXLS | boolean (optional) | If enabled, allows uploading table data as XLSX. |
+| activeRow | string (optional) | Key of the currently active row. |
+| selectedRows | any[] (optional) | Array of keys identifying selected rows. |
+| clickableRow | boolean (optional) | If rows are clickable. |
+| customRowSettings | CustomRowSettings[] (optional) | Custom settings for rows based on column values. |
+| actions | Actions | Actions[] (optional) | Actions available in the table. |
+| actionsDropdownItems | IActionsDropdownItems[] (optional) | Additional dropdown items in the action row. |
+| rowKey | string | Key from the data source for uniquely identifying each row. |
+| isPermanentDelete | boolean (optional) | If the delete action permanently removes data. |
+| selectionRange | boolean (optional) | Enable cell selection for copying or pasting data from Excel. |
+| onChange | (updatedData: any[]) => void (optional) | Callback when table data is updated. |
+| onRowClick | (rowData: any) => void (optional) | Callback when a row is clicked. |
+| onRowDoubleClick | (rowData: any) => void (optional) | Callback when a row is double-clicked. |
+| onColumnSettingsChange | (newColumnSettings: ColumnSettings[]) => void (optional) | Callback when column settings change. |
+| collapsibleRowRender | (rowData: any) => React.ReactNode (optional) | Function to render collapsible row content. |
+| onPageSizeChange | (newPageSize: number) => void (optional) | Callback when page size changes. |
+| onPageIndexChange | (newPageIndex: number) => void (optional) | Callback when page index changes. |
+| onSelectedRowsChange | (selectedRows: any[]) => void (optional) | Callback when selected rows change. |
+
+h3. ColumnSettings Properties
+
+|| Property || Type || Description ||
+| column | string | The name of the column. |
+| title | string | Display title of the column. |
+| align | 'left' | 'right' | 'center' (optional) | Text alignment in the column. |
+| pinned | boolean | string (optional) | Whether the column is pinned to a side. |
+| hidden | boolean (optional) | If the column should be hidden. |
+| width | string (optional) | Width of the column, specified as a CSS value. |
+| minWidth | string (optional) | Minimum width of the column, as a CSS value. |
+| groupTitle | string (optional) | Title for a group of columns. |
+| order | number (optional) | Order of the column in the table. |
+| sorted | 'asc' | 'desc' | string | undefined (optional) | Sorting direction of the column. |
+| draggable | boolean (optional) | If the column can be dragged to reorder. |
+| actionConfig | any (optional) | Configuration for actions specific to this column. |
+| class | string (optional) | CSS class for styling the column. |
+| selectable | boolean (optional) | If selecting the column is disabled. |
+| disableSelection | boolean (optional) | If column selection is disabled. |
+| disableCopy | boolean (optional) | If copying of the column data is disabled. |
+| cell | (value: any, rowData: any, index?: number) => React.ReactNode (optional) | Custom renderer for column data, can be any component. |
+
+h2. Examples
+
+h3. Basic Usage
+
+To render the Data Table with data source and column settings, use the following example:
+{code:language=javascript}
+const dataSource = [
+  { id: 1, name: "Alice", age: 25 },
+  { id: 2, name: "Bob", age: 30 }
+];
+
+const columnSettings = [
+  { column: 'name', title: 'Name', align: 'left' },
+  { column: 'age', title: 'Age', align: 'center' }
+];
+
+<DataTable dataSource={dataSource} columnSettings={columnSettings} />
+{code}
+
+h3. Advanced Usage
+
+For detailed examples on using advanced props like `fetchConfig` or `customRowSettings`, refer to our [online documentation and demos](https://example.com/demos).
+
+h2. Conclusion
+
+This guide provides a comprehensive overview of how to integrate and use the Data Table component in your ReactJS applications, with detailed instructions on installation, prop configurations, and practical examples. Customize the component as needed to suit your project requirements.
+
