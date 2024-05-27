@@ -6,8 +6,11 @@ import Ajv from "ajv";
 
 export const highlightText = (text: string, highlight: string) => {
   if (typeof text === "string") {
-    /** Split text on highlight term, include term itself into parts, ignore case  */
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    // Escape regex special characters in the highlight term
+    const escapedHighlight = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    
+    /** Split text on highlight term, include term itself into parts, ignore case */
+    const parts = text.split(new RegExp(`(${escapedHighlight})`, 'gi'));
     return (
       <span>
         {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
