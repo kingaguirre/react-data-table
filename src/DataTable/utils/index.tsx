@@ -6,11 +6,8 @@ import Ajv from "ajv";
 
 export const highlightText = (text: string, highlight: string) => {
   if (typeof text === "string") {
-    // Escape regex special characters in the highlight term
-    const escapedHighlight = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    
-    /** Split text on highlight term, include term itself into parts, ignore case */
-    const parts = text.split(new RegExp(`(${escapedHighlight})`, 'gi'));
+    /** Split text on highlight term, include term itself into parts, ignore case  */
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return (
       <span>
         {parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ?
@@ -1252,43 +1249,6 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   /** Return width */
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
-
-
-
-function findDeepDuplicates(arr, obj) {
-  let duplicates = [];
-
-  // Helper function to compare values recursively
-  function compareValues(value1, value2, keyPath) {
-    if (typeof value1 === 'object' && value1 !== null && typeof value2 === 'object' && value2 !== null) {
-      // Compare each key in the nested objects
-      for (const key in value1) {
-        compareValues(value1[key], value2[key], keyPath + '.' + key);
-      }
-    } else {
-      // Compare direct values
-      if (value1 === value2) {
-        duplicates.push({ column: keyPath, value: value1 });
-      }
-    }
-  }
-
-  arr.forEach(arrayObj => {
-    for (const key in obj) {
-      compareValues(obj[key], arrayObj[key], key);
-    }
-  });
-
-  // Remove duplicates from the duplicates array
-  return duplicates.reduce((acc, current) => {
-    const x = acc.find(item => item.column === current.column && item.value === current.value);
-    if (!x) {
-      return acc.concat([current]);
-    } else {
-      return acc;
-    }
-  }, []);
-}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
