@@ -1250,6 +1250,37 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
+
+function findDuplicates(arr, obj) {
+  let duplicates = [];
+
+  arr.forEach(arrayObj => {
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        // Check nested objects
+        if (arrayObj[key] && obj[key].value === arrayObj[key].value) {
+          duplicates.push({ column: key, value: obj[key].value });
+        }
+      } else {
+        // Check direct values
+        if (obj[key] === arrayObj[key]) {
+          duplicates.push({ column: key, value: obj[key] });
+        }
+      }
+    }
+  });
+
+  // Remove duplicates from the duplicates array
+  return duplicates.reduce((acc, current) => {
+    const x = acc.find(item => item.column === current.column && item.value === current.value);
+    if (!x) {
+      return acc.concat([current]);
+    } else {
+      return acc;
+    }
+  }, []);
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
