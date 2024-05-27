@@ -1251,22 +1251,28 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
 };
 
 
-function findDuplicates(arr, obj) {
+
+function findDeepDuplicates(arr, obj) {
   let duplicates = [];
+
+  // Helper function to compare values recursively
+  function compareValues(value1, value2, keyPath) {
+    if (typeof value1 === 'object' && value1 !== null && typeof value2 === 'object' && value2 !== null) {
+      // Compare each key in the nested objects
+      for (const key in value1) {
+        compareValues(value1[key], value2[key], keyPath + '.' + key);
+      }
+    } else {
+      // Compare direct values
+      if (value1 === value2) {
+        duplicates.push({ column: keyPath, value: value1 });
+      }
+    }
+  }
 
   arr.forEach(arrayObj => {
     for (const key in obj) {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        // Check nested objects
-        if (arrayObj[key] && obj[key].value === arrayObj[key].value) {
-          duplicates.push({ column: key, value: obj[key].value });
-        }
-      } else {
-        // Check direct values
-        if (obj[key] === arrayObj[key]) {
-          duplicates.push({ column: key, value: obj[key] });
-        }
-      }
+      compareValues(obj[key], arrayObj[key], key);
     }
   });
 
