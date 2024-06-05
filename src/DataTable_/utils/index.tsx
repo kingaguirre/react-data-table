@@ -690,16 +690,33 @@ const getNestedValue = (obj, path) => {
  * @param {String} fileName - Name of the file to be downloaded.
  */
 export const downloadExcel = (headers, rows, fileName = "data") => {
-  // Filter out headers that are hidden or have a custom renderer
-  const filteredHeaders = headers.filter(header => !header.hidden && !header.cell);
+  // Check each header to see if it should be included based on its 'hidden' status and the type of 'cell'
+  const filteredHeaders = headers.filter(header => {
+    // Directly include if not hidden and no cell renderer or cell renderer does not return a complex object
+    if (!header.hidden && !header.cell) {
+      return true;
+    }
+    // If there's a cell function, we evaluate it on the first row to check its return type (assuming row consistency)
+    if (header.cell) {
+      const result = header.cell(rows[0]);
+      // Check if the result is a string (simple value)
+      return typeof result === 'string';
+    }
+    return false;
+  });
 
-  // Process rows to extract deep values
+  // Process rows to extract values, including handling string results from cell functions
   const processedRows = rows.map(row => {
     let newRow = {};
     filteredHeaders.forEach(header => {
       const keys = header.column.split('.');
-      const value = getValue(getNestedValue(row, keys));
-
+      let value;
+      // Check if header has a cell function and use it if available
+      if (header.cell && typeof header.cell === 'function') {
+        value = header.cell(row);
+      } else {
+        value = getValue(getNestedValue(row, keys));
+      }
       newRow[header.title] = value;
     });
     return newRow;
@@ -1256,6 +1273,21 @@ function safelySet(obj, path, value) {
 
   return obj;
 }
+
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+module.exports = function(app) {
+  app.use(
+    '/api',
+    createProxyMiddleware({
+      target: 'https://jsonplaceholder.typicode.com',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api': '', // remove /api prefix when requesting from the target
+      },
+    })
+  );
+};
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
