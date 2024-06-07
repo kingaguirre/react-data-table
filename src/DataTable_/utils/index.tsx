@@ -1289,6 +1289,55 @@ module.exports = function(app) {
   );
 };
 
+
+function findDeepDuplicates(arr, obj, settings) {
+  let duplicates = [];
+
+  // Helper function to compare values recursively
+  function compareValues(value1, value2, keyPath) {
+    if (typeof value1 === 'object' && value1 !== null && typeof value2 === 'object' && value2 !== null) {
+      // Compare each key in the nested objects
+      for (const key in value1) {
+        compareValues(value1[key], value2[key], keyPath + '.' + key);
+      }
+    } else {
+      // Compare direct values
+      if (value1 === value2) {
+        duplicates.push({ column: keyPath, value: value1 });
+      }
+    }
+  }
+
+  arr.forEach(arrayObj => {
+    settings.forEach(setting => {
+      const columnPath = setting.column.split('.'); // Handles dot notation in column names
+      let arrayValue = arrayObj;
+      let objValue = obj;
+      columnPath.forEach(part => {
+        arrayValue = arrayValue && arrayValue[part];
+        objValue = objValue && objValue[part];
+      });
+
+      if (setting.isUnique) {
+        // Handle .value automatically if present
+        arrayValue = arrayValue && (arrayValue.value || arrayValue);
+        objValue = objValue && (objValue.value || objValue);
+        compareValues(objValue, arrayValue, setting.column);
+      }
+    });
+  });
+
+  // Remove duplicates from the duplicates array
+  return duplicates.reduce((acc, current) => {
+    const x = acc.find(item => item.column === current.column && item.value === current.value);
+    if (!x) {
+      return acc.concat([current]);
+    } else {
+      return acc;
+    }
+  }, []);
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
