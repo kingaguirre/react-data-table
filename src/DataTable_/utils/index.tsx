@@ -574,6 +574,9 @@ const isValidDate = (str) => {
   // Updated regular expression to include comma-separated date formats
   const likelyDatePattern = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)|(\d+[\/\-.]\d+[\/\-.]\d+)|(\d{4}-\d{2}-\d{2})|(\d{4},\s*\d{1,2},\s*\d{1,2})/;
 
+   // Remove surrounding quotes if present
+   str = str.replace(/^["']|["']$/g, '');
+
   // Try to match the input string against the likely date pattern
   if (!likelyDatePattern.test(str)) {
     // If the input doesn't match the pattern, it's not a likely date format
