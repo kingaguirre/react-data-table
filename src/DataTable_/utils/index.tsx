@@ -1347,9 +1347,11 @@ function mergeObjects(obj1, obj2) {
   for (const key in obj2) {
     if (obj2.hasOwnProperty(key) && obj1.hasOwnProperty(key)) {
       result[key] = {
-        value: obj2[key].value,
-        previous: { value: obj1[key].value }
+        value: obj2[key].value
       };
+      if (obj2[key].value !== obj1[key].value) {
+        result[key].previous = { value: obj1[key].value };
+      }
     }
   }
 
