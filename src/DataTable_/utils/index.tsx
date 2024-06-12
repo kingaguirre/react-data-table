@@ -1358,6 +1358,17 @@ function mergeObjects(obj1, obj2) {
   return result;
 }
 
+const removeKeysWithSpaces = (arr) => {
+  return arr.map((obj) => {
+    return Object.keys(obj).reduce((acc, key) => {
+      if (!key.includes(' ')) {
+        acc[key] = obj[key];
+      }
+      return acc;
+    }, {});
+  });
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
