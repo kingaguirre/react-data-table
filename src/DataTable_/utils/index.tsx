@@ -1341,74 +1341,20 @@ function findDeepDuplicates(arr, obj, settings) {
   }, []);
 }
 
-
-export const mergeWithPrevious = (obj1, obj2, rowKey?) => {
+function mergeObjects(obj1, obj2) {
   const result = {};
 
-  // Resolve the value of rowKey within obj1 to determine if it should be skipped
-  const skipValue = getDeepValue(obj1, rowKey, true);
-
-  // Helper function to check if an object has the specific format { value: ... }
-  const isSpecialFormat = obj => typeof obj === 'object' && !Array.isArray(obj) && obj !== null && 'value' in obj;
-
-  Object.keys(obj1).forEach(key => {
-    const currentPath = rowKey?.startsWith(key) ? rowKey?.slice(key.length) : '';
-    const isRowKey = rowKey === currentPath || rowKey?.startsWith(key + '.');
-
-    if (key === 'intentAction') {
-      // Directly set value to 'U' for intentAction key and skip object format
-      result[key] = 'U';
-    } else if (isRowKey && skipValue !== undefined) {
-      // If current key matches rowKey, use obj1's value directly
-      result[key] = obj1[key];
-    } else if (!obj2.hasOwnProperty(key)) {
-      // Handle null and undefined explicitly
-      if (obj1[key] === null || obj1[key] === undefined) {
-        result[key] = { previous: obj1[key], isChanged: false };
-      } else {
-        result[key] = obj1[key];
-      }
-    } else if (typeof obj1[key] === 'object' && obj1[key] !== null && typeof obj2[key] === 'object' && obj2[key] !== null && !Array.isArray(obj1[key]) && !isSpecialFormat(obj1[key]) && !isSpecialFormat(obj2[key])) {
-      // Recursive merge for nested objects
-      result[key] = mergeWithPrevious(obj1[key], obj2[key]);
-    } else if (Array.isArray(obj1[key]) && Array.isArray(obj2[key])) {
-      // Handle arrays
-      result[key] = obj1[key].map((item, index) => {
-        if (obj2[key][index] !== undefined) {
-          return mergeWithPrevious([item], [obj2[key][index]])[0];
-        }
-        return item;
-      });
-    } else {
-      if (isSpecialFormat(obj1[key]) || isSpecialFormat(obj2[key])) {
-        const previousValue = isSpecialFormat(obj1[key]) ? obj1[key].value : obj1[key];
-        const newValue = isSpecialFormat(obj2[key]) ? obj2[key].value : obj2[key];
-
-        result[key] = {
-          previous: { value: previousValue },
-          isChanged: previousValue !== newValue,
-          value: newValue
-        };
-      } else {
-        result[key] = {
-          previous: { value: obj1[key] },
-          isChanged: obj1[key] !== obj2[key],
-          value: obj2[key]
-        };
-      }
+  for (const key in obj2) {
+    if (obj2.hasOwnProperty(key) && obj1.hasOwnProperty(key)) {
+      result[key] = {
+        value: obj2[key].value,
+        previous: { value: obj1[key].value }
+      };
     }
-  });
-
-  // Process keys in obj2 that are not in obj1
-  Object.keys(obj2).forEach(key => {
-    if (!obj1.hasOwnProperty(key) && key !== 'intentAction') {
-      result[key] = obj2[key]; // Add new values from obj2
-    }
-    // Existing keys have been processed in the first loop
-  });
+  }
 
   return result;
-};
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
