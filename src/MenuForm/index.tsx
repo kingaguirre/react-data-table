@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Ajv from "ajv";
 import styled from "styled-components";
 import { getDeepValue, setDeepValue } from "../DataTable";
@@ -94,16 +94,16 @@ export const FieldDiv = styled.div<{ size: SizeType }>`
 `;
 
 export const MenuItem = styled.div<{ isSelected: boolean, isInvalid: boolean }>`
-    padding: 8px;
-    cursor: pointer;
-    background-color: ${(props) => {
+  padding: 8px;
+  cursor: pointer;
+  background-color: ${(props) => {
     if (props.isInvalid) return "red";
     if (props.isSelected) return "#e0e0e0";
     return "transparent";
   }};
-    &:hover {
-        background-color: #f0f0f0;
-    }
+  &:hover {
+    background-color: #f0f0f0;
+  }
 `;
 
 const defaultSize: SizeType = {
@@ -114,7 +114,7 @@ const defaultSize: SizeType = {
 };
 
 export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>) => {
-  const { dataSource, formSettings, onChange } = props
+  const { dataSource, formSettings, onChange } = props;
   const [data, setData] = useState<any[]>(dataSource);
   const inputRefs = useRef<any[]>(formSettings.fields.map(() => React.createRef()));
   const ajv = new Ajv();
@@ -122,31 +122,32 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(props.selectedMenu || 0);
   const [invalidCounts, setInvalidCounts] = useState<number[]>(new Array(data.length).fill(0));
   const [touchedFields, setTouchedFields] = useState<boolean[]>(new Array(formSettings.fields.length).fill(false));
+  const [isFocused, setIsFocused] = useState<boolean>(false);
 
   const validateForm = () => {
     const newInvalidCounts: number[] = new Array(data.length).fill(0);
 
     data.forEach((datum, index) => {
-        formSettings.fields.forEach((field) => {
-            const value = getDeepValue(datum, field.column);
+      formSettings.fields.forEach((field) => {
+        const value = getDeepValue(datum, field.column);
 
-            // Required validation
-            const isRequired = field.required !== undefined 
-            ? (typeof field.required === 'function' 
-                ? field.required(data[index]) 
-                : field.required)
-            : false;
-            
-            const isValueEmpty = value === undefined || value === '';
-            const isRequiredInvalid = isRequired && isValueEmpty;
+        // Required validation
+        const isRequired = field.required !== undefined
+          ? (typeof field.required === 'function'
+            ? field.required(data[index])
+            : field.required)
+          : false;
 
-            const schema = field.schema ? field.schema : undefined;
-            const isSchemaInvalid = schema && !ajv.validate(schema, value);
-            
-            if (isSchemaInvalid || isRequiredInvalid) {
-                newInvalidCounts[index]++;
-            }
-        });
+        const isValueEmpty = value === undefined || value === '';
+        const isRequiredInvalid = isRequired && isValueEmpty;
+
+        const schema = field.schema ? field.schema : undefined;
+        const isSchemaInvalid = schema && !ajv.validate(schema, value);
+
+        if (isSchemaInvalid || isRequiredInvalid) {
+          newInvalidCounts[index]++;
+        }
+      });
     });
 
     setInvalidCounts(newInvalidCounts);
@@ -159,23 +160,23 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
   React.useImperativeHandle(ref, () => ({
     validate: validateForm
   }));
-  
+
   const validateField = (field: FieldType, value: any) => {
     // Existing schema validation
     const schema = field.schema ? field.schema : undefined;
     const schemaValid = !(schema && !ajv.validate(schema, value));
 
     // Required validation
-    const isRequired = field.required !== undefined 
-    ? (typeof field.required === 'function' 
-        ? field.required(data[selectedItemIndex]) 
+    const isRequired = field.required !== undefined
+      ? (typeof field.required === 'function'
+        ? field.required(data[selectedItemIndex])
         : field.required)
-    : false;
+      : false;
     const requiredValid = !(isRequired && (value === undefined || value === ''));
 
     return schemaValid && requiredValid;
   };
-  
+
   // This function validates all fields for a specific datum and returns the count of invalid fields
   const validateAllFieldsForDatum = (datum: any): number => {
     return formSettings.fields.reduce((acc, field) => {
@@ -193,16 +194,16 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     const dataToUpdate = { ...newData[selectedItemIndex] };
     newData[selectedItemIndex] = setDeepValue(dataToUpdate, field.column, newValue);
     setData(newData);
-  
+
     const isCurrentFieldValid = validateField(field, newValue);
-    
+
     // Update the invalid counts for the current data item being edited
     setInvalidCounts(currentCounts => {
       const newCounts = [...currentCounts];
       newCounts[selectedItemIndex] = validateAllFieldsForDatum(newData[selectedItemIndex]);
       return newCounts;
     });
-  
+
     if (isCurrentFieldValid) {
       onChange?.(newData);
     }
@@ -217,24 +218,24 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
 
   const getValidationError = (field: FieldType, value: any): string | null => {
     // Required validation
-    const isRequired = field.required !== undefined 
-      ? (typeof field.required === 'function' 
-          ? field.required(data[selectedItemIndex]) 
-          : field.required)
+    const isRequired = field.required !== undefined
+      ? (typeof field.required === 'function'
+        ? field.required(data[selectedItemIndex])
+        : field.required)
       : false;
-  
+
     const isValueEmpty = value === undefined || value === '';
-  
+
     if (isRequired && isValueEmpty) {
       return `${field.label} is required`;
     }
-  
+
     // Schema validation
     const schema = field.schema ? field.schema : undefined;
     if (schema && !ajv.validate(schema, value)) {
       return `${field.label} ${ajv.errorsText(ajv.errors)}`;
     }
-  
+
     return null;
   };
 
@@ -243,86 +244,124 @@ export const MenuForm = React.forwardRef((props: FormProps, ref: React.Ref<any>)
     const errorText = touchedFields[index] ? getValidationError(field, fieldValue) : null;
     const isInvalid = invalidCounts[selectedItemIndex] > 0 && !validateField(field, fieldValue);
 
-    const isDisabled = field.disabled !== undefined 
-    ? (typeof field.disabled === 'function' 
-        ? field.disabled(data[selectedItemIndex]) 
+    const isDisabled = field.disabled !== undefined
+      ? (typeof field.disabled === 'function'
+        ? field.disabled(data[selectedItemIndex])
         : field.disabled)
-    : false;
-    
-    const isRequired = field.required !== undefined 
-    ? (typeof field.required === 'function' 
-        ? field.required(data[selectedItemIndex]) 
+      : false;
+
+    const isRequired = field.required !== undefined
+      ? (typeof field.required === 'function'
+        ? field.required(data[selectedItemIndex])
         : field.required)
-    : false;
+      : false;
 
     switch (field.type) {
       case 'textarea':
         return (
           <div>
-          <span>{field.label}</span>
-          <textarea
-          ref={inputRefs.current[index]}
-          placeholder={field.placeholder}
-          value={fieldValue || ''}
-          onChange={(e) => handleChange(e, field, index)}
-          className={isInvalid ? 'invalid' : ""}
-          disabled={isDisabled}
-          required={isRequired}
-          />
-          {errorText && <span style={{color: "red"}}>{errorText}</span>}
+            <span>{field.label}</span>
+            <textarea
+              ref={inputRefs.current[index]}
+              placeholder={field.placeholder}
+              value={fieldValue || ''}
+              onChange={(e) => handleChange(e, field, index)}
+              className={isInvalid ? 'invalid' : ""}
+              disabled={isDisabled}
+              required={isRequired}
+            />
+            {errorText && <span style={{ color: "red" }}>{errorText}</span>}
           </div>
         );
       case 'date':
         return (
           <div>
-          <span>{field.label}</span>
-          <input
-            type="date"
-            ref={inputRefs.current[index]}
-            placeholder={field.placeholder}
-            value={fieldValue || ''}
-            onChange={(e) => handleChange(e, field, index)}
-            className={isInvalid ? 'invalid' : ""}
-            disabled={isDisabled}
-          />
-          {errorText && <span style={{color: "red"}}>{errorText}</span>}
-        </div>
+            <span>{field.label}</span>
+            <input
+              type="date"
+              ref={inputRefs.current[index]}
+              placeholder={field.placeholder}
+              value={fieldValue || ''}
+              onChange={(e) => handleChange(e, field, index)}
+              className={isInvalid ? 'invalid' : ""}
+              disabled={isDisabled}
+            />
+            {errorText && <span style={{ color: "red" }}>{errorText}</span>}
+          </div>
         );
       case 'select':
         return (
           <div>
-          <span>{field.label}</span>
-          <select ref={inputRefs.current[index]} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)}>
-            {field.options?.map((option, idx) => (
-              <option key={idx} value={option.value}>
-                {option.text}
-              </option>
-            ))}
-          </select>
-          {errorText && <span style={{color: "red"}}>{errorText}</span>}
+            <span>{field.label}</span>
+            <select ref={inputRefs.current[index]} value={fieldValue || ''} onChange={(e) => handleChange(e, field, index)}>
+              {field.options?.map((option, idx) => (
+                <option key={idx} value={option.value}>
+                  {option.text}
+                </option>
+              ))}
+            </select>
+            {errorText && <span style={{ color: "red" }}>{errorText}</span>}
           </div>
         );
       default:
         return (
           <div>
-          <span>{field.label}</span>
-        <input
-          type="text"
-          ref={inputRefs.current[index]}
-          placeholder={field.placeholder}
-          value={fieldValue || ''}
-          onChange={(e) => handleChange(e, field, index)}
-          className={isInvalid ? 'invalid' : ""}
-          disabled={isDisabled}
-          required={isRequired}
-        />
-        {errorText && <span style={{color: "red"}}>{errorText}</span>}
-        </div>)
+            <span>{field.label}</span>
+            <input
+              type="text"
+              ref={inputRefs.current[index]}
+              placeholder={field.placeholder}
+              value={fieldValue || ''}
+              onChange={(e) => handleChange(e, field, index)}
+              className={isInvalid ? 'invalid' : ""}
+              disabled={isDisabled}
+              required={isRequired}
+            />
+            {errorText && <span style={{ color: "red" }}>{errorText}</span>}
+          </div>)
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isFocused) {
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          setSelectedItemIndex((prevIndex) =>
+            prevIndex > 0 ? prevIndex - 1 : prevIndex
+          );
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          setSelectedItemIndex((prevIndex) =>
+            prevIndex < data.length - 1 ? prevIndex + 1 : prevIndex
+          );
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFocused, data.length]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!event.composedPath().includes(containerRef.current!)) {
+        setIsFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <Container>
+    <Container ref={containerRef} onClick={() => setIsFocused(true)}>
       <Menu>
         {data.map((item, idx) => (
           <MenuItem
