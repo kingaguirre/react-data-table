@@ -174,3 +174,94 @@ const GenericTable = ({
 };
 
 export default GenericTable;
+
+const fetchTotalItems = async (searchQuery = '', searchColumn = '') => {
+  try {
+    let countQuery = supabase.from('users').select('*', { count: 'exact', head: true });
+
+    if (searchQuery) {
+      if (searchColumn) {
+        countQuery = countQuery.ilike(searchColumn, `%${searchQuery}%`);
+      } else {
+        countQuery = countQuery.or(
+          [
+            `first_name.ilike.%${searchQuery}%`,
+            `last_name.ilike.%${searchQuery}%`,
+            `username.ilike.%${searchQuery}%`,
+            `address.ilike.%${searchQuery}%`
+          ].join(',')
+        );
+      }
+    }
+
+    const { count: totalCount } = await countQuery;
+
+    if (totalCount === null) {
+      throw new Error('Failed to get total count of users');
+    }
+
+    setTotalItems(totalCount);
+  } catch (fetchError) {
+    setError(fetchError.message);
+  }
+};
+
+const fetchPageData = useCallback(async (page, size, searchQuery = '', searchColumn = '') => {
+  setLoading(true);
+  try {
+    await fetchTotalItems(searchQuery, searchColumn);
+
+    let query = supabase
+      .from('users')
+      .select('id, first_name, last_name, username, address, avatar_url, auto_payment')
+      .order('created_at', { ascending: false })
+      .range((page - 1) * size, page * size - 1);
+
+    if (searchQuery) {
+      if (searchColumn) {
+        query = query.ilike(searchColumn, `%${searchQuery}%`);
+      } else {
+        query = query.or(
+          [
+            `first_name.ilike.%${searchQuery}%`,
+            `last_name.ilike.%${searchQuery}%`,
+            `username.ilike.%${searchQuery}%`,
+            `address.ilike.%${searchQuery}%`
+          ].join(',')
+        );
+      }
+    }
+
+    const { data: usersData, error: usersError } = await query;
+
+    if (usersError) {
+      throw new Error('Failed to fetch users');
+    }
+
+    const updatedUsers = await Promise.all(
+      usersData.map(async (user) => {
+        const { data: cardData, error: cardError } = await supabase
+          .from('payment_methods')
+          .select('card_brand, last4')
+          .eq('user_id', user.id)
+          .single();
+
+        const { data: subscriptionsData, error: subscriptionsError } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id);
+
+        return {
+          ...user,
+          cardDetails: cardError ? null : cardData,
+          subscriptionsCount: subscriptionsError ? 0 : (subscriptionsData || []).length,
+        };
+      })
+    );
+
+    setUsers(updatedUsers);
+  } catch (fetchError) {
+    setError(fetchError.message);
+  }
+  setLoading(false);
+}, []);
