@@ -1288,6 +1288,12 @@ const app = express();
 const port = 3000;
 const users = require('./data/users');
 
+// Custom CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 app.get('/users', (req, res) => {
   const { _page = 1, _limit = 10, q = '' } = req.query;
   const page = parseInt(_page, 10);
