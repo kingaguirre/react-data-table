@@ -1250,6 +1250,82 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
   return width - (hasCollapsibleRowRender + hasSelectable + horizontalScrollBarWidth)
 };
 
+
+// data/users.js
+const users = [];
+
+for (let i = 1; i <= 100; i++) {
+  users.push({
+    id: i,
+    name: `User ${i}`,
+    username: `user${i}`,
+    email: `user${i}@example.com`,
+    address: {
+      street: `Street ${i}`,
+      suite: `Suite ${i}`,
+      city: `City ${i}`,
+      zipcode: `0000${i}`,
+      geo: {
+        lat: `${i}`,
+        lng: `${i}`
+      }
+    },
+    phone: `000-000-000${i}`,
+    website: `website${i}.com`,
+    company: {
+      name: `Company ${i}`,
+      catchPhrase: `CatchPhrase ${i}`,
+      bs: `BS ${i}`
+    }
+  });
+}
+
+module.exports = users;
+
+
+const express = require('express');
+const app = express();
+const port = 3000;
+const users = require('./data/users');
+
+app.get('/users', (req, res) => {
+  const { _page = 1, _limit = 10, q = '' } = req.query;
+  const page = parseInt(_page, 10);
+  const limit = parseInt(_limit, 10);
+  
+  // Filter users based on the query
+  const filteredUsers = users.filter(user =>
+    user.name.includes(q) || user.username.includes(q) || user.email.includes(q)
+  );
+
+  // Paginate users
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  res.json(paginatedUsers);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
+
+
+
+const fetchUsers = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/users?_page=1&_limit=10&q=user');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    setUsers(data);
+  } catch (error) {
+    setError(error);
+    console.error('Error fetching users:', error);
+  }
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
