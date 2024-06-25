@@ -1294,22 +1294,37 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
 app.get('/users', (req, res) => {
-  const { _page = 1, _limit = 10, q = '' } = req.query;
-  const page = parseInt(_page, 10);
-  const limit = parseInt(_limit, 10);
+  const { _page, _limit, q = '', searchColumn } = req.query;
+  const page = _page ? parseInt(_page, 10) : undefined;
+  const limit = _limit ? parseInt(_limit, 10) : undefined;
   
-  // Filter users based on the query
-  const filteredUsers = users.filter(user =>
-    user.name.includes(q) || user.username.includes(q) || user.email.includes(q)
-  );
+  // Filter users based on the query and searchColumn
+  const filteredUsers = users.filter(user => {
+    if (searchColumn && user[searchColumn]) {
+      return user[searchColumn].toString().includes(q);
+    }
+    return user.name.includes(q) || user.username.includes(q) || user.email.includes(q);
+  });
 
-  // Paginate users
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+  let paginatedUsers = filteredUsers;
+  
+  // Paginate users if page and limit are defined
+  if (page !== undefined && limit !== undefined) {
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+  }
 
-  res.json(paginatedUsers);
+  // Add 3-second delay before sending back the data
+  setTimeout(() => {
+    // Response with total filtered data count and paginated data
+    res.json({
+      totalData: filteredUsers.length,
+      data: paginatedUsers
+    });
+  }, 3000);
 });
 
 app.listen(port, () => {
