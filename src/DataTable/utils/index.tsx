@@ -1281,8 +1281,6 @@ for (let i = 1; i <= 100; i++) {
 }
 
 module.exports = users;
-
-
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -1296,16 +1294,22 @@ app.use((req, res, next) => {
 });
 
 app.get('/users', (req, res) => {
-  const { _page, _limit, q = '', searchColumn } = req.query;
+  const { _page, _limit, q = '', searchColumn, username } = req.query;
   const page = _page ? parseInt(_page, 10) : undefined;
   const limit = _limit ? parseInt(_limit, 10) : undefined;
   
-  // Filter users based on the query and searchColumn
+  // Filter users based on the query, searchColumn, and username
   const filteredUsers = users.filter(user => {
-    if (searchColumn && user[searchColumn]) {
+    if (username) {
+      // Filter by username if the username query parameter is provided
+      return user.username.includes(username);
+    } else if (searchColumn && user[searchColumn]) {
+      // Filter by any other search column if specified
       return user[searchColumn].toString().includes(q);
+    } else {
+      // General search across multiple fields
+      return user.name.includes(q) || user.username.includes(q) || user.email.includes(q);
     }
-    return user.name.includes(q) || user.username.includes(q) || user.email.includes(q);
   });
 
   let paginatedUsers = filteredUsers;
@@ -1330,6 +1334,7 @@ app.get('/users', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
 
 
 
