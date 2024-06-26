@@ -99,6 +99,15 @@ const ResizableTableWrapper = ({
     }
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setDraggingIndex(null);
+      setStartX(null);
+      setResizingWidth(null);
+      setBoxLeft(null);
+    }
+  };
+
   useEffect(() => {
     const resizeHandles = document.querySelectorAll(`.${resizeHandleClassName}`);
     const handleResizeMouseDown = (event) => handleMouseDown(event);
@@ -107,10 +116,13 @@ const ResizableTableWrapper = ({
       handle.addEventListener('mousedown', handleResizeMouseDown);
     });
 
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
       resizeHandles.forEach((handle) => {
         handle.removeEventListener('mousedown', handleResizeMouseDown);
       });
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [resizeHandleClassName, handleMouseDown]);
 
