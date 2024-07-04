@@ -1,0 +1,142 @@
+import { 
+  useDoubleClick, 
+  getDeepValue, 
+  setDeepValue, 
+  sortData, 
+  getTableWidth, 
+  exportToCsv, 
+  debounce, 
+  filterCheck, 
+  getPinnedDetails, 
+  replaceLocalhostWithDomain, 
+  isStringExist, 
+  mergeFilters, 
+  getAdvanceFilterSettingsObj, 
+  serialize, 
+  mergeCustomStylesForRow, 
+  updateDataByRowKey 
+} from './your-module';  // Adjust the path as needed
+
+describe('Utility Functions', () => {
+  test('useDoubleClick should trigger single and double click appropriately', () => {
+    jest.useFakeTimers();
+    const onClick = jest.fn();
+    const onDoubleClick = jest.fn();
+    const handleClick = useDoubleClick(onClick, onDoubleClick);
+
+    handleClick();
+    jest.advanceTimersByTime(100);
+    handleClick();
+    jest.advanceTimersByTime(100);
+
+    expect(onDoubleClick).toHaveBeenCalled();
+    expect(onClick).not.toHaveBeenCalled();
+
+    handleClick();
+    jest.advanceTimersByTime(200);
+
+    expect(onClick).toHaveBeenCalled();
+  });
+
+  test('getDeepValue should retrieve nested values', () => {
+    const obj = { a: { b: { c: 42 } } };
+    expect(getDeepValue(obj, 'a.b.c')).toBe(42);
+  });
+
+  test('setDeepValue should set nested values', () => {
+    const obj = { a: { b: { c: 42 } } };
+    const result = setDeepValue(obj, 'a.b.c', 99);
+    expect(result.a.b.c).toBe(99);
+  });
+
+  test('sortData should sort data correctly', () => {
+    const data = [{ a: 3 }, { a: 1 }, { a: 2 }];
+    const sortedData = sortData(data, 'a', 'asc');
+    expect(sortedData).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }]);
+  });
+
+  test('getTableWidth should calculate correct width', () => {
+    const state = { columns: [{ width: '100' }, { width: '200' }] };
+    expect(getTableWidth({ state, selectable: false, collapsibleRowRender: false }).width).toBe(300);
+  });
+
+  test('exportToCsv should generate correct CSV', () => {
+    const columns = [{ title: 'Name', column: 'name' }];
+    const rows = [{ name: 'John Doe' }];
+    const filename = 'test.csv';
+    global.URL.createObjectURL = jest.fn();
+    const link = { setAttribute: jest.fn(), click: jest.fn(), style: {} };
+    document.createElement = jest.fn().mockReturnValue(link);
+
+    exportToCsv(filename, rows, columns);
+    expect(link.setAttribute).toHaveBeenCalledWith('href', expect.anything());
+    expect(link.setAttribute).toHaveBeenCalledWith('download', filename);
+  });
+
+  test('debounce should delay execution', () => {
+    jest.useFakeTimers();
+    const func = jest.fn();
+    const debouncedFunc = debounce(func, 100);
+
+    debouncedFunc();
+    jest.advanceTimersByTime(50);
+    debouncedFunc();
+    jest.advanceTimersByTime(100);
+
+    expect(func).toHaveBeenCalledTimes(1);
+  });
+
+  test('filterCheck should filter correctly for number-range', () => {
+    expect(filterCheck({ min: 1, max: 5 }, '3', 'number-range')).toBe(true);
+  });
+
+  test('getPinnedDetails should return correct pinned details', () => {
+    const col = { pinned: true, width: '100' };
+    const pinnedWidth = 50;
+    const details = getPinnedDetails(col, pinnedWidth);
+    expect(details.isPinned).toBe(true);
+    expect(details.colWidth).toBe(100);
+    expect(details.pinnedStyle).toEqual({ left: '50px' });
+  });
+
+  test('replaceLocalhostWithDomain should replace localhost correctly', () => {
+    const url = 'http://localhost:3000/path';
+    const newDomain = 'http://newdomain.com';
+    expect(replaceLocalhostWithDomain(url, newDomain)).toBe('http://newdomain.com/path');
+  });
+
+  test('isStringExist should check existence of string correctly', () => {
+    const array = ['apple', 'banana'];
+    expect(isStringExist(array, 'banana')).toBe(true);
+  });
+
+  test('mergeFilters should merge filters correctly', () => {
+    const defaultFilter = { a: 1 };
+    const filterValues = { b: 2 };
+    expect(mergeFilters(defaultFilter, filterValues)).toEqual({ a: 1, b: 2 });
+  });
+
+  test('getAdvanceFilterSettingsObj should return correct settings object', () => {
+    const filterSettings = [{ default: true, fields: [{ id: 'a', value: '1' }] }];
+    expect(getAdvanceFilterSettingsObj(filterSettings)).toEqual({ a: '1' });
+  });
+
+  test('serialize should serialize object correctly', () => {
+    const obj = { a: 1, b: 2 };
+    expect(serialize(obj)).toBe('a=1&b=2');
+  });
+
+  test('mergeCustomStylesForRow should merge styles correctly', () => {
+    const rowValue = { status: 'active' };
+    const customRowSettings = [{ column: 'status', value: 'active', styles: { color: 'red' } }];
+    expect(mergeCustomStylesForRow(rowValue, customRowSettings)).toEqual({ color: 'red' });
+  });
+
+  test('updateDataByRowKey should update data correctly', () => {
+    const rowData = { id: 1, name: 'John' };
+    const data = [{ id: 1, name: 'Doe' }];
+    const rowKey = 'id';
+    const updatedData = updateDataByRowKey(rowData, data, rowKey);
+    expect(updatedData[0].name).toBe('John');
+  });
+});
