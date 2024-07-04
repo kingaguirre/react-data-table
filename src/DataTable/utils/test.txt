@@ -140,3 +140,195 @@ describe('Utility Functions', () => {
     expect(updatedData[0].name).toBe('John');
   });
 });
+
+
+
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import { DataTable } from './DataTable';  // Adjust the path as necessary
+import { DataTableContext } from './DataTable';
+
+// Mock Data
+const columnSettings = [
+  { column: 'name', title: 'Name', width: '100', filterConfig: { type: 'text', value: '' } },
+  { column: 'age', title: 'Age', width: '100', filterConfig: { type: 'number-range', value: '' } },
+];
+const dataSource = [
+  { name: 'John Doe', age: 30 },
+  { name: 'Jane Smith', age: 25 },
+];
+
+describe('DataTable Component', () => {
+  test('renders DataTable component', () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+      />
+    );
+    expect(screen.getByText('Loading Rows...')).toBeInTheDocument();
+  });
+
+  test('renders columns and rows', async () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+      />
+    );
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('Age')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+  });
+
+  test('handles row click', async () => {
+    const handleRowClick = jest.fn();
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+        onRowClick={handleRowClick}
+      />
+    );
+    fireEvent.click(screen.getByText('John Doe'));
+    expect(handleRowClick).toHaveBeenCalled();
+  });
+
+  test('handles column sorting', async () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+      />
+    );
+    fireEvent.click(screen.getByText('Name'));
+    // Add assertions to check the sorting behavior
+  });
+
+  test('handles column resizing', async () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+      />
+    );
+    // Simulate column resizing and add assertions
+  });
+
+  test('handles pagination', async () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+        pageSize={1}
+      />
+    );
+    // Add assertions to check pagination
+  });
+
+  test('filters data correctly', async () => {
+    render(
+      <DataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="name"
+      />
+    );
+    // Simulate filter input and add assertions
+  });
+});
+
+
+import {
+  getDeepValue,
+  setDeepValue,
+  exportToCsv,
+  filterCheck,
+  updateDataByRowKey,
+  serializeColumns,
+  setColumnSettings,
+  getAdvanceFilterSettingsObj,
+  serialize,
+  replaceLocalhostWithDomain,
+  isStringExist,
+} from './utils';
+
+describe('Utility Functions', () => {
+  test('getDeepValue retrieves nested values', () => {
+    const obj = { a: { b: { c: 42 } } };
+    expect(getDeepValue(obj, 'a.b.c')).toBe(42);
+  });
+
+  test('setDeepValue sets nested values', () => {
+    const obj = { a: { b: { c: 42 } } };
+    const result = setDeepValue(obj, 'a.b.c', 99);
+    expect(result.a.b.c).toBe(99);
+  });
+
+  test('exportToCsv generates correct CSV', () => {
+    const columns = [{ title: 'Name', column: 'name' }];
+    const rows = [{ name: 'John Doe' }];
+    const filename = 'test.csv';
+    global.URL.createObjectURL = jest.fn();
+    const link = { setAttribute: jest.fn(), click: jest.fn(), style: {} };
+    document.createElement = jest.fn().mockReturnValue(link);
+
+    exportToCsv(filename, rows, columns);
+    expect(link.setAttribute).toHaveBeenCalledWith('href', expect.anything());
+    expect(link.setAttribute).toHaveBeenCalledWith('download', filename);
+  });
+
+  test('filterCheck filters data correctly', () => {
+    expect(filterCheck({ min: 1, max: 5 }, '3', 'number-range')).toBe(true);
+  });
+
+  test('updateDataByRowKey updates data correctly', () => {
+    const rowData = { id: 1, name: 'John' };
+    const data = [{ id: 1, name: 'Doe' }];
+    const rowKey = 'id';
+    const updatedData = updateDataByRowKey(rowData, data, rowKey);
+    expect(updatedData[0].name).toBe('John');
+  });
+
+  test('serializeColumns serializes columns correctly', () => {
+    const columns = [{ cell: () => {}, title: 'Name', column: 'name' }];
+    const serialized = serializeColumns(columns);
+    expect(serialized).toEqual([{ title: 'Name', column: 'name' }]);
+  });
+
+  test('setColumnSettings sets columns correctly', () => {
+    const columns = [{ column: 'name', title: 'Name', width: '100' }];
+    const settings = setColumnSettings(columns, 500, []);
+    expect(settings[0].width).toBe('100px');
+  });
+
+  test('getAdvanceFilterSettingsObj returns correct settings object', () => {
+    const filterSettings = [{ default: true, fields: [{ id: 'a', value: '1' }] }];
+    expect(getAdvanceFilterSettingsObj(filterSettings)).toEqual({ a: '1' });
+  });
+
+  test('serialize serializes object correctly', () => {
+    const obj = { a: 1, b: 2 };
+    expect(serialize(obj)).toBe('a=1&b=2');
+  });
+
+  test('replaceLocalhostWithDomain replaces localhost correctly', () => {
+    const url = 'http://localhost:3000/path';
+    const newDomain = 'http://newdomain.com';
+    expect(replaceLocalhostWithDomain(url, newDomain)).toBe('http://newdomain.com/path');
+  });
+
+  test('isStringExist checks existence of string correctly', () => {
+    const array = ['apple', 'banana'];
+    expect(isStringExist(array, 'banana')).toBe(true);
+  });
+});
+
