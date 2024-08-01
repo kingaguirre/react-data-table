@@ -50,8 +50,8 @@ const ChartComponent: React.FC<IProps> = (props) => {
     const leftOffset = isPanelShowInRight ? popoverTarget.clientWidth : -16;
     return {
       position: 'absolute',
-      top: popoverTarget.getBoundingClientRect().top + popoverTarget.clientHeight / 2,
-      left: leftOffset + popoverTarget.getBoundingClientRect().left
+      top: popoverTarget.getBoundingClientRect().top + window.scrollY + popoverTarget.clientHeight / 2,
+      left: leftOffset + popoverTarget.getBoundingClientRect().left + window.scrollX
     };
   };
 
