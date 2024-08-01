@@ -72,6 +72,14 @@ const ChartComponent: React.FC<IProps> = (props) => {
     setIsPopoverOpen(true);
   };
 
+  // Handle key down events to make the element accessible via keyboard
+  const handleKeyDown = (event, label, target) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleValueClick(label, target);
+    }
+  };
+
   // Effect to handle click outside the popover and Escape key press to close the popover
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -143,6 +151,8 @@ const ChartComponent: React.FC<IProps> = (props) => {
               <div
                 className="values-details"
                 style={{ cursor: label.popoverContent ? 'pointer' : 'default' }}
+                tabIndex={label.popoverContent ? 0 : undefined}
+                onKeyDown={(e) => handleKeyDown(e, label, e.currentTarget)}
                 {...label.popoverContent ? {
                   onClick: (e) => {
                     e.stopPropagation();
