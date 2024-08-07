@@ -622,6 +622,24 @@ const isValidDate = (str) => {
 }
 
 
+export const formatTimzone = (date) => {
+  const options = {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    timeZoneName: 'short'
+  };
+
+  const formattedDateParts = new Date(date).toLocaleDateString('en-US', options as any).split(' ');
+  const [monthDay, year, timeZone] = formattedDateParts;
+  const [month, day] = monthDay.split(',');
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthIndex = monthNames.findIndex(m => m === month);
+
+  return `${year}-${monthNames[monthIndex]}-${day < 10 ? '0' + day : day} ${timeZone}`;
+};
+
 const format = (date) => {
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   
