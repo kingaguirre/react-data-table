@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { ColumnSettings } from '../interfaces';
 
 interface DragDropManagerProps {
@@ -6,6 +6,7 @@ interface DragDropManagerProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
   onDragEnd: (e: React.DragEvent<HTMLDivElement>, columnIndex: number) => void;
+  onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
   dropTargetIndex: number | null;
   draggedColumnIndex: number | null;
 }
@@ -17,6 +18,7 @@ export const useDragDropManager = (
 ): DragDropManagerProps => {
   const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+  const currentDropTarget = useRef<number | null>(null);
 
   const onDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, columnIndex: number) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -27,8 +29,9 @@ export const useDragDropManager = (
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>, columnIndex: number) => {
     e.preventDefault();
-    if (columnIndex !== draggedColumnIndex) {
+    if (columnIndex !== draggedColumnIndex && currentDropTarget.current !== columnIndex) {
       setDropTargetIndex(columnIndex);
+      currentDropTarget.current = columnIndex;
     }
   }, [draggedColumnIndex]);
 
@@ -37,6 +40,7 @@ export const useDragDropManager = (
 
     if (draggedColumnIndex === null || draggedColumnIndex === columnIndex) {
       setDropTargetIndex(null);
+      currentDropTarget.current = null;
       return;
     }
 
@@ -56,17 +60,29 @@ export const useDragDropManager = (
     localStorage.setItem('currentColumnSettings', JSON.stringify(orderedColumnSettings));
     setDraggedColumnIndex(null);
     setDropTargetIndex(null);
+    currentDropTarget.current = null;
   }, [draggedColumnIndex, columnSettings, setColumnSettings, onColumnSettingsChange]);
 
   const onDragEnd = useCallback(() => {
+    setDraggedColumnIndex(null);
     setDropTargetIndex(null);
-  }, [draggedColumnIndex, onDrop]);
+    currentDropTarget.current = null;
+  }, []);
+
+  const onDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDropTargetIndex(null);
+      currentDropTarget.current = null;
+    }
+  }, []);
 
   const handleEscapeKeyPress = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape" && draggedColumnIndex !== null) {
+      setDraggedColumnIndex(null);
       setDropTargetIndex(null);
+      currentDropTarget.current = null;
     }
-  }, [draggedColumnIndex, onDrop]);
+  }, [draggedColumnIndex]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleEscapeKeyPress);
@@ -80,6 +96,7 @@ export const useDragDropManager = (
     onDragOver,
     onDrop,
     onDragEnd,
+    onDragLeave,
     dropTargetIndex,
     draggedColumnIndex,
   };
