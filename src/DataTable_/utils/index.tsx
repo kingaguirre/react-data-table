@@ -622,22 +622,24 @@ const isValidDate = (str) => {
 }
 
 
-export const formatTimzone = (date) => {
+const formatTimezone = (date) => {
   const options = {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
-    timeZoneName: 'short'
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short',
+    hour12: false
   };
 
-  const formattedDateParts = new Date(date).toLocaleDateString('en-US', options as any).split(' ');
-  const [monthDay, year, timeZone] = formattedDateParts;
-  const [month, day] = monthDay.split(',');
+  const formattedDateTime = new Date(date).toLocaleString('en-US', options);
+  const [monthDay, time, timeZone] = formattedDateTime.split(', ');
+  const [month, day] = monthDay.split(' ');
+  const [year, monthIndex] = [monthDay.split(' ')[2], ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].findIndex(m => m === month)];
 
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const monthIndex = monthNames.findIndex(m => m === month);
-
-  return `${year}-${monthNames[monthIndex]}-${day < 10 ? '0' + day : day} ${timeZone}`;
+  return `${year}-${month}-${day < 10 ? '0' + day : day} ${time} ${timeZone}`;
 };
 
 const format = (date) => {
