@@ -623,32 +623,26 @@ const isValidDate = (str) => {
 
 
 const formatTimezone = (date,  includeTime = false, includeSeconds = false) => {
-  const dateOptions = {
+  const options = {
     year: 'numeric',
     month: 'short',
-    day: '2-digit'
+    day: '2-digit',
+    hour: includeTime ? '2-digit' : undefined,
+    minute: includeTime ? '2-digit' : undefined,
+    second: includeTime && includeSeconds ? '2-digit' : undefined,
+    hour12: false,
+    timeZone: 'UTC'
   };
 
-  const timeOptions = {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZoneName: 'short',
-    hour12: false
-  };
+  const formattedDateTime = new Date(date).toLocaleString('en-US', options);
+  const [monthDayYear, time] = formattedDateTime.split(', ');
+  const [month, day, year] = monthDayYear.split(' ');
 
-  if (includeSeconds) {
-    timeOptions.second = '2-digit';
-  }
+  const formattedDate = `${year}-${month}-${day < 10 ? '0' + day : day}`;
+  const formattedTime = includeTime ? `${time}${includeSeconds ? ':' + date.getSeconds().toString().padStart(2, '0') : ''}` : '';
 
-  const formattedDate = new Date(date).toLocaleDateString('en-US', dateOptions);
-  const formattedTime = includeTime ? new Date(date).toLocaleTimeString('en-US', timeOptions) : '';
+  return includeTime ? `${formattedDate} ${formattedTime}` : formattedDate;
 
-  const [monthDay, year] = formattedDate.split(', ');
-  const [month, day] = monthDay.split(' ');
-
-  return includeTime 
-    ? `${year}-${month}-${day < 10 ? '0' + day : day} ${formattedTime}`
-    : `${year}-${month}-${day < 10 ? '0' + day : day}`;
 };
 
 const format = (date) => {
