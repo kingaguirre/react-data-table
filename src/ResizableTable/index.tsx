@@ -46,7 +46,6 @@ const ResizableTableWrapper = ({
   parentCellClassName,
   columnHeaders,
 }) => {
-  // If onColumnWidthChange is not defined, render children directly
   if (!onColumnWidthChange) {
     return children;
   }
@@ -77,14 +76,20 @@ const ResizableTableWrapper = ({
     setBoxLeft(cellRect.left - tableRect.left);
   }, [columnWidths, parentCellClassName]);
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = useCallback((event) => {
     if (draggingIndex !== null) {
-      const newWidth = columnWidths[draggingIndex] + (event.clientX - startX);
+      let newWidth = columnWidths[draggingIndex] + (event.clientX - startX);
+
+      // Ensure the new width is not less than the minimum width
+      if (newWidth < 60) {
+        newWidth = 60;
+      }
+
       setResizingWidth(newWidth);
     }
-  };
+  }, [draggingIndex, columnWidths, startX]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (draggingIndex !== null) {
       setColumnWidths((prevWidths) => {
         const newWidths = [...prevWidths];
@@ -97,7 +102,7 @@ const ResizableTableWrapper = ({
       setResizingWidth(null);
       setBoxLeft(null);
     }
-  };
+  }, [draggingIndex, resizingWidth, onColumnWidthChange]);
 
   const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
@@ -117,17 +122,21 @@ const ResizableTableWrapper = ({
     });
 
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       resizeHandles.forEach((handle) => {
         handle.removeEventListener('mousedown', handleResizeMouseDown);
       });
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizeHandleClassName, handleMouseDown]);
+  }, [resizeHandleClassName, handleMouseDown, handleMouseMove, handleMouseUp]);
 
   return (
-    <TableContainer ref={containerRef} isResizing={draggingIndex !== null} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+    <TableContainer ref={containerRef} isResizing={draggingIndex !== null}>
       <Table ref={tableRef} totalWidth={totalWidth}>
         {children}
         {draggingIndex !== null && resizingWidth !== null && (
