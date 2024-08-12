@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 
+const MIN_COLUMN_WIDTH = 60; // Define the minimum column width
+
 const TableContainer = styled.div`
   width: 100%;
   overflow-x: auto;
@@ -46,10 +48,6 @@ const ResizableTableWrapper = ({
   parentCellClassName,
   columnHeaders,
 }) => {
-  if (!onColumnWidthChange) {
-    return children;
-  }
-
   const [columnWidths, setColumnWidths] = useState(initialColumnWidths);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [startX, setStartX] = useState(null);
@@ -58,6 +56,8 @@ const ResizableTableWrapper = ({
   const tableRef = useRef(null);
   const containerRef = useRef(null);
   const [totalWidth, setTotalWidth] = useState(null);
+  const mouseMoveHandlerRef = useRef();
+  const mouseUpHandlerRef = useRef();
 
   useEffect(() => {
     if (containerRef.current) {
@@ -81,8 +81,8 @@ const ResizableTableWrapper = ({
       let newWidth = columnWidths[draggingIndex] + (event.clientX - startX);
 
       // Ensure the new width is not less than the minimum width
-      if (newWidth < 60) {
-        newWidth = 60;
+      if (newWidth < MIN_COLUMN_WIDTH) {
+        newWidth = MIN_COLUMN_WIDTH;
       }
 
       setResizingWidth(newWidth);
@@ -114,24 +114,28 @@ const ResizableTableWrapper = ({
   };
 
   useEffect(() => {
-    const resizeHandles = document.querySelectorAll(`.${resizeHandleClassName}`);
     const handleResizeMouseDown = (event) => handleMouseDown(event);
+
+    mouseMoveHandlerRef.current = (event) => handleMouseMove(event);
+    mouseUpHandlerRef.current = (event) => handleMouseUp(event);
+
+    const resizeHandles = containerRef.current.querySelectorAll(`.${resizeHandleClassName}`);
 
     resizeHandles.forEach((handle) => {
       handle.addEventListener('mousedown', handleResizeMouseDown);
     });
 
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', mouseMoveHandlerRef.current);
+    document.addEventListener('mouseup', mouseUpHandlerRef.current);
 
     return () => {
       resizeHandles.forEach((handle) => {
         handle.removeEventListener('mousedown', handleResizeMouseDown);
       });
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', mouseMoveHandlerRef.current);
+      document.removeEventListener('mouseup', mouseUpHandlerRef.current);
     };
   }, [resizeHandleClassName, handleMouseDown, handleMouseMove, handleMouseUp]);
 
