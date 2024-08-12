@@ -570,6 +570,34 @@ const extractValueFromObject = (obj) => {
   return null; // Handle the case when the object doesn't have a 'value' property or it's not an array/string/date
 };
 
+export const dateFormat = (dateValue: string, type?: string) => {
+  const trimmedValue = dateValue?.replace(/^["']|["']$/g, '');
+  const isUTC = trimmedValue.endsWith('Z');
+  const date = new Date(trimmedValue);
+
+  const hasTime = type === 'dateTime' || type === 'dateTimeSeconds';
+  const hasSeconds = type === 'dateTimeSeconds';
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const addPadding = (val: number) => (val < 10 ? '0' + val : val);
+
+  const year = isUTC ? date.getUTCFullYear() : date.getFullYear();
+  const monthIndex = isUTC ? date.getUTCMonth() : date.getMonth();
+  const day = isUTC ? date.getUTCDate() : date.getDate();
+  const hours = isUTC ? date.getUTCHours() : date.getHours();
+  const minutes = isUTC ? date.getUTCMinutes() : date.getMinutes();
+  const seconds = isUTC ? date.getUTCSeconds() : date.getSeconds();
+  const time = `${addPadding(hours)}:${addPadding(minutes)}${hasSeconds ? `:${addPadding(seconds)}` : ''}`;
+
+  const formattedDate = `${addPadding(day)}-${monthNames[monthIndex]}-${year}${hasTime ? `, ${time}` : ''}`;
+  return formattedDate;
+}
+
+console.log(dateFormat("2023-10-30T04:31:10.291937Z", 'dateTimeSeconds')); // UTC
+console.log(dateFormat("2023-10-30T08:31:10.291937", 'dateTimeSeconds')); // Local time
+
+
 const isValidDate = (str) => {
   // Updated regular expression to include comma-separated date formats
   const likelyDatePattern = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)|(\d+[\/\-.]\d+[\/\-.]\d+)|(\d{4}-\d{2}-\d{2})|(\d{4},\s*\d{1,2},\s*\d{1,2})/;
