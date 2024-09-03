@@ -3,11 +3,11 @@ import React from "react";
 export const LABELS = [
   {
     title: 'Program Limit',
-    value: 200000000
+    value: 90000000
   },
   {
     title: 'NAR Limit',
-    value: 100000000
+    value: 50000000
   },
   {
     title: 'Main SCB HOLD(20% of PGM Limit)',
@@ -18,7 +18,7 @@ export const LABELS = [
 export const VALUES = [
   {
     title: 'Already Distributed',
-    value: 25000000,
+    value: 125000000,
     color: 'green',
     // details: { info: 'Some more details about Already Distributed' },
     popupTitle: 'Already Distributed Details',
@@ -41,7 +41,19 @@ export const VALUES = [
   }
 ];
 
-export const calculateHeights = (labels: any[], values: any[], maxValue: number = Math.max(...labels.map(label => label.value))) => {
+export const calculateHeights = (
+  labels: any[], 
+  values: any[], 
+) => {
+  // Calculate the maximum value of labels
+  const maxLabelValue = Math.max(...labels.map(label => label.value));
+  
+  // Calculate the sum of values
+  const sumValues = values.reduce((acc, value) => acc + value.value, 0);
+  
+  // Determine the maxValue to use: either the maximum label value or the sum of values
+  const maxValue = Math.max(maxLabelValue, sumValues);
+
   const sortedLabels = labels.map(label => ({
     ...label,
     height: `${(label.value / maxValue) * 100}%`
@@ -54,3 +66,4 @@ export const calculateHeights = (labels: any[], values: any[], maxValue: number 
 
   return { sortedLabels, calculatedValues };
 };
+
