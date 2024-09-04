@@ -6,8 +6,14 @@ import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
 import { App } from '../DataTable_/components/GlobalStateTest'
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
-import { type } from 'os';
-
+import DynamicChart from '../DynamicChart';
+import Panel from '../Panel';
+import ResizableTable from '../ResizableTable';
+import Chart from '../Chart';
+import CombinedChart from '../CombinedChart';
+import TXChart from '../TXChart';
+import { dateFormat } from '../DataTable_/utils/index'
+import { volume_vertical_bar_chart_labels, volume_vertical_bar_chart_datasets, distribution_horizontal_bar_chart_labels, distribution_horizontal_bar_chart_datasets } from './data';
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
   const maxAge = 80; // Maximum age for generated birthdate
@@ -498,7 +504,45 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <App/>
+      <TXChart
+        title='1testasdasda'
+        type="volume-vertical-bar-chart"
+        labels={volume_vertical_bar_chart_labels}
+        datasets={volume_vertical_bar_chart_datasets}
+        volumeVerticalBarChartOptions={{
+          y1Title: 'Custom Volume Title',
+          y2Title: 'Custom USD Title',
+        }}
+      />
+      <TXChart
+        title='1231123'
+        type="distribution-horizontal-bar-chart"
+        labels={distribution_horizontal_bar_chart_labels}
+        datasets={distribution_horizontal_bar_chart_datasets}
+      />
+      <TXChart
+        title='testasdasda'
+        type="distribution-horizontal-bar-chart"
+        labels={distribution_horizontal_bar_chart_labels}
+        datasets={distribution_horizontal_bar_chart_datasets}
+        distributionHorizontalBarChartOptions={{
+          hideLabels: true, // Option to hide labels
+          valueFormatter: (value) => `$${value}`, // Custom formatter for values
+        }}
+      />
+      <TXChart labels={distribution_horizontal_bar_chart_labels} datasets={distribution_horizontal_bar_chart_datasets} />
+      <DynamicChart/>
+    
+      {/* <div style={{transform: 'translateZ(0)'}}>
+        <Panel title="test" width='500px' height='400px'>
+          <DynamicChart/>
+        </Panel>
+      </div> */}
+      {/* <Chart/> */}
+      {/* <CombinedChart/> */}
+      {/* <ResizableTable/>
+      <ResizableTable/> */}
+      {/* <App/> */}
       <button onClick={handleClick}>Validate</button>
       <button onClick={handleGetSelectedRows}>Get Selected Rows</button>
       <button onClick={handleClearSelectedRows}>Clear Selected Rows</button>
@@ -509,7 +553,7 @@ export default () => {
         dataSource={dataSource}
         onChange={v => console.log(v)}
       /> */}
-      <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
+      {/* <button onClick={() => exportToCsv("data.csv", selectedRow, columnSettings)}>download selected</button>
       <button onClick={() => {
         setActions([Actions.DELETE, Actions.COPY, Actions.PASTE, Actions.DUPLICATE])
       }}>Remove "Add Action"</button>
@@ -538,7 +582,7 @@ export default () => {
         })))
       }}>Remove "Column Filter"</button>
 
-      {/* <DataTable_
+      <DataTable_
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -630,8 +674,8 @@ export default () => {
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
         selectionRange
 
-      />
-      <DataTable
+      /> */}
+      {/* <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -951,7 +995,8 @@ export default () => {
       )}
     /> */}
 
-    
     </div>
   )
 }
+
+
