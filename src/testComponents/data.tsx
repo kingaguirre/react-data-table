@@ -65,3 +65,67 @@ export const distribution_horizontal_bar_chart_datasets = [
     backgroundColor: 'green',
   },
 ]
+
+// const path = require('path');
+
+// module.exports = {
+//   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
+//   addons: [
+//     '@storybook/addon-links',
+//     '@storybook/addon-essentials',
+//   ],
+//   framework: '@storybook/react',
+//   staticDirs: ['../dev'],
+//   typescript: {
+//     check: true,
+//   },
+//   webpackFinal: async (config, { configType }) => {
+//     config.resolve.alias = {
+//       ...config.resolve.alias,
+//       '@atoms': path.join(process.cwd(), 'src', 'atoms/'),
+//       '@molecules': path.join(process.cwd(), 'src', 'molecules/'),
+//       '@organisms': path.join(process.cwd(), 'src', 'organisms/'),
+//       '@constants': path.join(process.cwd(), 'src', 'constants/'),
+//       '@utils': path.join(process.cwd(), 'src', 'utils/'),
+//       '@common': path.join(process.cwd(), 'src', 'common/'),
+//     };
+
+//     // Add a rule to handle `.mjs` files and support ES Modules
+//     config.module.rules.push({
+//       test: /\.mjs$/,
+//       include: /node_modules/,
+//       type: 'javascript/auto', // Required for handling ES Modules
+//     });
+
+//     // Add a rule to handle modern JavaScript files, including ES6/ES7 syntax
+//     config.module.rules.push({
+//       test: /\.(js|jsx|ts|tsx)$/,
+//       exclude: /node_modules/,
+//       use: {
+//         loader: 'babel-loader',
+//         options: {
+//           presets: [
+//             '@babel/preset-env', 
+//             '@babel/preset-react', 
+//             '@babel/preset-typescript'
+//           ],
+//           plugins: ['@babel/plugin-proposal-class-properties'], // Support for class properties
+//         },
+//       },
+//     });
+
+//     config.node = { fs: 'empty' };
+
+//     if (configType === 'PRODUCTION') {
+//       config.output.publicPath = '/react-storybook-static/';
+//     }
+
+//     return config;
+//   },
+//   managerWebpack: async (config, { configType }) => {
+//     if (configType === 'PRODUCTION') {
+//       config.output.publicPath = '/react-storybook-static/';
+//     }
+//     return config;
+//   },
+// };
