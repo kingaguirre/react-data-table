@@ -66,10 +66,12 @@ type TXChartProps = {
     | 'scatter-chart';
   labels: string[];
   datasets: any[]; // Define types as needed for your datasets
-  customOptions?: ChartOptions<'bar' | 'line' | 'pie'>;
+  customOptions?: ChartOptions<'bar' | 'line' | 'pie'> & {
+    stacked?: boolean;
+    orientation?: 'horizontal' | 'vertical';
+  };
   height?: string | number;
   title?: string;
-  stacked?: boolean; // Stacked prop to apply across other chart types
   volumeVerticalBarChartOptions?: VolumeVerticalBarChartOptions;
   distributionHorizontalBarChartOptions?: DistributionHorizontalBarChartOptions;
 };
@@ -92,7 +94,7 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
     },
   },
   "distribution-horizontal-bar-chart": {
-    indexAxis: 'y',
+    indexAxis: 'y', // Horizontal layout by default
     responsive: true,
     maintainAspectRatio: false,
     scales: { x: { display: false }, y: { display: true } },
@@ -143,7 +145,6 @@ const TXChart: React.FC<TXChartProps> = ({
   customOptions,
   height = '500px',
   title,
-  stacked = false, // Stacked prop
   volumeVerticalBarChartOptions,
   distributionHorizontalBarChartOptions,
 }) => {
@@ -176,6 +177,19 @@ const TXChart: React.FC<TXChartProps> = ({
 
   let options = JSON.parse(JSON.stringify(chartOptions[type] || chartOptions['default']));
 
+  // Apply orientation (if provided)
+  if (customOptions?.orientation) {
+    const indexAxis = customOptions.orientation === 'horizontal' ? 'y' : 'x';
+    options.indexAxis = indexAxis;
+  }
+
+  // Apply stacked option globally except for volume-vertical-bar-chart and distribution-horizontal-bar-chart
+  if (customOptions?.stacked && type !== 'volume-vertical-bar-chart' && type !== 'distribution-horizontal-bar-chart') {
+    options.scales.x = { ...options.scales?.x, stacked: customOptions.stacked };
+    options.scales.y = { ...options.scales?.y, stacked: customOptions.stacked };
+  }
+
+  // Handle volume-vertical-bar-chart specific options
   if (type === 'volume-vertical-bar-chart' && volumeVerticalBarChartOptions) {
     const { y1Title, y2Title } = volumeVerticalBarChartOptions;
     options = {
@@ -194,6 +208,7 @@ const TXChart: React.FC<TXChartProps> = ({
     };
   }
 
+  // Handle distribution-horizontal-bar-chart specific options
   if (type === 'distribution-horizontal-bar-chart' && distributionHorizontalBarChartOptions) {
     const { hideLabels = false, valueFormatter } = distributionHorizontalBarChartOptions;
     options = {
@@ -212,18 +227,9 @@ const TXChart: React.FC<TXChartProps> = ({
     };
   }
 
-  // Apply the stacked option to charts other than volume and distribution bar charts
-  if (
-    type !== 'volume-vertical-bar-chart' &&
-    type !== 'distribution-horizontal-bar-chart' &&
-    options.scales
-  ) {
-    options.scales.x = { ...options.scales?.x, stacked: stacked };
-    options.scales.y = { ...options.scales?.y, stacked: stacked };
-  }
-
   options = customOptions ? { ...options, ...customOptions } : options;
 
+  // Set the chart title
   if (title) {
     options.plugins!.title!.text = title;
   }
