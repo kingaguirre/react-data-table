@@ -177,6 +177,11 @@ const TXChart: React.FC<TXChartProps> = ({
 
   let options = JSON.parse(JSON.stringify(chartOptions[type] || chartOptions['default']));
 
+  // Initialize scales if not defined
+  if (!options.scales) {
+    options.scales = {};
+  }
+
   // Apply orientation (if provided)
   if (customOptions?.orientation) {
     const indexAxis = customOptions.orientation === 'horizontal' ? 'y' : 'x';
@@ -185,8 +190,8 @@ const TXChart: React.FC<TXChartProps> = ({
 
   // Apply stacked option globally except for volume-vertical-bar-chart and distribution-horizontal-bar-chart
   if (customOptions?.stacked && type !== 'volume-vertical-bar-chart' && type !== 'distribution-horizontal-bar-chart') {
-    options.scales.x = { ...options.scales?.x, stacked: customOptions.stacked };
-    options.scales.y = { ...options.scales?.y, stacked: customOptions.stacked };
+    options.scales.x = { ...options.scales.x, stacked: customOptions.stacked };
+    options.scales.y = { ...options.scales.y, stacked: customOptions.stacked };
   }
 
   // Handle volume-vertical-bar-chart specific options
@@ -215,7 +220,7 @@ const TXChart: React.FC<TXChartProps> = ({
       ...options,
       scales: {
         ...options.scales,
-        y: { ...options.scales?.y, display: !hideLabels },
+        y: { ...options.scales.y, display: !hideLabels },
       },
       plugins: {
         ...options.plugins,
