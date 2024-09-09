@@ -13,13 +13,13 @@ import {
   ArcElement,
   RadialLinearScale,
   ChartOptions,
-  LineController,  // Import LineController
-  BarController,   // Import BarController for bar charts
-  PieController,   // Import PieController for pie charts
-  RadarController, // Import RadarController for radar charts
-  PolarAreaController, // Import PolarAreaController for polar area charts
-  BubbleController, // Import BubbleController for bubble charts
-  ScatterController, // Import ScatterController for scatter charts
+  LineController,
+  BarController,
+  PieController,
+  RadarController,
+  PolarAreaController,
+  BubbleController,
+  ScatterController,
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -33,14 +33,14 @@ ChartJS.register(
   Tooltip,
   Legend,
   ArcElement,
-  RadialLinearScale, // Radar, PolarArea
-  LineController,    // Register LineController
-  BarController,     // Register BarController
-  PieController,     // Register PieController
-  RadarController,   // Register RadarController
-  PolarAreaController, // Register PolarAreaController
-  BubbleController,  // Register BubbleController
-  ScatterController, // Register ScatterController
+  RadialLinearScale,
+  LineController,
+  BarController,
+  PieController,
+  RadarController,
+  PolarAreaController,
+  BubbleController,
+  ScatterController,
   ChartDataLabels
 );
 
@@ -69,6 +69,7 @@ type TXChartProps = {
   customOptions?: ChartOptions<'bar' | 'line' | 'pie'>;
   height?: string | number;
   title?: string;
+  stacked?: boolean; // Stacked prop to apply across other chart types
   volumeVerticalBarChartOptions?: VolumeVerticalBarChartOptions;
   distributionHorizontalBarChartOptions?: DistributionHorizontalBarChartOptions;
 };
@@ -87,7 +88,7 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
     plugins: {
       legend: { display: true, position: 'bottom' },
       title: { display: true, text: '', font: { size: 20 } },
-      datalabels: { display: false }, // Disable the data labels for volume-vertical-bar-chart
+      datalabels: { display: false },
     },
   },
   "distribution-horizontal-bar-chart": {
@@ -136,16 +137,16 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
 };
 
 const TXChart: React.FC<TXChartProps> = ({
-  type = 'bar', // default to 'bar' chart
+  type = 'bar',
   labels,
   datasets,
   customOptions,
   height = '500px',
   title,
+  stacked = false, // Stacked prop
   volumeVerticalBarChartOptions,
   distributionHorizontalBarChartOptions,
 }) => {
-  // Determine which ChartJS component to use
   let ChartComponent;
   switch (type) {
     case 'line-chart':
@@ -173,10 +174,8 @@ const TXChart: React.FC<TXChartProps> = ({
       break;
   }
 
-  // Clone the options object to ensure each chart has its own unique options
   let options = JSON.parse(JSON.stringify(chartOptions[type] || chartOptions['default']));
 
-  // Handling Volume Vertical Bar Chart Options
   if (type === 'volume-vertical-bar-chart' && volumeVerticalBarChartOptions) {
     const { y1Title, y2Title } = volumeVerticalBarChartOptions;
     options = {
@@ -195,7 +194,6 @@ const TXChart: React.FC<TXChartProps> = ({
     };
   }
 
-  // Handling Distribution Horizontal Bar Chart Options
   if (type === 'distribution-horizontal-bar-chart' && distributionHorizontalBarChartOptions) {
     const { hideLabels = false, valueFormatter } = distributionHorizontalBarChartOptions;
     options = {
@@ -214,10 +212,18 @@ const TXChart: React.FC<TXChartProps> = ({
     };
   }
 
-  // Use custom options if provided, otherwise use the default
+  // Apply the stacked option to charts other than volume and distribution bar charts
+  if (
+    type !== 'volume-vertical-bar-chart' &&
+    type !== 'distribution-horizontal-bar-chart' &&
+    options.scales
+  ) {
+    options.scales.x = { ...options.scales?.x, stacked: stacked };
+    options.scales.y = { ...options.scales?.y, stacked: stacked };
+  }
+
   options = customOptions ? { ...options, ...customOptions } : options;
 
-  // Set the chart title if provided
   if (title) {
     options.plugins!.title!.text = title;
   }
