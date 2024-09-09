@@ -531,6 +531,153 @@ export default () => {
         }}
       />
       <TXChart labels={distribution_horizontal_bar_chart_labels} datasets={distribution_horizontal_bar_chart_datasets} />
+      <TXChart
+        type="line-chart"
+        labels={['January', 'February', 'March', 'April', 'May', 'June', 'July']}
+        datasets={[
+          {
+            label: 'Sales',
+            data: [65, 59, 80, 81, 56, 55, 40],
+            fill: false,
+            borderColor: 'blue',
+            tension: 0.1,
+          },
+        ]}
+        title="Line Chart Example"
+      />
+
+      <TXChart
+        type="pie-chart"
+        labels={['Red', 'Blue', 'Yellow']}
+        datasets={[
+          {
+            data: [300, 50, 100],
+            backgroundColor: ['red', 'blue', 'yellow'],
+          },
+        ]}
+        title="Pie Chart Example"
+      />
+
+      <TXChart
+        type="pie-chart"
+        labels={['Red', 'Blue', 'Yellow']}
+        datasets={[
+          {
+            data: [300, 50, 100],
+            backgroundColor: ['red', 'blue', 'yellow'],
+            cutout: '50%', // This makes it a doughnut chart
+          },
+        ]}
+        title="Doughnut Chart Example"
+      />
+
+      <TXChart
+        type="radar-chart"
+        labels={['Eating', 'Drinking', 'Sleeping', 'Designing', 'Coding', 'Cycling', 'Running']}
+        datasets={[
+          {
+            label: 'My First Dataset',
+            data: [65, 59, 90, 81, 56, 55, 40],
+            fill: true,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
+            pointBackgroundColor: 'rgb(255, 99, 132)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(255, 99, 132)',
+          },
+          {
+            label: 'My Second Dataset',
+            data: [28, 48, 40, 19, 96, 27, 100],
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(54, 162, 235)',
+          },
+        ]}
+        title="Radar Chart Example"
+      />
+
+      <TXChart
+        type="polar-area-chart"
+        labels={['Red', 'Green', 'Yellow', 'Grey', 'Blue']}
+        datasets={[
+          {
+            data: [11, 16, 7, 3, 14],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(255, 205, 86, 0.2)',
+              'rgba(201, 203, 207, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+            ],
+          },
+        ]}
+        title="Polar Area Chart Example"
+      />
+
+      <TXChart
+        type="bubble-chart"
+        labels={[]}
+        datasets={[
+          {
+            label: 'Bubble Dataset 1',
+            data: [
+              { x: 20, y: 30, r: 15 },
+              { x: 40, y: 10, r: 10 },
+              { x: 30, y: 20, r: 25 },
+              { x: 10, y: 40, r: 15 },
+            ],
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+          },
+          {
+            label: 'Bubble Dataset 2',
+            data: [
+              { x: 25, y: 20, r: 10 },
+              { x: 35, y: 15, r: 20 },
+              { x: 20, y: 30, r: 10 },
+            ],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+          },
+        ]}
+        title="Bubble Chart Example"
+      />
+
+    <TXChart
+      type="scatter-chart"
+      labels={[]}
+      datasets={[
+        {
+          label: 'Scatter Dataset 1',
+          data: [
+            { x: -10, y: 0 },
+            { x: 0, y: 10 },
+            { x: 10, y: 5 },
+            { x: 2, y: 7 },
+            { x: -5, y: -5 },
+          ],
+          backgroundColor: 'rgba(255, 99, 132, 1)',
+        },
+        {
+          label: 'Scatter Dataset 2',
+          data: [
+            { x: -15, y: -5 },
+            { x: -8, y: 8 },
+            { x: 5, y: -3 },
+            { x: 6, y: 6 },
+          ],
+          backgroundColor: 'rgba(54, 162, 235, 1)',
+        },
+      ]}
+      title="Scatter Chart Example"
+    />
+
+
       <DynamicChart/>
     
       {/* <div style={{transform: 'translateZ(0)'}}>

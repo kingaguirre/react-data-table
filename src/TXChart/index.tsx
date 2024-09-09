@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line, Pie, Radar, PolarArea, Bubble, Scatter } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,11 +10,39 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
+  RadialLinearScale,
   ChartOptions,
+  LineController,  // Import LineController
+  BarController,   // Import BarController for bar charts
+  PieController,   // Import PieController for pie charts
+  RadarController, // Import RadarController for radar charts
+  PolarAreaController, // Import PolarAreaController for polar area charts
+  BubbleController, // Import BubbleController for bubble charts
+  ScatterController, // Import ScatterController for scatter charts
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale, // Radar, PolarArea
+  LineController,    // Register LineController
+  BarController,     // Register BarController
+  PieController,     // Register PieController
+  RadarController,   // Register RadarController
+  PolarAreaController, // Register PolarAreaController
+  BubbleController,  // Register BubbleController
+  ScatterController, // Register ScatterController
+  ChartDataLabels
+);
 
 type VolumeVerticalBarChartOptions = {
   y1Title?: string;
@@ -27,10 +55,18 @@ type DistributionHorizontalBarChartOptions = {
 };
 
 type TXChartProps = {
-  type?: 'volume-vertical-bar-chart' | 'distribution-horizontal-bar-chart';
+  type?:
+    | 'volume-vertical-bar-chart'
+    | 'distribution-horizontal-bar-chart'
+    | 'line-chart'
+    | 'pie-chart'
+    | 'radar-chart'
+    | 'polar-area-chart'
+    | 'bubble-chart'
+    | 'scatter-chart';
   labels: string[];
-  datasets: any[]; // Use specific types if your datasets have a defined structure
-  customOptions?: ChartOptions<'bar'>;
+  datasets: any[]; // Define types as needed for your datasets
+  customOptions?: ChartOptions<'bar' | 'line' | 'pie'>;
   height?: string | number;
   title?: string;
   volumeVerticalBarChartOptions?: VolumeVerticalBarChartOptions;
@@ -39,143 +75,68 @@ type TXChartProps = {
 
 const defaultFormatter = (value: number) => `${value}K`;
 
-const chartOptions: Record<string, ChartOptions<'bar'>> = {
+const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
   "volume-vertical-bar-chart": {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      x: {
-        display: true,
-        grid: {
-          display: false, // Remove vertical grid lines
-        },
-      },
-      y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
-        beginAtZero: true,
-        grid: {
-          display: true, // Keep horizontal grid lines
-        },
-      },
-      y1: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        beginAtZero: true,
-        grid: {
-          drawOnChartArea: false,
-        },
-      },
+      x: { display: true, grid: { display: false } },
+      y: { display: true, beginAtZero: true, grid: { display: true } },
+      y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
     },
     plugins: {
-      legend: {
-        display: true,
-        position: 'bottom', // Move legend to the right side
-        align: 'center', // Align legend items at the start (top)
-        labels: {
-          boxWidth: 20, // Set the width of the color box in the legend
-        },
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-      },
-      title: {
-        display: true,
-        text: '', // Will be dynamically updated based on props
-        position: 'top',
-        align: 'center',
-        font: {
-          size: 20, // Set font size to 20px
-        },
-      },
-      datalabels: {
-        display: false, // Disable the data labels for volume-vertical-bar-chart
-      },
+      legend: { display: true, position: 'bottom' },
+      title: { display: true, text: '', font: { size: 20 } },
+      datalabels: { display: false }, // Disable the data labels for volume-vertical-bar-chart
     },
   },
   "distribution-horizontal-bar-chart": {
     indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    layout: {
-      padding: {
-        right: 50, // Add padding to the right to ensure text visibility
-      },
+    scales: { x: { display: false }, y: { display: true } },
+    plugins: {
+      legend: { display: false },
+      datalabels: { display: true, anchor: 'end', align: 'end', clip: false, color: 'black' },
+      title: { display: true, text: '', font: { size: 20 } },
     },
+  },
+  "line-chart": {
+    responsive: true,
+    maintainAspectRatio: false,
     scales: {
-      x: {
-        display: false,
-        grid: {
-          display: true, // Keep vertical grid lines
-        },
-      },
-      y: {
-        display: true, // Option to hide/show y-axis labels (will be overridden)
-        beginAtZero: true,
-        grid: {
-          display: false, // Remove horizontal grid lines
-        },
-      },
+      x: { display: true },
+      y: { display: true, beginAtZero: true },
     },
     plugins: {
-      legend: {
-        display: false,
-      },
-      datalabels: {
-        display: true, // Always show data labels on bars
-        anchor: 'end', // Position labels at the end of the bars
-        align: 'end', // Align labels to the end of the bars
-        clip: false, // Prevent clipping of labels
-        color: 'black', // Set the color of the labels
-      },
-      title: {
-        display: true,
-        text: '', // Will be dynamically updated based on props
-        position: 'top',
-        align: 'center',
-        font: {
-          size: 20, // Set font size to 20px
-        },
-      },
+      legend: { display: true, position: 'bottom' },
+      datalabels: { display: false },
+      title: { display: true, text: '', font: { size: 20 } },
+    },
+  },
+  "pie-chart": {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'bottom' },
+      tooltip: { enabled: true },
+      datalabels: { display: false },
+      title: { display: true, text: '', font: { size: 20 } },
     },
   },
   default: {
     responsive: true,
     maintainAspectRatio: false,
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          display: true,
-        },
-      },
-    },
     plugins: {
-      legend: {
-        display: true,
-        position: 'bottom', // Set legend position to bottom
-      },
-      tooltip: {
-        enabled: true,
-      },
-      title: {
-        display: true,
-        text: '', // Will be dynamically updated based on props
-        position: 'top',
-        align: 'center',
-        font: {
-          size: 20, // Set font size to 20px
-        },
-      },
+      legend: { display: true, position: 'bottom' },
+      datalabels: { display: false },
+      title: { display: true, text: '', font: { size: 20 } },
     },
   },
 };
 
 const TXChart: React.FC<TXChartProps> = ({
-  type,
+  type = 'bar', // default to 'bar' chart
   labels,
   datasets,
   customOptions,
@@ -184,72 +145,77 @@ const TXChart: React.FC<TXChartProps> = ({
   volumeVerticalBarChartOptions,
   distributionHorizontalBarChartOptions,
 }) => {
-  // Clone the options object to ensure each chart has its own unique options
-  let options = JSON.parse(JSON.stringify(chartOptions[type || 'default']));
+  // Determine which ChartJS component to use
+  let ChartComponent;
+  switch (type) {
+    case 'line-chart':
+      ChartComponent = Line;
+      break;
+    case 'pie-chart':
+      ChartComponent = Pie;
+      break;
+    case 'radar-chart':
+      ChartComponent = Radar;
+      break;
+    case 'polar-area-chart':
+      ChartComponent = PolarArea;
+      break;
+    case 'bubble-chart':
+      ChartComponent = Bubble;
+      break;
+    case 'scatter-chart':
+      ChartComponent = Scatter;
+      break;
+    case 'volume-vertical-bar-chart':
+    case 'distribution-horizontal-bar-chart':
+    default:
+      ChartComponent = Bar;
+      break;
+  }
 
+  // Clone the options object to ensure each chart has its own unique options
+  let options = JSON.parse(JSON.stringify(chartOptions[type] || chartOptions['default']));
+
+  // Handling Volume Vertical Bar Chart Options
   if (type === 'volume-vertical-bar-chart' && volumeVerticalBarChartOptions) {
     const { y1Title, y2Title } = volumeVerticalBarChartOptions;
-
-    // Modify options dynamically based on provided titles
     options = {
       ...options,
       scales: {
         ...options.scales,
         y: {
           ...options.scales?.y,
-          title: {
-            display: !!y1Title,
-            text: y1Title,
-          },
+          title: { display: !!y1Title, text: y1Title },
         },
         y1: {
           ...options.scales?.y1,
-          title: {
-            display: !!y2Title,
-            text: y2Title,
-          },
+          title: { display: !!y2Title, text: y2Title },
         },
       },
     };
   }
 
-  if (type === 'distribution-horizontal-bar-chart') {
-    if (distributionHorizontalBarChartOptions) {
-      const { hideLabels = false, valueFormatter } = distributionHorizontalBarChartOptions;
-
-      // Modify options for the distribution-horizontal-bar-chart type
-      options = {
-        ...options,
-        scales: {
-          ...options.scales,
-          y: {
-            ...options.scales?.y,
-            display: !hideLabels, // Control display of y-axis labels, true will hide labels, false will show them
-          },
+  // Handling Distribution Horizontal Bar Chart Options
+  if (type === 'distribution-horizontal-bar-chart' && distributionHorizontalBarChartOptions) {
+    const { hideLabels = false, valueFormatter } = distributionHorizontalBarChartOptions;
+    options = {
+      ...options,
+      scales: {
+        ...options.scales,
+        y: { ...options.scales?.y, display: !hideLabels },
+      },
+      plugins: {
+        ...options.plugins,
+        datalabels: {
+          ...options.plugins?.datalabels,
+          formatter: valueFormatter || defaultFormatter,
         },
-        plugins: {
-          ...options.plugins,
-          datalabels: {
-            ...options.plugins?.datalabels,
-            formatter: valueFormatter, // Set custom formatter for values
-          },
-        },
-      };
-    } else {
-      options = {
-        ...options,
-        plugins: {
-          ...options.plugins,
-          datalabels: {
-            ...options.plugins?.datalabels,
-            formatter: defaultFormatter, // Set default formatter for values
-          },
-        },
-      }
-    }
+      },
+    };
   }
 
-  options = type ? options || chartOptions['default'] : customOptions || chartOptions['default'];
+  // Use custom options if provided, otherwise use the default
+  options = customOptions ? { ...options, ...customOptions } : options;
 
   // Set the chart title if provided
   if (title) {
@@ -258,7 +224,7 @@ const TXChart: React.FC<TXChartProps> = ({
 
   return (
     <div style={{ width: '100%', height }}>
-      <Bar
+      <ChartComponent
         data={{
           labels: labels,
           datasets: datasets,
