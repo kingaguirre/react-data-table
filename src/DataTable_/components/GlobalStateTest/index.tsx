@@ -18,7 +18,7 @@ const initialGlobalState = {
 export const NumComponent = withState({
   states: ['num'],
 })(React.memo((props: IComponent) => {
-  const { num, setGlobalStateByKey } = props;
+  const { num, setGlobalStateByKey, setGlobalStateByObj } = props;
 
   const classes = useCardStyles();
   return (
@@ -26,7 +26,7 @@ export const NumComponent = withState({
       <CardHeader title={`num: ${num}`} />
       <CardActions className={classes.action}>
         <Button
-          onClick={() => setGlobalStateByKey('num', num + 1)}
+          onClick={() => setGlobalStateByObj({'num': num + 1})}
           // onClick={() => setState?.(num + 1, 'num')}
           variant="outlined"
         >
@@ -46,9 +46,9 @@ export const NumComponent = withState({
 
 
 export const TextComponent = withState({
-  states: ['text', 'setTestState'],
+  states: ['text', 'setTestState', 'testFunction'],
 })(React.memo((props: IComponent) => {
-  const { text, setGlobalState, setTestState } = props;
+  const { text, setGlobalState, setTestState, testFunction } = props;
 
   const classes = useCardStyles();
   return (
@@ -97,12 +97,17 @@ export const App = () => {
     bool: false,
   })
 
+  const testFunction = React.useCallback(async (params) => {
+    console.log(123);
+  }, []);
+
   return (
     <GlobalStateProvider values={{
       someProps: testState,
       setTestState,
       globalState,
-      setGlobalState
+      setGlobalState,
+      testFunction
     }}>
       <AppDescription />
       <button onClick={() => setGlobalState((prev) => ({...prev, num: prev.num + 1}))}>Update</button>

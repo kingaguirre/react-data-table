@@ -9,13 +9,13 @@ import { useDescriptionStyles } from "./styles";
 export const useFlasher = () => {
   const ref = React.useRef();
   React.useEffect(() => {
-    ref.current.setAttribute(
+    ref.current?.setAttribute(
       "style",
       `box-shadow: 0 0 8px 1px ${pink["600"]};
        background-color: ${pink["50"]};
        transition: box-shadow 50ms ease-out;`
     );
-    setTimeout(() => ref.current.setAttribute("style", ""), 100);
+    setTimeout(() => ref.current?.setAttribute("style", ""), 100);
   });
   return ref;
 };

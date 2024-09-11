@@ -14,6 +14,8 @@ import CombinedChart from '../CombinedChart';
 import TXChart from '../TXChart';
 import { dateFormat } from '../DataTable_/utils/index'
 import { volume_vertical_bar_chart_labels, volume_vertical_bar_chart_datasets, distribution_horizontal_bar_chart_labels, distribution_horizontal_bar_chart_datasets } from './data';
+import {UploadSummary, DownloadSummary} from './UploadSummary'
+
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
   const maxAge = 80; // Maximum age for generated birthdate
@@ -47,8 +49,9 @@ const selectRandomString = (stringsArray) => {
   return stringsArray[randomIndex];
 }
 
-const dataSource = Array(25).fill("").map((_, i) => ({
-  intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "U",
+const dataSource = Array(2).fill("").map((_, i) => ({
+  intentAction: i !== 0 ? selectRandomString(["O", "U", "R", "N"]) : "O",
+  // acknowledgementNumber: `ack-${i}`,
   ...((i === 0 || i === 1 || i === 2) ? {
     acknowledgementNumber: {
       value: i === 0 ? '231' : i === 2 ? '123123123123123112313131231231312' : '23123',
@@ -205,185 +208,185 @@ const columnSettings = [
       }
     }
   },
-  {
-    column: 'username',
-    title: 'Username',
-    align: 'center',
-    groupTitle: 'test',
-    order: 0,
-    actionConfig: false,
-    filterConfig: {
-      type: 'text',
-      // value: "0"
-    },
-  },
-  {
-    column: 'password',
-    title: 'Password',
-    width: '200px',
-    sorted: 'none',
-    order: 1,
-    hidden: true
-  },
-  {
-    column: 'userDetails.image',
-    title: 'Image',
-    width: '120px',
-    sorted: 'none',
-    order: 1,
-    cell: () => {
-      return (
-        <UploadCell
-          editable
-          onFileChange={(file) => console.log(file)}
-          accept="image/*" // Accept only images
-        />
-      )
-    }
-  },
-  {
-    column: 'userDetails.email',
-    title: 'Email',
-    groupTitle: 'User Details',
-    order: 3,
-    pinned: true,
-  },
+  // {
+  //   column: 'username',
+  //   title: 'Username',
+  //   align: 'center',
+  //   groupTitle: 'test',
+  //   order: 0,
+  //   actionConfig: false,
+  //   filterConfig: {
+  //     type: 'text',
+  //     // value: "0"
+  //   },
+  // },
+  // {
+  //   column: 'password',
+  //   title: 'Password',
+  //   width: '200px',
+  //   sorted: 'none',
+  //   order: 1,
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userDetails.image',
+  //   title: 'Image',
+  //   width: '120px',
+  //   sorted: 'none',
+  //   order: 1,
+  //   cell: () => {
+  //     return (
+  //       <UploadCell
+  //         editable
+  //         onFileChange={(file) => console.log(file)}
+  //         accept="image/*" // Accept only images
+  //       />
+  //     )
+  //   }
+  // },
+  // {
+  //   column: 'userDetails.email',
+  //   title: 'Email',
+  //   groupTitle: 'User Details',
+  //   order: 3,
+  //   pinned: true,
+  // },
 
 
-  {
-    column: 'userDetails.email1',
-    title: 'Emails1',
-    groupTitle: 'User Details',
-  },
+  // {
+  //   column: 'userDetails.email1',
+  //   title: 'Emails1',
+  //   groupTitle: 'User Details',
+  // },
 
-  {
-    column: 'userDetails',
-    title: 'Emails and other',
-    groupTitle: 'User Details',
-    order: 4,
-    cell: (_, data) => `${data?.userDetails?.email1?.value} ${data?.userDetails?.other1.value}`
-  },
-  {
-    column: 'userDetails.isAdmin',
-    title: 'Is Admin',
-    groupTitle: 'User Details',
-    order: 2,
-    pinned: 'none',
-    actionConfig: {
-      type: 'select',
-      options: [{
-        text: 'clear',
-        value: ''
-        },{
-        text: 'admin',
-        value: 'true'
-        },{
-        text: 'clerk',
-        value: 'false'
-        }]
-    },
-    // filterConfig: {
-    //   type: 'select',
-    //   options: [{
-    //     text: 'clear',
-    //     value: ''
-    //     },{
-    //     text: 'admin',
-    //     value: 'true'
-    //     },{
-    //     text: 'clerk',
-    //     value: 'false'
-    //     }]
-    // },
-  },
-  {
-    column: 'userDetails.other',
-    title: 'Other',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.birthDay',
-    title: 'Birth Day',
-    groupTitle: 'User Details',
-    order: 5,
-    // filterConfig: {
-    //   type: 'date-range',
-    // },
-    actionConfig: {
-      type: 'date'
-    }
-  },
-  {
-    column: 'userDetails.age',
-    title: 'Age',
-    groupTitle: 'test Details',
-    order: 4,
-    // filterConfig: {
-    //   type: 'number-range',
-    //   // value: {min: 10, max: 50}
-    // },
-  },
-  {
-    column: 'userDetails.firstName',
-    title: 'First Name',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.lastName',
-    title: 'Last Name',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.phoneNumber',
-    title: 'Phone Number',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.address',
-    title: 'Address',
-    groupTitle: 'User Details',
-  },
-  {
-    column: 'userDetails.city',
-    title: 'City',
-  },
-  {
-    column: 'userDetails.state',
-    title: 'State',
-  },
-  {
-    column: 'userDetails.zipCode',
-    title: 'Zip Code',
-  },
-  {
-    column: 'userAccounts[0].account1',
-    title: 'Account 1',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userAccounts[1].account2',
-    title: 'Account 2',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userAccounts[2].account3',
-    title: 'Account 3',
-    groupTitle: 'User Accounts',
-    hidden: true
-  },
-  {
-    column: 'userID.value',
-    title: '#',
-    pinned: "none",
-    sorted: "none",
-    align: "center",
-    cell: (value) => <button onClick={e => {
-      e.stopPropagation();
-      console.log(`button ${value} clicked`)
-    }} style={{fontSize: 5}}>Button {value}</button>
-  },
+  // {
+  //   column: 'userDetails',
+  //   title: 'Emails and other',
+  //   groupTitle: 'User Details',
+  //   order: 4,
+  //   cell: (_, data) => `${data?.userDetails?.email1?.value} ${data?.userDetails?.other1.value}`
+  // },
+  // {
+  //   column: 'userDetails.isAdmin',
+  //   title: 'Is Admin',
+  //   groupTitle: 'User Details',
+  //   order: 2,
+  //   pinned: 'none',
+  //   actionConfig: {
+  //     type: 'select',
+  //     options: [{
+  //       text: 'clear',
+  //       value: ''
+  //       },{
+  //       text: 'admin',
+  //       value: 'true'
+  //       },{
+  //       text: 'clerk',
+  //       value: 'false'
+  //       }]
+  //   },
+  //   // filterConfig: {
+  //   //   type: 'select',
+  //   //   options: [{
+  //   //     text: 'clear',
+  //   //     value: ''
+  //   //     },{
+  //   //     text: 'admin',
+  //   //     value: 'true'
+  //   //     },{
+  //   //     text: 'clerk',
+  //   //     value: 'false'
+  //   //     }]
+  //   // },
+  // },
+  // {
+  //   column: 'userDetails.other',
+  //   title: 'Other',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.birthDay',
+  //   title: 'Birth Day',
+  //   groupTitle: 'User Details',
+  //   order: 5,
+  //   // filterConfig: {
+  //   //   type: 'date-range',
+  //   // },
+  //   actionConfig: {
+  //     type: 'date'
+  //   }
+  // },
+  // {
+  //   column: 'userDetails.age',
+  //   title: 'Age',
+  //   groupTitle: 'test Details',
+  //   order: 4,
+  //   // filterConfig: {
+  //   //   type: 'number-range',
+  //   //   // value: {min: 10, max: 50}
+  //   // },
+  // },
+  // {
+  //   column: 'userDetails.firstName',
+  //   title: 'First Name',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.lastName',
+  //   title: 'Last Name',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.phoneNumber',
+  //   title: 'Phone Number',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.address',
+  //   title: 'Address',
+  //   groupTitle: 'User Details',
+  // },
+  // {
+  //   column: 'userDetails.city',
+  //   title: 'City',
+  // },
+  // {
+  //   column: 'userDetails.state',
+  //   title: 'State',
+  // },
+  // {
+  //   column: 'userDetails.zipCode',
+  //   title: 'Zip Code',
+  // },
+  // {
+  //   column: 'userAccounts[0].account1',
+  //   title: 'Account 1',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userAccounts[1].account2',
+  //   title: 'Account 2',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userAccounts[2].account3',
+  //   title: 'Account 3',
+  //   groupTitle: 'User Accounts',
+  //   hidden: true
+  // },
+  // {
+  //   column: 'userID.value',
+  //   title: '#',
+  //   pinned: "none",
+  //   sorted: "none",
+  //   align: "center",
+  //   cell: (value) => <button onClick={e => {
+  //     e.stopPropagation();
+  //     console.log(`button ${value} clicked`)
+  //   }} style={{fontSize: 5}}>Button {value}</button>
+  // },
 ];
 
 const generateRandomTransactions = (num = 100) => {
@@ -504,7 +507,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <TXChart
+      {/* <TXChart
         title='1testasdasda'
         type="volume-vertical-bar-chart"
         labels={volume_vertical_bar_chart_labels}
@@ -679,7 +682,7 @@ export default () => {
 
 
       <DynamicChart/>
-    
+     */}
       {/* <div style={{transform: 'translateZ(0)'}}>
         <Panel title="test" width='500px' height='400px'>
           <DynamicChart/>
@@ -822,7 +825,7 @@ export default () => {
         selectionRange
 
       /> */}
-      {/* <DataTable
+      <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -914,7 +917,9 @@ export default () => {
         onSelectedRowsChange={rows => console.log('Selected Rows: ', rows)}
         selectionRange
 
-      /> */}
+      />
+      <UploadSummary/>
+      <DownloadSummary/>
     <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{

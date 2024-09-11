@@ -13,9 +13,16 @@
   },
   "dependencies": {
     "@material-ui/core": "^4.12.4",
-    "@tippyjs/react": "^4.2.6",
+    "@tippyjs/react": "^4.0.1",
     "ajv": "^8.12.0",
+    "chart.js": "^4.4.4",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "font-awesome": "^4.7.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-full-screen": "^1.1.1",
+    "react-modal": "^3.16.1",
+    "react-tiny-popover": "^8.0.4",
+    "tippy.js": "^6.3.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -43,7 +50,7 @@
     "styled-components": "^5.1.26",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",
-    "vite-plugin-dts": "^3.5.2",
+    "vite-plugin-dts": "^4.0.0-beta.2",
     "vite-tsconfig-paths": "^4.2.0"
   },
   "license": "UNLICENSED",

@@ -1,3 +1,4 @@
+// index.tsx
 import React, { useState, useEffect, ReactNode } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -20,8 +21,8 @@ interface IValues extends ILabels {
 
 interface IProps {
   chartHeight?: string;
-  labels: ILabels[];
-  values: IValues[];
+  labels?: ILabels[];
+  values?: IValues[];
   popoverWidth?: number;
 }
 

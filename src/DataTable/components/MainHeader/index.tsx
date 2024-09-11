@@ -107,10 +107,10 @@ export const MainHeader = () => {
             {showDownload && (
               <SC.DownloadDropdown ref={downloadDropdownRef}>
                 <span onClick={() => {
-                  downloadExcel(columns, dataSource);
+                  downloadExcel(columns, dataSource, rowKey);
                 }}>Download All</span>
                 <span onClick={() => {
-                  downloadExcel(columns, selectedRows);
+                  downloadExcel(columns, selectedRows, rowKey);
                 }}>Download selected</span>
               </SC.DownloadDropdown>
             )}

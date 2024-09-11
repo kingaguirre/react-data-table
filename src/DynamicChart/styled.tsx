@@ -1,3 +1,4 @@
+// styled.tsx
 import styled, { keyframes, css } from 'styled-components';
 
 const BAR_WIDTH = '50px';

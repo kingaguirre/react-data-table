@@ -1,9 +1,10 @@
+// utils.tsx
 import React from "react";
 
 export const LABELS = [
   {
     title: 'Program Limit',
-    value: 90000000
+    value: 55000000
   },
   {
     title: 'NAR Limit',

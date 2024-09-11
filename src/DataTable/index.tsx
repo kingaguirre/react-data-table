@@ -125,8 +125,9 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
             const filterValue = state.filterValues[col.column];
             return filterCheck(filterValue, rowValue, col.filterConfig.type)
           } else {
-            const filterValue = state.filterValues[col.column]?.toLowerCase() || "";
-            return String(rowValue).toLowerCase().includes(filterValue);
+            const filterValue = state?.filterValues?.[col.column];
+            const filterValueToLowerCase = typeof filterValue === 'string' ? filterValue.toLowerCase() : '' || "";
+            return String(rowValue).toLowerCase().includes(filterValueToLowerCase);
           }
         }
         return true;

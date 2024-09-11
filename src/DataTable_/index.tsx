@@ -666,7 +666,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
 
   return (
     <GlobalStateProvider
-      globalState={{
+      values={{
         rowKey,
         selectable,
         fetchConfig,
@@ -725,7 +725,7 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
         // setRightPanelToggle,
 
         /** Context to state */
-        ...globalState,
+        globalState,
         setGlobalState,
       }}
     >
@@ -741,8 +741,8 @@ export const DataTable = React.forwardRef((props: DataTableProps, ref: React.Ref
               }}>
                 {/* <ColumnGroupHeader />
                 <ColumnHeader />
-                <ColumnFilters />
-                <Rows /> */}
+                <ColumnFilters /> */}
+                <Rows />
               </div>
             </SC.TableInnerWrapper>
           ) : <LoadingPanel>Loading Rows...</LoadingPanel>}

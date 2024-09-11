@@ -18,7 +18,7 @@ export const Footer = withState({
     // 'setlocalPageIndex',
     // 'setpageSize'
     // 'setGlobalStateByKey'
-    'setGlobalState'
+    // 'setGlobalState'
   ],
 })(React.memo((props: IComponent) => {
   const {
@@ -33,10 +33,14 @@ export const Footer = withState({
     // setlocalPageIndex,
     // setpageSize
     // setGlobalStateByKey
-    setGlobalState,
+    // setGlobalState,
+    setGlobalStateByKey,
+    setGlobalStateByObj
   } = props;
 
-  console.log(props)
+  React.useEffect(() => {
+    console.log(props)
+  }, [])
   const totalData = fetchConfig ? fetchedData?.totalData : filteredData?.length;
   const totalPages = Math.ceil(totalData / pageSize);
   const start = pageIndex * pageSize + 1;
@@ -47,7 +51,9 @@ export const Footer = withState({
   const handlePageIndexChange = React.useCallback((index: number) => {
     onPageIndexChange?.(index);
     // setGlobalStateByKey('pageIndex', index);
-    setGlobalState((prev) => ({...prev, pageIndex: index}))
+    // setGlobalStateByKey('pageIndex', index)
+    setGlobalStateByObj({pageIndex: index})
+    // setGlobalState((prev) => ({...prev, pageIndex: index}))
     // setlocalPageIndex(index);
     // setState({ type: SET_LOCAL_PAGE_INDEX, payload: index });
   }, []);
@@ -58,11 +64,13 @@ export const Footer = withState({
     onPageIndexChange?.(0);
     // setState({ type: SET_LOCAL_PAGE_SIZE, payload: newSize });
     // setGlobalStateByKey('pageSize', newSize);
-    setGlobalState((prev) => ({...prev, pageSize: newSize}))
+    setGlobalStateByKey('pageSize', newSize)
+    // setGlobalState((prev) => ({...prev, pageSize: newSize}))
     // setpageSize(newSize)
     // setState({ type: SET_LOCAL_PAGE_INDEX, payload: 0 });
     // setGlobalStateByKey('pageIndex', 0);
-    setGlobalState((prev) => ({...prev, pageIndex: 0}))
+    setGlobalStateByKey('pageIndex', 0)
+    // setGlobalState((prev) => ({...prev, pageIndex: 0}))
     // setlocalPageIndex(0);
   }, []);
 

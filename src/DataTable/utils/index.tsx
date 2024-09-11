@@ -688,30 +688,37 @@ const getNestedValue = (obj, path) => {
  * @param {Array} headers - Array of headers for the Excel file.
  * @param {Array} rows - Array of row data for the Excel file.
  * @param {String} fileName - Name of the file to be downloaded.
+ * @param {String} rowKey - Key to be used for the first column.
  */
-export const downloadExcel = (headers, rows, fileName = "data") => {
+export const downloadExcel = (headers, rows, rowKey, fileName = "data") => {
+  const rowKeyColumnName = 'Row Key';
+  const intentActionColumnName = 'Intent Action';
   // Check each header to see if it should be included based on its 'hidden' status and the type of 'cell'
   const filteredHeaders = headers.filter(header => {
-    // Directly include if not hidden and no cell renderer or cell renderer does not return a complex object
-    if (!header.hidden && !header.cell) {
+    if (!header.hidden && !header.cell && header.class !== "custom-action-column") {
       return true;
     }
-    // If there's a cell function, we evaluate it on the first row to check its return type (assuming row consistency)
     if (header.cell) {
       const result = header.cell(rows[0]);
-      // Check if the result is a string (simple value)
       return typeof result === 'string';
     }
     return false;
   });
 
-  // Process rows to extract values, including handling string results from cell functions
+  // Process rows to extract values, with the first two columns being rowKey and intentAction
   const processedRows = rows.map(row => {
     let newRow = {};
+
+    // First column: rowKey value
+    newRow[rowKeyColumnName] = getDeepValue(row, rowKey);
+    
+    // Second column: intentAction
+    newRow[intentActionColumnName] = row.intentAction;
+    
+    // Remaining columns based on filtered headers
     filteredHeaders.forEach(header => {
       const keys = header.column.split('.');
       let value;
-      // Check if header has a cell function and use it if available
       if (header.cell && typeof header.cell === 'function') {
         value = header.cell(undefined, row);
       } else {
@@ -719,13 +726,14 @@ export const downloadExcel = (headers, rows, fileName = "data") => {
       }
       newRow[header.title] = value;
     });
+    
     return newRow;
   });
 
   // Create a new workbook and add a worksheet
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(processedRows, {
-    header: filteredHeaders.map(header => header.title),
+    header: [rowKeyColumnName, intentActionColumnName, ...filteredHeaders.map(header => header.title)],
     skipHeader: false
   });
 
@@ -735,6 +743,7 @@ export const downloadExcel = (headers, rows, fileName = "data") => {
   // Write workbook and download
   XLSX.writeFile(wb, `${fileName}.xlsx`);
 };
+
 
 
 export const isValidDataWithSchema = (columns, data, dataSource) => {
@@ -923,19 +932,19 @@ export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_c
     }
 
     const excelValue = getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex);
-
-    if (excelValue !== null) {
+    const pathParts = column?.split('.');
+    if (excelValue !== null && !!pathParts) {
       // Navigate to the correct location in newData and update it
-      const pathParts = column.split('.');
-      let currentObj = newData[rowIndex];
-      for (let i = 0; i < pathParts.length - 1; i++) {
+      
+      let currentObj: any = newData[rowIndex];
+      for (let i = 0; i < pathParts?.length - 1; i++) {
         if (!currentObj[pathParts[i]]) {
           currentObj[pathParts[i]] = {}; // Create nested objects if they don't exist
         }
         currentObj = currentObj[pathParts[i]];
       }
       // Directly update the last part of the path with the excel value
-      currentObj[pathParts[pathParts.length - 1]] = excelValue;
+      currentObj[pathParts[(pathParts?.length || 0) - 1]] = excelValue;
     }
   });
 
@@ -1025,7 +1034,7 @@ export const mergeWithPrevious = (obj1, obj2, rowKey?) => {
 
 export const getHightLightedRow = (updatedRows, rowKeyValue) => updatedRows?.includes(rowKeyValue) ? 'highlighted' : '';
 
-export const generateSelectedCells = (data, columns) => {
+export const generateSelectedCells = (data, columns, rowKey) => {
   // Ensure all data objects have the same keys, filling missing ones with null
   const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
   const normalizedData = data.map(obj =>
@@ -1037,15 +1046,35 @@ export const generateSelectedCells = (data, columns) => {
 
   // Generate selected_cells array to pass in updateDataSourceFromExcelWithoutMutation function
   return normalizedData.map((row: any, rowIndex) => 
-    Object.values(row).map((_: any, itemIndex: number) => ({
-      column: visibleCol[itemIndex]?.column,
-      columnIndex: itemIndex,
-      columnName: visibleCol[itemIndex]?.title,
-      disableCopy: false,
-      disablePaste: false,
-      rowIndex: rowIndex
+    Object.values(row).map((_: any, itemIndex: number) => {
+      let columnName, column;
+
+      // Set the first column to 'Row Key'
+      if (itemIndex === 0) {
+        columnName = 'Row Key';
+        column = rowKey;
+      }
+      // Set the second column to 'Intent Action'
+      else if (itemIndex === 1) {
+        columnName = 'Intent Action';
+        column = 'intentAction';
+      }
+      // Handle the remaining columns as per original logic
+      else {
+        columnName = visibleCol[itemIndex - 2]?.title; // Adjust index due to the two new columns
+        column = visibleCol[itemIndex - 2]?.column;
+      }
+
+      return {
+        column: column,
+        columnIndex: itemIndex,
+        columnName: columnName,
+        disableCopy: false,
+        disablePaste: false,
+        rowIndex: rowIndex
+      };
     })
-  )).flat();
+  ).flat();
 };
 
 export const toExcelFormat = (data) => {
@@ -1251,106 +1280,106 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
 };
 
 
-// data/users.js
-const users = [];
+// // data/users.js
+// const users = [];
 
-for (let i = 1; i <= 100; i++) {
-  users.push({
-    id: i,
-    name: `User ${i}`,
-    username: `user${i}`,
-    email: `user${i}@example.com`,
-    address: {
-      street: `Street ${i}`,
-      suite: `Suite ${i}`,
-      city: `City ${i}`,
-      zipcode: `0000${i}`,
-      geo: {
-        lat: `${i}`,
-        lng: `${i}`
-      }
-    },
-    phone: `000-000-000${i}`,
-    website: `website${i}.com`,
-    company: {
-      name: `Company ${i}`,
-      catchPhrase: `CatchPhrase ${i}`,
-      bs: `BS ${i}`
-    }
-  });
-}
+// for (let i = 1; i <= 100; i++) {
+//   users.push({
+//     id: i,
+//     name: `User ${i}`,
+//     username: `user${i}`,
+//     email: `user${i}@example.com`,
+//     address: {
+//       street: `Street ${i}`,
+//       suite: `Suite ${i}`,
+//       city: `City ${i}`,
+//       zipcode: `0000${i}`,
+//       geo: {
+//         lat: `${i}`,
+//         lng: `${i}`
+//       }
+//     },
+//     phone: `000-000-000${i}`,
+//     website: `website${i}.com`,
+//     company: {
+//       name: `Company ${i}`,
+//       catchPhrase: `CatchPhrase ${i}`,
+//       bs: `BS ${i}`
+//     }
+//   });
+// }
 
-module.exports = users;
-const express = require('express');
-const app = express();
-const port = 3000;
-const users = require('./data/users');
+// module.exports = users;
+// const express = require('express');
+// const app = express();
+// const port = 3000;
+// const users = require('./data/users');
 
-// Custom CORS middleware
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
+// // Custom CORS middleware
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//   next();
+// });
 
-app.get('/users', (req, res) => {
-  const { _page, _limit, q = '', searchColumn, username } = req.query;
-  const page = _page ? parseInt(_page, 10) : undefined;
-  const limit = _limit ? parseInt(_limit, 10) : undefined;
+// app.get('/users', (req, res) => {
+//   const { _page, _limit, q = '', searchColumn, username } = req.query;
+//   const page = _page ? parseInt(_page, 10) : undefined;
+//   const limit = _limit ? parseInt(_limit, 10) : undefined;
   
-  // Filter users based on the query, searchColumn, and username
-  const filteredUsers = users.filter(user => {
-    if (username) {
-      // Filter by username if the username query parameter is provided
-      return user.username.includes(username);
-    } else if (searchColumn && user[searchColumn]) {
-      // Filter by any other search column if specified
-      return user[searchColumn].toString().includes(q);
-    } else {
-      // General search across multiple fields
-      return user.name.includes(q) || user.username.includes(q) || user.email.includes(q);
-    }
-  });
+//   // Filter users based on the query, searchColumn, and username
+//   const filteredUsers = users.filter(user => {
+//     if (username) {
+//       // Filter by username if the username query parameter is provided
+//       return user.username.includes(username);
+//     } else if (searchColumn && user[searchColumn]) {
+//       // Filter by any other search column if specified
+//       return user[searchColumn].toString().includes(q);
+//     } else {
+//       // General search across multiple fields
+//       return user.name.includes(q) || user.username.includes(q) || user.email.includes(q);
+//     }
+//   });
 
-  let paginatedUsers = filteredUsers;
+//   let paginatedUsers = filteredUsers;
   
-  // Paginate users if page and limit are defined
-  if (page !== undefined && limit !== undefined) {
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-  }
+//   // Paginate users if page and limit are defined
+//   if (page !== undefined && limit !== undefined) {
+//     const startIndex = (page - 1) * limit;
+//     const endIndex = startIndex + limit;
+//     paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+//   }
 
-  // Add 3-second delay before sending back the data
-  setTimeout(() => {
-    // Response with total filtered data count and paginated data
-    res.json({
-      totalData: filteredUsers.length,
-      data: paginatedUsers
-    });
-  }, 3000);
-});
+//   // Add 3-second delay before sending back the data
+//   setTimeout(() => {
+//     // Response with total filtered data count and paginated data
+//     res.json({
+//       totalData: filteredUsers.length,
+//       data: paginatedUsers
+//     });
+//   }, 3000);
+// });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
-
-
+// app.listen(port, () => {
+//   console.log(`Server is running on http://localhost:${port}`);
+// });
 
 
-const fetchUsers = async () => {
-  try {
-    const response = await fetch('http://localhost:3000/users?_page=1&_limit=10&q=user');
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    const data = await response.json();
-    setUsers(data);
-  } catch (error) {
-    setError(error);
-    console.error('Error fetching users:', error);
-  }
-};
+
+
+// const fetchUsers = async () => {
+//   try {
+//     const response = await fetch('http://localhost:3000/users?_page=1&_limit=10&q=user');
+//     if (!response.ok) {
+//       throw new Error('Network response was not ok');
+//     }
+//     const data = await response.json();
+//     setUsers(data);
+//   } catch (error) {
+//     setError(error);
+//     console.error('Error fetching users:', error);
+//   }
+// };
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

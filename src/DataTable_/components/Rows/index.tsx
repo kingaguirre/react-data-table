@@ -24,7 +24,44 @@ import 'tippy.js/dist/tippy.css'; // optional
 import SelectionRange from '../SelectionRange';
 import { useFlasher } from '../GlobalStateTest/utils';
 
-export const Rows = () => {
+import { withState, IComponent } from '../GlobalStateProvider';
+
+export const Rows = withState({
+  states: [
+    'rowKey',
+    'visibleRows',
+    'clickableRow',
+    'collapsibleRowHeight',
+    'fetchConfig',
+    'selectable',
+    'customRowSettings',
+    'actions',
+    'onChange',
+    'selectedRows',
+    'activeRow',
+    'columns',
+    'search',
+    'fetchedData',
+    'localData',
+    'localPageSize',
+    'localPageIndex',
+    'onMouseDown',
+    'onRowClick',
+    'onRowDoubleClick',
+    'collapsibleRowRender',
+    'onSelectedRowsChange',
+    'editingCells',
+    'setEditingCells',
+    'hasAction',
+    'multiSelect',
+    'selectedColumn',
+    'setSelectedColumn',
+    'selectionRange',
+    'selectionRangeRef',
+    'updatedRows',
+    'setUpdatedRows'
+  ],
+})(React.memo((props: IComponent) => {
   const {
     rowKey,
     visibleRows,
@@ -35,8 +72,14 @@ export const Rows = () => {
     customRowSettings,
     actions,
     onChange,
-    state: { selectedRows, activeRow, columns, search, fetchedData, localData, localPageSize, localPageIndex },
-    setState,
+    selectedRows,
+    activeRow,
+    columns,
+    search,
+    fetchedData,
+    localData,
+    localPageSize,
+    localPageIndex,
     onMouseDown,
     onRowClick,
     onRowDoubleClick,
@@ -52,8 +95,10 @@ export const Rows = () => {
     selectionRangeRef,
     updatedRows,
     setUpdatedRows
-  } = useContext(DataTableContext);
+  } = props;
 
+  // Call useFlasher at the top, before any conditional logic
+  const flasherRef = useFlasher();
   const cellRefs = useRef({});
   const [collapsedRows, setCollapsedRows] = useState<string[]>([]);
   // const [addedRow, setAddedRow] = useState<number>(-1);
@@ -128,12 +173,12 @@ export const Rows = () => {
 
           // Update logic based on whether it's local data or fetched data
           if (fetchConfig) {
-            setState({
-              type: SET_FETCHED_DATA,
-              payload: { ...fetchedData, data: updatedRows }
-            });
+            // setState({
+            //   type: SET_FETCHED_DATA,
+            //   payload: { ...fetchedData, data: updatedRows }
+            // });
           } else {
-            setState({ type: SET_LOCAL_DATA, payload: updatedRows });
+            // setState({ type: SET_LOCAL_DATA, payload: updatedRows });
           }
 
           const isNewRow = checkIsNewRow(currentRow);
@@ -144,7 +189,7 @@ export const Rows = () => {
 
           // Do highlight
           setUpdatedRows(prev => ([...prev, rowKeyValue]));
-          setEditingCells(prev => prev.map(cell => 
+          setEditingCells?.(prev => prev.map(cell => 
             cell.rowIndex === rowIndex && cell.columnIndex === columnIndex 
               ? { ...cell, editable: false, invalid: false, erorr: null } 
               : cell
@@ -156,7 +201,7 @@ export const Rows = () => {
             errorMessage = ajv.errorsText(ajv.errors);
           }
           console.error("Validation failed: ", errorMessage);
-          setEditingCells(prev => prev.map(cell => 
+          setEditingCells?.(prev => prev.map(cell => 
             (cell.rowIndex === rowIndex && cell.columnIndex === columnIndex) 
               ? { ...cell, invalid: true, erorr: errorMessage } 
               : cell
@@ -164,12 +209,12 @@ export const Rows = () => {
         }
       } else {
         // If not saving changes, remove the specific cell from the editing cells
-        setEditingCells(prev => prev.filter(cell => 
+        setEditingCells?.(prev => prev.filter(cell => 
           cell.rowIndex !== rowIndex || cell.columnIndex !== columnIndex
         ));
       }
     }
-  }, [editingCells, dataSource, columns, onChange, fetchConfig, setState, fetchedData, ajv, savedDataSourceRef]);
+  }, [editingCells, dataSource, columns, onChange, fetchConfig, fetchedData, ajv, savedDataSourceRef]);
 
   useEffect(() => {
     // Reset refs whenever rows or columns change
@@ -184,7 +229,7 @@ export const Rows = () => {
       if (isNewRow) {
         columns.forEach((col, colIndex) => {
           if (!col.hidden && !col.cell) {
-            setEditingCells(prev => {
+            setEditingCells?.(prev => {
               // Check if this cell is already initialized
               if (prev.some(cell => cell.rowIndex === rowIndex && cell.columnIndex === colIndex)) {
                 return prev;
@@ -205,7 +250,7 @@ export const Rows = () => {
       /** Reset editingCells isNew value if intentAction is "N" */
       const isNewAddedRow = checkIsNewAddedRow(row);
       if (isNewAddedRow) {
-        setEditingCells(prev => prev.filter(i => !(i.rowIndex === rowIndex && i.isNew === true)));
+        setEditingCells?.(prev => prev.filter(i => !(i.rowIndex === rowIndex && i.isNew === true)));
       }
     });
 
@@ -228,15 +273,15 @@ export const Rows = () => {
     if (!hasAddAction && hasAddRow) {
       if (fetchConfig) {
         const newFetchedData = [...(fetchedData.data || [])].filter(i => i.intentAction !== "*");
-        setState({
-          type: SET_FETCHED_DATA,
-          payload: { ...fetchedData, data: newFetchedData }
-        });
+        // setState({
+        //   type: SET_FETCHED_DATA,
+        //   payload: { ...fetchedData, data: newFetchedData }
+        // });
       } else {
         const newLocalData = [...(localData || [])].filter(i => i.intentAction !== "*");
-        setState({ type: SET_LOCAL_DATA, payload: newLocalData });
+        // setState({ type: SET_LOCAL_DATA, payload: newLocalData });
       }
-      setEditingCells(prev => prev.filter(i => i.isNew !== true));
+      setEditingCells?.(prev => prev.filter(i => i.isNew !== true));
     }
   }, [actions, dataSource]);
 
@@ -281,7 +326,7 @@ export const Rows = () => {
 
   const handleCellChange = (rowIndex, columnIndex) => (e) => {
     const newValue = e.target.value;
-    setEditingCells(prev => {
+    setEditingCells?.(prev => {
       const cellIndex = prev.findIndex(cell => cell.rowIndex === rowIndex && cell.columnIndex === columnIndex);
       if (cellIndex !== -1) {
         const newCells = [...prev];
@@ -313,18 +358,18 @@ export const Rows = () => {
 
   const handleRowSingleClick = useCallback((row: any) => {
     onRowClick?.(row);
-    setState({
-      type: SET_ACTIVE_ROW,
-      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
-    });
+    // setState({
+    //   type: SET_ACTIVE_ROW,
+    //   payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
+    // });
   }, [onRowClick, activeRow, rowKey]);
 
   const handleRowDoubleClick = useCallback((row: any) => {
     onRowDoubleClick?.(row);
-    setState({
-      type: SET_ACTIVE_ROW,
-      payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
-    });
+    // setState({
+    //   type: SET_ACTIVE_ROW,
+    //   payload: getDeepValue(row, rowKey) === activeRow ? null : getDeepValue(row, rowKey)
+    // });
   }, [onRowDoubleClick, activeRow, rowKey]);
 
   const handleRowClick = useDoubleClick(
@@ -346,7 +391,7 @@ export const Rows = () => {
     if (checkEditability(columnEditable, isEditable, isColumnNew)) {
       // Remove selection when editing
       selectionRangeRef?.current?.clearSelection();
-      setEditingCells(prev => {
+      setEditingCells?.(prev => {
         const isExist = prev?.find(i => rowIndex === i.rowIndex && colIndex === i.columnIndex);
         return isExist ? prev?.map(i => {
           return rowIndex === i.rowIndex && colIndex === i.columnIndex ? {
@@ -371,7 +416,7 @@ export const Rows = () => {
       // For single select, directly set the selectedRows with the current row
       const payload = [row];
       onSelectedRowsChange?.(payload);
-      setState({ type: SET_SELECTED_ROWS, payload });
+      // setState({ type: SET_SELECTED_ROWS, payload });
     } else {
       // Existing multi-select logic...
       const normalizeSelectedRows = (rows: any[]) =>
@@ -387,9 +432,9 @@ export const Rows = () => {
         : [...normalizedSelectedRows, row];
 
       onSelectedRowsChange?.(payload);
-      setState({ type: SET_SELECTED_ROWS, payload });
+      // setState({ type: SET_SELECTED_ROWS, payload });
     }
-  }, [selectedRows, rowKey, onSelectedRowsChange, setState, multiSelect]);
+  }, [selectedRows, rowKey, onSelectedRowsChange, multiSelect]);
 
   const isColumnValid = (columns, colIndex, value) => {
     const columnSchema = columns[colIndex]?.actionConfig?.schema;
@@ -412,8 +457,8 @@ export const Rows = () => {
   }
 
   return (
-    <SelectionRange ref={selectionRangeRef} selectionRange={selectionRange} data={localData}>
-      <SC.TableRowsContainer ref={useFlasher()} isFetching={isFetching}>
+    // <SelectionRange ref={selectionRangeRef} selectionRange={selectionRange} data={localData}>
+      <SC.TableRowsContainer isFetching={isFetching}>
         {rows?.map((row, _rowIndex) => {
           const rowKeyValue = getDeepValue(row, rowKey);
           let pinnedWidth = 0 + (!!collapsibleRowRender ? 30 : 0) + (!!selectable ? 27 : 0);
@@ -429,194 +474,195 @@ export const Rows = () => {
           const customRowStyle = mergeCustomStylesForRow(row, customRowSettings);
 
           const rowIndex = (localPageIndex * localPageSize) + _rowIndex;
-          return (
-            <Fragment key={rowIndex}>
-              <SC.TableRow
-                {...(!!clickableRow ? {
-                  onClick: () => handleRowClick(row)
-                } : {})}
-                className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${getHightLightedRow(updatedRows, rowKeyValue)}`}
-              >
-                <CollapsibleRowColumn
-                  onClick={() => toggleRowCollapse(rowKeyValue)}
-                  isRowCollapsed={isRowCollapsed}
-                />
-                <SelectCheckboxColumn
-                  checked={isSelectedRow}
-                  onChange={() => toggleRowSelection(row)}
-                />
-                {columns.map((col, colIndex) => {
-                  if (col.hidden) return null;
+          return <div key={_rowIndex}>ss</div>
+          // return (
+          //   <Fragment key={rowIndex}>
+          //     <SC.TableRow
+          //       {...(!!clickableRow ? {
+          //         onClick: () => handleRowClick(row)
+          //       } : {})}
+          //       className={`${isActiveRow ? 'is-active' : ''} ${isSelectedRow ? 'is-selected' : ''} ${getHightLightedRow(updatedRows, rowKeyValue)}`}
+          //     >
+          //       <CollapsibleRowColumn
+          //         onClick={() => toggleRowCollapse(rowKeyValue)}
+          //         isRowCollapsed={isRowCollapsed}
+          //       />
+          //       <SelectCheckboxColumn
+          //         checked={isSelectedRow}
+          //         onChange={() => toggleRowSelection(row)}
+          //       />
+          //       {columns.map((col, colIndex) => {
+          //         if (col.hidden) return null;
 
-                  const isSelectedColumn = selectedColumn?.rowIndex === rowIndex && selectedColumn?.column === col.column;
-                  const ref = cellRefs.current[`${rowIndex}-${colIndex}`];
-                  const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
+          //         const isSelectedColumn = selectedColumn?.rowIndex === rowIndex && selectedColumn?.column === col.column;
+          //         const ref = cellRefs.current[`${rowIndex}-${colIndex}`];
+          //         const { isPinned, colWidth, pinnedStyle } = getPinnedDetails(col, pinnedWidth);
 
-                  if (isPinned) {
-                    pinnedWidth += colWidth;
-                  }
+          //         if (isPinned) {
+          //           pinnedWidth += colWidth;
+          //         }
 
-                  let cellContent;
-                  let _isColumnInValid = false;
-                  let _hasOldValue = "";
+          //         let cellContent;
+          //         let _isColumnInValid = false;
+          //         let _hasOldValue = "";
 
-                  const editingCell = editingCells.find(cell => 
-                    cell.rowIndex === rowIndex && cell.columnIndex === colIndex
-                  );
+          //         const editingCell = editingCells.find(cell => 
+          //           cell.rowIndex === rowIndex && cell.columnIndex === colIndex
+          //         );
 
-                  const cellValue = getDeepValue(row, col.column);
-                  const isDeletedRow = getDeepValue(row, "intentAction") === "R";
-                  const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
-                  const isNewRow = getDeepValue(row, "intentAction") === "*";
-                  const hasEditAction = hasAction(Actions.EDIT);
+          //         const cellValue = getDeepValue(row, col.column);
+          //         const isDeletedRow = getDeepValue(row, "intentAction") === "R";
+          //         const isUpdatedRow = getDeepValue(row, "intentAction") === "U";
+          //         const isNewRow = getDeepValue(row, "intentAction") === "*";
+          //         const hasEditAction = hasAction(Actions.EDIT);
 
-                  const isInEditableStatus = editingCell && editingCell.editable === true;
-                  const isColumnEditable = isNewRow ? true : col?.actionConfig !== false && hasEditAction && !isDeletedRow;
+          //         const isInEditableStatus = editingCell && editingCell.editable === true;
+          //         const isColumnEditable = isNewRow ? true : col?.actionConfig !== false && hasEditAction && !isDeletedRow;
 
-                  // Render the cell based on whether it's being edited or not
-                  if (isInEditableStatus && !col?.cell && isColumnEditable) {
-                    const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
-                    const isInvalid = editingCell?.invalid;
-                    const error = editingCell?.error;
-                    const inputType = columnActionConfig?.type || "text";
+          //         // Render the cell based on whether it's being edited or not
+          //         if (isInEditableStatus && !col?.cell && isColumnEditable) {
+          //           const columnActionConfig = columns[editingCell.columnIndex].actionConfig;
+          //           const isInvalid = editingCell?.invalid;
+          //           const error = editingCell?.error;
+          //           const inputType = columnActionConfig?.type || "text";
 
-                    // Upload
-                    if (inputType === "select") {
-                      cellContent = (
-                        <div>
-                          <select
-                            value={editingCell.value}
-                            onChange={handleCellChange(rowIndex, colIndex)}
-                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
-                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                            // autoFocus
-                            className={isInvalid ? "invalid" : ""}
-                          >
-                            {columnActionConfig.options.map(opt => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.text}
-                              </option>
-                            ))}
-                          </select>
-                          {isInvalid && <span>{error}</span>}
-                        </div>
-                      );
+          //           // Upload
+          //           if (inputType === "select") {
+          //             cellContent = (
+          //               <div>
+          //                 <select
+          //                   value={editingCell.value}
+          //                   onChange={handleCellChange(rowIndex, colIndex)}
+          //                   // onBlur={() => handleDoEdit(rowIndex, colIndex)}
+          //                   onKeyDown={handleKeyDown(rowIndex, colIndex)}
+          //                   // autoFocus
+          //                   className={isInvalid ? "invalid" : ""}
+          //                 >
+          //                   {columnActionConfig.options.map(opt => (
+          //                     <option key={opt.value} value={opt.value}>
+          //                       {opt.text}
+          //                     </option>
+          //                   ))}
+          //                 </select>
+          //                 {isInvalid && <span>{error}</span>}
+          //               </div>
+          //             );
                       
-                    } else if (inputType === "date") {
-                      cellContent = (
-                        <div>
-                          <input
-                            type="date"
-                            value={editingCell.value || ""}
-                            onChange={handleCellChange(rowIndex, colIndex)}
-                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
-                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                            // autoFocus
-                            className={isInvalid ? "invalid" : ""}
-                          />
-                          {isInvalid && <span>{error}</span>}
-                        </div>
-                      );
-                    } else {
-                      // Assuming type "text" for now, but you can add more types
-                      cellContent = (
-                        <div>
-                          <input
-                            type="text"
-                            value={editingCell.value || ""}
-                            onChange={handleCellChange(rowIndex, colIndex)}
-                            // onBlur={() => handleDoEdit(rowIndex, colIndex)}
-                            onKeyDown={handleKeyDown(rowIndex, colIndex)}
-                            // autoFocus
-                            className={isInvalid ? "invalid" : ""}
-                          />
-                          {isInvalid && <span>{error}</span>}
-                        </div>
-                      );
-                    }
-                  } else {
-                    // Render normal cell content
-                    if (col.cell) {
-                      cellContent = col.cell(cellValue, row, rowIndex);
-                      _isColumnInValid = false;
-                    } else {
-                      if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
-                        cellContent = JSON.stringify(cellValue)
-                      } else {
-                        cellContent = cellValue !== "null" ? cellValue : "";
-                      }
-                      cellContent = getValue(cellContent);
-                      _isColumnInValid = !isColumnValid(columns, colIndex, cellContent);
-                      _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
+          //           } else if (inputType === "date") {
+          //             cellContent = (
+          //               <div>
+          //                 <input
+          //                   type="date"
+          //                   value={editingCell.value || ""}
+          //                   onChange={handleCellChange(rowIndex, colIndex)}
+          //                   // onBlur={() => handleDoEdit(rowIndex, colIndex)}
+          //                   onKeyDown={handleKeyDown(rowIndex, colIndex)}
+          //                   // autoFocus
+          //                   className={isInvalid ? "invalid" : ""}
+          //                 />
+          //                 {isInvalid && <span>{error}</span>}
+          //               </div>
+          //             );
+          //           } else {
+          //             // Assuming type "text" for now, but you can add more types
+          //             cellContent = (
+          //               <div>
+          //                 <input
+          //                   type="text"
+          //                   value={editingCell.value || ""}
+          //                   onChange={handleCellChange(rowIndex, colIndex)}
+          //                   // onBlur={() => handleDoEdit(rowIndex, colIndex)}
+          //                   onKeyDown={handleKeyDown(rowIndex, colIndex)}
+          //                   // autoFocus
+          //                   className={isInvalid ? "invalid" : ""}
+          //                 />
+          //                 {isInvalid && <span>{error}</span>}
+          //               </div>
+          //             );
+          //           }
+          //         } else {
+          //           // Render normal cell content
+          //           if (col.cell) {
+          //             cellContent = col.cell(cellValue, row, rowIndex);
+          //             _isColumnInValid = false;
+          //           } else {
+          //             if ((typeof cellValue === "object" && cellValue !== null) || typeof cellValue === "number") {
+          //               cellContent = JSON.stringify(cellValue)
+          //             } else {
+          //               cellContent = cellValue !== "null" ? cellValue : "";
+          //             }
+          //             cellContent = getValue(cellContent);
+          //             _isColumnInValid = !isColumnValid(columns, colIndex, cellContent);
+          //             _hasOldValue = getDeepValue(row, `${col.column.replace('.value', '')}.previous.value`, true);
                       
-                      if (search) {
-                        cellContent = highlightText(cellContent, search);
-                      }
-                    }
-                  }
+          //             if (search) {
+          //               cellContent = highlightText(cellContent, search);
+          //             }
+          //           }
+          //         }
 
-                  const cellKey = `row-${rowIndex}-col-${colIndex}`;
-                  const hasEllipsis = ellipsisMap.get(cellKey);
-                  const customCellIsString = typeof cellContent === 'string';
+          //         const cellKey = `row-${rowIndex}-col-${colIndex}`;
+          //         const hasEllipsis = ellipsisMap.get(cellKey);
+          //         const customCellIsString = typeof cellContent === 'string';
 
-                  return (
-                    <Fragment key={colIndex}>
-                      <SC.TableCell
-                        ref={ref}
-                        width={col.width}
-                        minWidth={col.minWidth}
-                        align={col.align}
-                        isPinned={isPinned}
-                        style={{
-                          ...pinnedStyle,
-                          ...(isUpdatedRow ? {
-                            backgroundColor: _hasOldValue ? "yellow" : "white"
-                          } : customRowStyle)
-                        }}
-                        {...((isColumnEditable && !isInEditableStatus) ? {
-                          onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell})
-                        } : {})}
-                        className={getTableCellClass({isSelectedColumn, hasEditAction, isColumnEditable, col})}
-                        data-row-index={rowIndex}
-                        data-column-index={colIndex}
-                        data-column={col.column}
-                        data-disable-selection={col.disableSelection}
-                        data-disable-copy={col.disableCopy || !!col.cell}
-                        data-disable-paste={col?.actionConfig === false || isDeletedRow}
-                        data-column-name={col.title}
-                      >
-                        <SC.CellContent
-                          className="cell-content"
-                          isCustomColumn={!!col.cell && !customCellIsString}
-                          style={{ maxWidth: col.width }}
-                          ref={node => addElement(node, cellKey)}
-                        >
-                          {cellContent}
-                        </SC.CellContent>
-                        <ColumnDragHighlighter index={colIndex} />
-                        <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
-                        {_isColumnInValid && <SC.InvalidBorder/>}
-                      </SC.TableCell>
-                      {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
-                      {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
-                    </Fragment>
-                  )
-                })}
-              </SC.TableRow>
-              {isRowCollapsed && collapsibleRowRender && (
-                <SC.TableRow style={{ height: collapsibleRowHeight }}>
-                  <SC.CollapsibleRowRenderContainer>
-                    {collapsibleRowRender(row)}
-                  </SC.CollapsibleRowRenderContainer>
-                </SC.TableRow>
-              )}
-            </Fragment>
-          )
+          //         return (
+          //           <Fragment key={colIndex}>
+          //             <SC.TableCell
+          //               ref={ref}
+          //               width={col.width}
+          //               minWidth={col.minWidth}
+          //               align={col.align}
+          //               isPinned={isPinned}
+          //               style={{
+          //                 ...pinnedStyle,
+          //                 ...(isUpdatedRow ? {
+          //                   backgroundColor: _hasOldValue ? "yellow" : "white"
+          //                 } : customRowStyle)
+          //               }}
+          //               {...((isColumnEditable && !isInEditableStatus) ? {
+          //                 onClick: (event) => handleCellClick({event, col, rowIndex, colIndex, cellValue, editingCell})
+          //               } : {})}
+          //               className={getTableCellClass({isSelectedColumn, hasEditAction, isColumnEditable, col})}
+          //               data-row-index={rowIndex}
+          //               data-column-index={colIndex}
+          //               data-column={col.column}
+          //               data-disable-selection={col.disableSelection}
+          //               data-disable-copy={col.disableCopy || !!col.cell}
+          //               data-disable-paste={col?.actionConfig === false || isDeletedRow}
+          //               data-column-name={col.title}
+          //             >
+          //               <SC.CellContent
+          //                 className="cell-content"
+          //                 isCustomColumn={!!col.cell && !customCellIsString}
+          //                 style={{ maxWidth: col.width }}
+          //                 ref={node => addElement(node, cellKey)}
+          //               >
+          //                 {cellContent}
+          //               </SC.CellContent>
+          //               <ColumnDragHighlighter index={colIndex} />
+          //               <SC.ResizeHandle onMouseDown={onMouseDown(colIndex)} />
+          //               {_isColumnInValid && <SC.InvalidBorder/>}
+          //             </SC.TableCell>
+          //             {hasEllipsis && <Tippy content={cellContent} placement="bottom" reference={ref} />}
+          //             {_hasOldValue && <Tippy content={_hasOldValue} placement="top" reference={ref} />}
+          //           </Fragment>
+          //         )
+          //       })}
+          //     </SC.TableRow>
+          //     {isRowCollapsed && collapsibleRowRender && (
+          //       <SC.TableRow style={{ height: collapsibleRowHeight }}>
+          //         <SC.CollapsibleRowRenderContainer>
+          //           {collapsibleRowRender(row)}
+          //         </SC.CollapsibleRowRenderContainer>
+          //       </SC.TableRow>
+          //     )}
+          //   </Fragment>
+          // )
         })}
       </SC.TableRowsContainer>
-    </SelectionRange>
+    // </SelectionRange>
   )
-}
+}));
 
 interface IColumnDragHighlighter {
   index: number;

@@ -64,7 +64,8 @@ export const MainHeader = withState({
     // rightPanelToggle,
     // setState
     // setGlobalStateByKey,
-    setGlobalState
+    setGlobalState,
+    setGlobalStateByKey
   } = props;
 
   const downloadDropdownRef = useRef(null);
@@ -94,7 +95,8 @@ export const MainHeader = withState({
   
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     // setState?.(event.target.value, 'search')
-    setGlobalState((prev) => ({...prev, search: event.target.value}))
+    setGlobalStateByKey('search', event.target.value)
+    // setGlobalState((prev) => ({...prev, search: event.target.value}))
     // setGlobalStateByKey('search', event.target.value);
     // setSearch?.(event.target.value)
     // setState({ type: SET_SEARCH, payload: event.target.value });
@@ -104,7 +106,8 @@ export const MainHeader = withState({
     localStorage.setItem('currentColumnSettings', JSON.stringify(columnSettings));
 
     const currentSettings = setColumnSettings(columnSettings, tableWidth, customRowSettings, actions);
-    setGlobalState((prev) => ({...prev, columns: currentSettings}))
+    setGlobalStateByKey('columns', currentSettings)
+    // setGlobalState((prev) => ({...prev, columns: currentSettings}))
     // setGlobalStateByKey('columns', currentSettings);
     // setColumns(currentSettings)
     // setState({ type: SET_COLUMNS, payload: currentSettings });

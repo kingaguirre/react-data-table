@@ -97,7 +97,10 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
     indexAxis: 'y', // Horizontal layout by default
     responsive: true,
     maintainAspectRatio: false,
-    scales: { x: { display: false }, y: { display: true } },
+    scales: { 
+      x: { display: false, grid: { display: false } },  // Hide grid for x-axis
+      y: { display: true, grid: { display: false }, padding: { right: 20 } } // Add padding-left and hide grid for y-axis
+    },
     plugins: {
       legend: { display: false },
       datalabels: { display: true, anchor: 'end', align: 'end', clip: false, color: 'black' },
@@ -220,7 +223,8 @@ const TXChart: React.FC<TXChartProps> = ({
       ...options,
       scales: {
         ...options.scales,
-        y: { ...options.scales.y, display: !hideLabels },
+        y: { ...options.scales.y, display: !hideLabels, grid: { display: false }, padding: { left: 20 } }, // Add padding-left and hide grid for y-axis
+        x: { ...options.scales.x, grid: { display: false } } // Hide grid for x-axis
       },
       plugins: {
         ...options.plugins,

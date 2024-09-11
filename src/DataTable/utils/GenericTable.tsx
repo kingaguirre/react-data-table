@@ -266,30 +266,30 @@
 //   setLoading(false);
 // }, []);
 
-gowtham
+// gowtham
 
-Active learner: Regularly engages in learning opportunities and quickly adapts to new information.
+// Active learner: Regularly engages in learning opportunities and quickly adapts to new information.
 
-Delivery impact: Meets deadlines with satisfactory work quality, fulfilling the essential requirements of the projects.
+// Delivery impact: Meets deadlines with satisfactory work quality, fulfilling the essential requirements of the projects.
 
-People first: Consistently considers the needs and well-being of team members, promoting a positive work culture.
+// People first: Consistently considers the needs and well-being of team members, promoting a positive work culture.
 
-Collaborator: Effectively partners with colleagues, contributing to a smooth and cooperative team dynamic.
+// Collaborator: Effectively partners with colleagues, contributing to a smooth and cooperative team dynamic.
 
-Bold innovator: Occasionally suggests innovative ideas, but there's room for increased initiative and creativity.
+// Bold innovator: Occasionally suggests innovative ideas, but there's room for increased initiative and creativity.
 
-Areas of development: Focus on thoroughly reviewing documentation and existing components to better implement desired requirements.
+// Areas of development: Focus on thoroughly reviewing documentation and existing components to better implement desired requirements.
 
-sushmita
+// sushmita
 
-Active learner: Continuously seeks knowledge and improvement, always eager to learn and adapt to new challenges.
+// Active learner: Continuously seeks knowledge and improvement, always eager to learn and adapt to new challenges.
 
-Delivery impact: Delivers work on time with acceptable quality, meeting basic project expectations.
+// Delivery impact: Delivers work on time with acceptable quality, meeting basic project expectations.
 
-People first: Prioritizes the well-being of the team, fostering a supportive and positive environment.
+// People first: Prioritizes the well-being of the team, fostering a supportive and positive environment.
 
-Collaborator: Works seamlessly with others, making teamwork effortless.
+// Collaborator: Works seamlessly with others, making teamwork effortless.
 
-Bold innovator: Takes initiative with creative solutions, driving innovation within projects.
+// Bold innovator: Takes initiative with creative solutions, driving innovation within projects.
 
-Areas of development: Enhancing skills in reading documentation and checking existing components will improve work quality and ensure requirements are met more effectively.
+// Areas of development: Enhancing skills in reading documentation and checking existing components will improve work quality and ensure requirements are met more effectively.
