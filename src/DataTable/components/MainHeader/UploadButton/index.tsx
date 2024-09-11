@@ -55,30 +55,47 @@ export const UploadButton = () => {
         getDeepValue(currentRow, rowKey) === newRowKey
       );
   
-      if (existingRowIndex !== -1) {
-        const currentRow = currentData[existingRowIndex];
-        // Filter out keys from newRow that do not exist in currentRow
-        const filteredNewRow = filterKeys(newRow, currentRow);
-        const updatedRow = {};
+      const intentAction = newRow.intentAction;
   
-        // Loop through the keys in the filteredNewRow and compare values, ignoring 'intentAction'
-        Object.keys(filteredNewRow).forEach(key => {
-          if (key === rowKey || key === 'intentAction') {
-            updatedRow[key] = filteredNewRow[key]; // Retain the rowKey and intentAction as is
-          } else {
-            // Compare old and new values, handle value change if needed
-            updatedRow[key] = handleValueChange(currentRow[key], filteredNewRow[key]);
-          }
-        });
+      if (intentAction === 'U') {
+        // If intentAction is 'U' (Update), and the row exists, update the row
+        if (existingRowIndex !== -1) {
+          const currentRow = currentData[existingRowIndex];
+          const filteredNewRow = filterKeys(newRow, currentRow);
+          const updatedRow = {};
   
-        // Update the currentData object
-        currentData[existingRowIndex] = { ...currentRow, ...updatedRow };
+          // Compare and update only the relevant keys, ignoring 'intentAction'
+          Object.keys(filteredNewRow).forEach(key => {
+            if (key === rowKey || key === 'intentAction') {
+              updatedRow[key] = filteredNewRow[key]; // Keep rowKey and intentAction unchanged
+            } else {
+              updatedRow[key] = handleValueChange(currentRow[key], filteredNewRow[key]);
+            }
+          });
+  
+          // Update the currentData row
+          currentData[existingRowIndex] = { ...currentRow, ...updatedRow };
+        }
+        // If the rowKey does not exist, do nothing
+      } else if (intentAction === 'D') {
+        // If intentAction is 'D' (Delete), mark the row as deleted (update intentAction to 'D')
+        if (existingRowIndex !== -1) {
+          currentData[existingRowIndex].intentAction = 'D';
+        }
+      } else if (['N', 'O', null, undefined].includes(intentAction)) {
+        // If intentAction is 'N', 'O', null, or undefined, and the rowKey does not exist, prepend the row
+        if (existingRowIndex === -1) {
+          // Add the new row with intentAction 'N'
+          const newEntry = { ...newRow, intentAction: 'N' };
+          currentData.unshift(newEntry);
+        }
+        // If rowKey exists, do nothing for 'N', 'O', null, or undefined
       }
     });
   
     return currentData;
   };
-  
+
   // Handler for file selection and reading
   const handleFileUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
