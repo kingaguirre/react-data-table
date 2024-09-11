@@ -1381,6 +1381,15 @@ export const getTotalWidth = (width, collapsibleRowRender = false, selectable = 
 //   }
 // };
 
+function isValidForRender(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string' && value.trim() === '') return false; // optional: check for empty strings
+  if (typeof value === 'number' && isNaN(value)) return false;
+  if (Array.isArray(value) && value.length === 0) return false; // optional: check for empty arrays
+  if (typeof value === 'object' && Object.keys(value).length === 0 && value.constructor === Object) return false; // optional: check for empty objects
+  return true;
+}
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
