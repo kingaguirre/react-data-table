@@ -51,6 +51,9 @@ export const UploadSummary = () => {
               The function checks if the <Highlight>rowKeys</Highlight> from the <Highlight>uploaded data</Highlight> (e.g., Excel) exist in the <Highlight>data-table rows</Highlight>.
             </BulletSubItem>
             <BulletSubItem>
+              It filters the row to retain only keys that also exist in the corresponding <Highlight>data-table rows</Highlight>.
+            </BulletSubItem>
+            <BulletSubItem>
               For each key, it compares the current value in the <Highlight>data-table rows</Highlight> with the new value from the <Highlight>uploaded data</Highlight>.
               <BulletSubList>
                 <BulletSubItem>
@@ -65,6 +68,9 @@ export const UploadSummary = () => {
               </BulletSubList>
             </BulletSubItem>
             <BulletSubItem>The row in the <Highlight>data-table rows</Highlight> is updated with the new values.</BulletSubItem>
+            <BulletSubItem>
+              <strong>Note:</strong> If the <Highlight>intentAction</Highlight> is <Highlight>'U'</Highlight> (Update) and the <Highlight>rowKeys</Highlight> do not exist in the <Highlight>data-table rows</Highlight>, the function does nothing (ignores the row).
+            </BulletSubItem>
           </BulletSubList>
         </BulletItem>
         <BulletItem>
