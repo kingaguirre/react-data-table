@@ -39,6 +39,7 @@ const Highlight = styled.code`
   color: #e91e63; /* Pink highlight */
 `;
 
+
 export const UploadSummary = () => {
   return (
     <BulletContainer>
@@ -49,9 +50,6 @@ export const UploadSummary = () => {
           <BulletSubList>
             <BulletSubItem>
               The function checks if the <Highlight>rowKeys</Highlight> from the <Highlight>uploaded data</Highlight> (e.g., Excel) exist in the <Highlight>data-table rows</Highlight>.
-            </BulletSubItem>
-            <BulletSubItem>
-              It filters the row to retain only keys that also exist in the corresponding <Highlight>data-table rows</Highlight>.
             </BulletSubItem>
             <BulletSubItem>
               For each key, it compares the current value in the <Highlight>data-table rows</Highlight> with the new value from the <Highlight>uploaded data</Highlight>.
@@ -98,6 +96,9 @@ export const UploadSummary = () => {
             </BulletSubItem>
             <BulletSubItem>If the <Highlight>rowKeys</Highlight> exist, the row is ignored (does nothing).</BulletSubItem>
           </BulletSubList>
+        </BulletItem>
+        <BulletItem>
+          <strong>New Condition:</strong> If the <Highlight>rowKeys</Highlight> (or first column) do not exist in the <Highlight>data-table rows</Highlight>, for any <Highlight>intentAction</Highlight> (or second column), the function prepends the row to the <Highlight>data-table rows</Highlight> and sets the <Highlight>intentAction</Highlight> to <Highlight>'N'</Highlight>, regardless of the original <Highlight>intentAction</Highlight>.
         </BulletItem>
         <BulletItem>
           <strong>Important:</strong> If the first column is <Highlight>undefined</Highlight> or does not match the <Highlight>rowKeys</Highlight>, or the second column is not the <Highlight>intentAction</Highlight>, the functions will not work as expected and will ignore the row. This means:

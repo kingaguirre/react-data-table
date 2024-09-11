@@ -57,9 +57,9 @@ export const UploadButton = () => {
   
       const intentAction = newRow.intentAction;
   
-      if (intentAction === 'U') {
-        // If intentAction is 'U' (Update), and the row exists, update the row
-        if (existingRowIndex !== -1) {
+      if (existingRowIndex !== -1) {
+        if (intentAction === 'U') {
+          // If intentAction is 'U' (Update), and the row exists, update the row
           const currentRow = currentData[existingRowIndex];
           const filteredNewRow = filterKeys(newRow, currentRow);
           const updatedRow = {};
@@ -75,26 +75,21 @@ export const UploadButton = () => {
   
           // Update the currentData row
           currentData[existingRowIndex] = { ...currentRow, ...updatedRow };
-        }
-        // If the rowKey does not exist, do nothing
-      } else if (intentAction === 'D') {
-        // If intentAction is 'D' (Delete), mark the row as deleted (update intentAction to 'D')
-        if (existingRowIndex !== -1) {
+  
+        } else if (intentAction === 'D') {
+          // If intentAction is 'D' (Delete), mark the row as deleted (update intentAction to 'D')
           currentData[existingRowIndex].intentAction = 'D';
         }
-      } else if (['N', 'O', null, undefined].includes(intentAction)) {
-        // If intentAction is 'N', 'O', null, or undefined, and the rowKey does not exist, prepend the row
-        if (existingRowIndex === -1) {
-          // Add the new row with intentAction 'N'
-          const newEntry = { ...newRow, intentAction: 'N' };
-          currentData.unshift(newEntry);
-        }
-        // If rowKey exists, do nothing for 'N', 'O', null, or undefined
+      } else {
+        // If the rowKey does not exist, prepend the row and set its intentAction to 'N'
+        const newEntry = { ...newRow, intentAction: 'N' };
+        currentData.unshift(newEntry);
       }
     });
   
     return currentData;
   };
+  
 
   // Handler for file selection and reading
   const handleFileUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
