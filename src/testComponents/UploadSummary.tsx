@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import * as XLSX from 'xlsx';
 
 const BulletContainer = styled.div`
   padding: 16px;
@@ -39,7 +40,21 @@ const Highlight = styled.code`
   color: #e91e63; /* Pink highlight */
 `;
 
+const DownloadButton = styled.button`
+  margin: 6px auto 12px;
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+// UploadSummary component with buttons to download test files under "Important" section
 export const UploadSummary = () => {
   return (
     <BulletContainer>
@@ -114,6 +129,30 @@ export const UploadSummary = () => {
             </BulletSubItem>
           </BulletSubList>
         </BulletItem>
+
+        {/* New section for Test Files */}
+        <BulletItem>
+        <strong>Test Files:</strong> Use the following buttons to download test Excel templates:
+        <BulletSubList>
+          <BulletSubItem>
+            Use <Highlight>Download Test File 1</Highlight> to download an Excel template with one row and a <Highlight>rowKey</Highlight> but without an <Highlight>intentAction</Highlight>.
+            <DownloadButton onClick={downloadTestFile1}>Download Test File 1</DownloadButton>
+          </BulletSubItem>
+          <BulletSubItem>
+            Use <Highlight>Download Test File 2</Highlight> to download an Excel template with multiple rows containing different <Highlight>intentAction</Highlight> values.
+            <DownloadButton onClick={downloadTestFile2}>Download Test File 2</DownloadButton>
+          </BulletSubItem>
+          <BulletSubItem>
+            Use <Highlight>Download Test File 3</Highlight> to download an Excel template with one row, but without both <Highlight>rowKey</Highlight> and <Highlight>intentAction</Highlight>.
+            <DownloadButton onClick={downloadTestFile3}>Download Test File 3</DownloadButton>
+          </BulletSubItem>
+          <BulletSubItem>
+            Use <Highlight>Download Test File 4</Highlight> to download an Excel template with one row and both <Highlight>rowKey</Highlight> and <Highlight>intentAction</Highlight>.
+            <DownloadButton onClick={downloadTestFile4}>Download Test File 4</DownloadButton>
+          </BulletSubItem>
+        </BulletSubList>
+      </BulletItem>
+      
       </BulletList>
     </BulletContainer>
   );
@@ -141,4 +180,52 @@ export const DownloadSummary = () => {
       </BulletList>
     </BulletContainer>
   );
+};
+
+// Function to generate and download the first Excel file
+const downloadTestFile1 = () => {
+  const data = [
+    { "Row Key": "user-id5", "Intent Action": "", "Acknowledgement Number": "ack-5" }
+  ];
+
+  const worksheet = XLSX.utils.json_to_sheet(data, { defval: "" });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, 'TestFile1.xlsx');
+};
+
+// Function to generate and download the second Excel file
+const downloadTestFile2 = () => {
+  const data = [
+    { "Row Key": "user-id8", "Intent Action": "N", "Acknowledgement Number": "ack-8" },
+    { "Row Key": "user-id7", "Intent Action": "R", "Acknowledgement Number": "ack-7" },
+    { "Row Key": "user-id6", "Intent Action": "O", "Acknowledgement Number": "ack-6" },
+    { "Row Key": "user-id0", "Intent Action": "U", "Acknowledgement Number": "ack-0" },
+    {}, {}, {}, {}, {}
+  ];
+
+  const worksheet = XLSX.utils.json_to_sheet(data, { defval: "" });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, 'TestFile2.xlsx');
+};
+
+const downloadTestFile3 = () => {
+  const data = [{}]; // One row with neither rowKey nor intentAction
+
+  const worksheet = XLSX.utils.json_to_sheet(data, { defval: "" });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, 'TestFile3.xlsx');
+};
+
+const downloadTestFile4 = () => {
+  const data = [
+    { "Row Key": "user-id1", "Intent Action": "U", "Acknowledgement Number": "ack-1" }
+  ];
+
+  const worksheet = XLSX.utils.json_to_sheet(data, { defval: "" });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  XLSX.writeFile(workbook, 'TestFile4.xlsx');
 };
