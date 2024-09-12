@@ -904,7 +904,9 @@ export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_c
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
   // Step 1: Parse the Excel copied data
+  console.log('excelData: ', excelData)
   const rows = excelData.split('\n').map(row => row.split('\t'));
+  console.log('rows: ', rows)
 
   // Helper function to get column data from Excel data based on rowIndex and columnIndex
   const getExcelData = (rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex) => {

@@ -52,12 +52,13 @@ export const UploadButton = () => {
   
       // Check if rowKey exists in currentData
       const existingRowIndex = currentData.findIndex(currentRow => 
-        getDeepValue(currentRow, rowKey) === newRowKey
+        getDeepValue(currentRow, rowKey) === newRowKey && newRowKey !== '' // Ignore empty rowKeys in currentData
       );
   
       const intentAction = newRow.intentAction;
   
-      if (existingRowIndex !== -1) {
+      if (existingRowIndex !== -1 && newRowKey !== '') {
+        // If rowKey is found and not empty, proceed with updating or deleting logic
         if (intentAction === 'U') {
           // If intentAction is 'U' (Update), and the row exists, update the row
           const currentRow = currentData[existingRowIndex];
@@ -81,7 +82,7 @@ export const UploadButton = () => {
           currentData[existingRowIndex].intentAction = 'D';
         }
       } else {
-        // If the rowKey does not exist, prepend the row and set its intentAction to 'N'
+        // Always prepend if the rowKey is empty or not found
         const newEntry = { ...newRow, intentAction: 'N' };
         currentData.unshift(newEntry);
       }
@@ -89,7 +90,6 @@ export const UploadButton = () => {
   
     return currentData;
   };
-  
 
   // Handler for file selection and reading
   const handleFileUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -104,14 +104,13 @@ export const UploadButton = () => {
         // For example, log the first sheet's data to the console
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const data = XLSX.utils.sheet_to_json(worksheet);
-
+        const data = XLSX.utils.sheet_to_json(worksheet, {
+          defval: null, // You can also set it to an empty string if you prefer ''
+        });
         // Generate selected_cells array to pass in updateDataSourceFromExcelWithoutMutation function
         const selectedCells = generateSelectedCells(data, columns, rowKey);
-
         const uploadedData = updateDataSourceFromExcelWithoutMutation(data, selectedCells, toExcelFormat(data))
           // .map((item, i) => setDeepValue({intentAction: "N", ...item}, rowKey, `new-${i}-${new Date().getTime()}`));
-          console.log('uploadedData: ', uploadedData)
 
         if (fetchConfig) {
           const newFetchedData = [...uploadedData, ...(fetchedData.data || [])];
