@@ -45,6 +45,9 @@ const barStyles = (height: string, contentAlign: string = 'left', textAlign: str
     transform: translate(${contentAlign === 'left' ? '-100%' : `calc(${BAR_WIDTH} + 20px)`}, -50%);
     font-size: 12px;
     padding-right: 24px;
+    bottom: 0;
+    transition: all .3s ease;
+    opacity: 0;
     > p {
       margin-bottom: 0;
     }

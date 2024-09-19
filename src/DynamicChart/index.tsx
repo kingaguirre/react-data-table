@@ -1,12 +1,11 @@
-// index.tsx
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useRef, useMemo, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { Container, ChartWrapper, Label, Values } from './styled';
 import { LABELS, VALUES, calculateHeights } from './utils';
 import Popover from './Popover';
 
-// Define interfaces for labels and values to ensure type safety
 interface ILabels {
   title: string;
   value: number;
@@ -32,21 +31,21 @@ const ChartComponent: React.FC<IProps> = (props) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [popoverTarget, setPopoverTarget] = useState<HTMLElement | null>(null);
 
-  // Calculate the sorted labels and corresponding heights for the chart
-  const { sortedLabels, calculatedValues } = calculateHeights(labels, values);
+  const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const valueRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [labelBottomValues, setLabelBottomValues] = useState<number[]>([]);
+  const [valueBottomValues, setValueBottomValues] = useState<number[]>([]);
 
-  // Determine if the popover should be displayed on the right side of the target element
-  const shouldShowOnRight = (target) => {
-    if (target) {
-      const { right } = target.getBoundingClientRect();
-      const windowWidth = window.innerWidth;
-      return right + popoverWidth < windowWidth;
-    }
-    return null;
-  };
+  // Memoize calculated labels and values to prevent recalculating on each render
+  const { sortedLabels, calculatedValues } = useMemo(() => calculateHeights(labels, values), [labels, values]);
 
-  // Get the style for the popover container based on its target element
-  const getPopOverContainerStyle: any = (popoverTarget) => {
+  const shouldShowOnRight = useCallback((target: HTMLElement) => {
+    const { right } = target.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    return right + popoverWidth < windowWidth;
+  }, [popoverWidth]);
+
+  const getPopOverContainerStyle = useCallback((popoverTarget: HTMLElement) => {
     const isPanelShowInRight = shouldShowOnRight(popoverTarget);
     const leftOffset = isPanelShowInRight ? popoverTarget.clientWidth : -16;
     return {
@@ -54,10 +53,9 @@ const ChartComponent: React.FC<IProps> = (props) => {
       top: popoverTarget.getBoundingClientRect().top + window.scrollY + popoverTarget.clientHeight / 2,
       left: leftOffset + popoverTarget.getBoundingClientRect().left + window.scrollX
     };
-  };
+  }, [shouldShowOnRight]);
 
-  // Handle the click event on a value to display the popover with additional details
-  const handleValueClick = (label: IValues, target: HTMLElement) => {
+  const handleValueClick = useCallback((label: IValues, target: HTMLElement) => {
     const popoverTitle = label.popoverTitle || 'Details';
     setPopoverContent(
       <Popover
@@ -71,17 +69,15 @@ const ChartComponent: React.FC<IProps> = (props) => {
     );
     setPopoverTarget(target);
     setIsPopoverOpen(true);
-  };
+  }, [popoverWidth, shouldShowOnRight]);
 
-  // Handle key down events to make the element accessible via keyboard
-  const handleKeyDown = (event, label, target) => {
+  const handleKeyDown = useCallback((event, label, target) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleValueClick(label, target);
     }
-  };
+  }, [handleValueClick]);
 
-  // Effect to handle click outside the popover and Escape key press to close the popover
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (popoverTarget && !popoverTarget.contains(event.target)) {
@@ -98,7 +94,6 @@ const ChartComponent: React.FC<IProps> = (props) => {
     const handleResize = () => {
       if (popoverTarget) {
         setPopoverContent((prevContent: any) => {
-          // Re-triggering the content render to adjust position
           return React.cloneElement(prevContent, { position: shouldShowOnRight(popoverTarget) ? 'right' : 'left' });
         });
       }
@@ -122,14 +117,69 @@ const ChartComponent: React.FC<IProps> = (props) => {
       window.removeEventListener('resize', debounceResize);
       clearTimeout(resizeTimeout);
     };
-  }, [isPopoverOpen, popoverTarget]);
+  }, [isPopoverOpen, popoverTarget, shouldShowOnRight]);
+
+  useEffect(() => {
+    // Calculate bottom values after 0.6s
+    const calculateLabelBottomValues = () => {
+      const newBottomValues = sortedLabels.map((_, i) => {
+        const dataCurrentLabelHeight = labelRefs.current[i]?.clientHeight || 0;
+        const dataCurrentLabelContainerHeight = labelRefs.current[i]?.querySelector('.label-container')?.clientHeight || 0;
+        const dataBelowLabelHeight = labelRefs.current[i + 1]?.clientHeight || 0;
+        const dataBelowLabelContainerHeight = labelRefs.current[i + 1]?.querySelector('.label-container')?.clientHeight || 0;
+        const dataHeightDifferenceFromBelowLabel = dataCurrentLabelHeight - dataBelowLabelHeight;
+        return dataHeightDifferenceFromBelowLabel < dataBelowLabelContainerHeight
+          ? (dataBelowLabelContainerHeight / 2) + (dataCurrentLabelContainerHeight / 2)
+          : 0;
+      });
+      setLabelBottomValues(newBottomValues);
+    };
+
+    const timeout = setTimeout(() => {
+      calculateLabelBottomValues();
+    }, 600);
+
+    return () => clearTimeout(timeout);
+  }, [sortedLabels]);
+
+  useEffect(() => {
+    const calculateValueBottomValues = () => {
+      const newBottomValues = calculatedValues.map((_, i) => {
+        const dataCurrentLabelHeight = valueRefs.current[i]?.clientHeight || 0;
+        const dataCurrentLabelContainerHeight = valueRefs.current[i]?.querySelector('.values-details')?.clientHeight || 0;
+        const dataBelowLabelHeight = valueRefs.current[i + 1]?.clientHeight || 0;
+        const dataBelowLabelContainerHeight = valueRefs.current[i + 1]?.querySelector('.values-details')?.clientHeight || 0;
+        const dataHeightDifferenceFromBelowLabel = dataCurrentLabelHeight - dataBelowLabelHeight;
+        return dataHeightDifferenceFromBelowLabel < dataBelowLabelContainerHeight
+          ? (dataBelowLabelContainerHeight / 2) + (dataCurrentLabelContainerHeight / 2)
+          : 0;
+      });
+      setValueBottomValues(newBottomValues);
+    };
+
+    const timeout = setTimeout(() => {
+      calculateValueBottomValues();
+    }, 600);
+
+    return () => clearTimeout(timeout);
+  }, [calculatedValues]);
 
   return (
     <Container chartHeight={chartHeight} className="chart-container">
       <ChartWrapper>
         {sortedLabels.map((label, i) => (
-          <Label key={i} height={label.height}>
-            <div>
+          <Label
+            key={i}
+            ref={(el) => labelRefs.current[i] = el}
+            height={label.height}
+          >
+            <div
+              className="label-container"
+              style={{ 
+                bottom: labelBottomValues[i] + (labelBottomValues[i] > 0 ? labelBottomValues[i + 1] : 0),
+                opacity: labelBottomValues[i] !== undefined ? 1 : 0
+              }}
+            >
               <p>{label.title}</p>
               <b>{label.currency || 'USD'} {label.value}</b>
             </div>
@@ -141,6 +191,7 @@ const ChartComponent: React.FC<IProps> = (props) => {
             key={i}
             height={label.height}
             color={label.color}
+            ref={(el) => valueRefs.current[i] = el}
           >
             <Tippy
               content="Click to see more details"
@@ -151,7 +202,11 @@ const ChartComponent: React.FC<IProps> = (props) => {
             >
               <div
                 className="values-details"
-                style={{ cursor: label.popoverContent ? 'pointer' : 'default' }}
+                style={{
+                  cursor: label.popoverContent ? 'pointer' : 'default',
+                  top: `calc(50% - ${valueBottomValues[i] + (valueBottomValues[i] > 0 ? valueBottomValues[i + 1] : 0)}px)`,
+                  opacity: valueBottomValues[i] !== undefined ? 1 : 0
+                }}
                 tabIndex={label.popoverContent ? 0 : undefined}
                 onKeyDown={(e) => handleKeyDown(e, label, e.currentTarget)}
                 {...label.popoverContent ? {
@@ -168,13 +223,14 @@ const ChartComponent: React.FC<IProps> = (props) => {
           </Values>
         ))}
       </ChartWrapper>
-      {isPopoverOpen && popoverTarget && (
+      {isPopoverOpen && popoverTarget && ReactDOM.createPortal(
         <div
           style={getPopOverContainerStyle(popoverTarget)}
           onClick={(e) => e.stopPropagation()}
         >
           {popoverContent}
-        </div>
+        </div>,
+        document.body // Render the popover in the body element
       )}
     </Container>
   );

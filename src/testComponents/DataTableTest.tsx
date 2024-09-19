@@ -7,6 +7,7 @@ import { App } from '../DataTable_/components/GlobalStateTest'
 import { MenuForm } from '../MenuForm';
 import { DataTable as SimpleDataTable } from '../SimpleDataTable';
 import DynamicChart from '../DynamicChart';
+// import BarChart from '../BarChart';
 import Panel from '../Panel';
 import ResizableTable from '../ResizableTable';
 import Chart from '../Chart';
@@ -15,7 +16,7 @@ import TXChart from '../TXChart';
 import { dateFormat } from '../DataTable_/utils/index'
 import { volume_vertical_bar_chart_labels, volume_vertical_bar_chart_datasets, distribution_horizontal_bar_chart_labels, distribution_horizontal_bar_chart_datasets } from './data';
 import {UploadSummary, DownloadSummary} from './UploadSummary'
-
+import { ParentComponent } from './ReRenderComponent'
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
   const maxAge = 80; // Maximum age for generated birthdate
@@ -507,6 +508,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      {/* <ParentComponent/> */}
       {/* <TXChart
         title='1testasdasda'
         type="volume-vertical-bar-chart"
@@ -681,13 +683,15 @@ export default () => {
     />
 
 
-      <DynamicChart/>
+      
      */}
-      {/* <div style={{transform: 'translateZ(0)'}}>
+     {/* <BarChart/> */}
+     <DynamicChart/>
+      <div style={{transform: 'translateZ(0)'}}>
         <Panel title="test" width='500px' height='400px'>
           <DynamicChart/>
         </Panel>
-      </div> */}
+      </div>
       {/* <Chart/> */}
       {/* <CombinedChart/> */}
       {/* <ResizableTable/>
@@ -825,7 +829,7 @@ export default () => {
         selectionRange
 
       /> */}
-      <DataTable
+      {/* <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -919,7 +923,7 @@ export default () => {
 
       />
       <UploadSummary/>
-      <DownloadSummary/>
+      <DownloadSummary/> */}
     <div style={{height: 100}}/>
       {/* <DataTable
         fetchConfig={{
