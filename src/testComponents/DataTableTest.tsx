@@ -17,6 +17,8 @@ import { dateFormat } from '../DataTable_/utils/index'
 import { volume_vertical_bar_chart_labels, volume_vertical_bar_chart_datasets, distribution_horizontal_bar_chart_labels, distribution_horizontal_bar_chart_datasets } from './data';
 import {UploadSummary, DownloadSummary} from './UploadSummary'
 import { ParentComponent } from './ReRenderComponent'
+import Popover from './Popover'
+
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
   const maxAge = 80; // Maximum age for generated birthdate
@@ -469,6 +471,7 @@ export default () => {
   const dataTableRef = React.createRef<any>();
   const [actions, setActions] = useState<any>(ACTIONS_LIST)
   const [colSettings, setColSettings] = useState<any>(columnSettings)
+  const popoverRef = React.useRef();
 
   const handleClick = () => {
     if (menuFormRef.current) {
@@ -508,6 +511,25 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <div style={{margin: 400}}>
+        <Popover
+          trigger="click"
+          content={<div style={{width: 600}}>Your content here</div>}
+          title="Some title"
+          placement="top"
+        >
+          <button>Show Popover on click</button>
+        </Popover>
+
+        <Popover
+          // trigger="click"
+          content={<div style={{width: 600}}>Your content here 1</div>}
+          title="Some title"
+          placement="top"
+          target="test1"
+        />
+        <button data-popover-id="test1">Show Popover on hover</button>
+      </div>
       {/* <ParentComponent/> */}
       {/* <TXChart
         title='1testasdasda'
