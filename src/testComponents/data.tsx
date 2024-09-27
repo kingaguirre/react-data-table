@@ -1,9 +1,9 @@
-export const volume_vertical_bar_chart_labels = ['2024-Jan', '2024-Feb', '2024-Mar', '2024-Apr', '2024-May', '2024-Jun', '2024-Jul'];
+export const volume_vertical_bar_chart_labels = [undefined, '2024-Jan', '2024-Feb', '2024-Mar', '2024-Apr', '2024-May', '2024-Jun', '2024-Jul'];
 export const volume_vertical_bar_chart_datasets = [
   {
     type: 'bar',
     label: 'Volume',
-    data: [100, 125, 200, 180, 220, 205, 250],
+    data: [undefined, 100, 125, 200, 180, 220, 205, 250],
     backgroundColor: 'rgba(0, 119, 204, 0.8)', // Blue bars
     yAxisID: 'y', // Associate with left y-axis
     order: 2,
@@ -11,7 +11,7 @@ export const volume_vertical_bar_chart_datasets = [
   {
     type: 'line',
     label: 'USD Equivalent (in Millions)',
-    data: [10, 12, 18, 17, 20, 16, 21],
+    data: [undefined, 10, 12, 18, 17, 20, 16, 21],
     borderColor: 'rgba(255, 165, 0)', // Orange line
     borderWidth: 3,
     backgroundColor: 'white', // Orange points
@@ -24,7 +24,7 @@ export const volume_vertical_bar_chart_datasets = [
   {
     type: 'line',
     label: 'Trend of Transaction Volume',
-    data: [100, 110, 150, 155, 160, 180, 200],
+    data: [undefined, 100, 110, 150, 155, 160, 180, 200],
     borderColor: 'rgba(0, 0, 0, 0.5)', // Black dashed line
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderDash: [5, 5], // Dashed line
@@ -34,6 +34,26 @@ export const volume_vertical_bar_chart_datasets = [
     order: 1,
   },
 ];
+
+const transformData = (datasets) => {
+  const length = datasets[0].data.length; // Get the length of the first dataset's data array
+  const newData: any = [];
+
+  for (let i = 0; i < length; i++) {
+    newData.push({
+      bar: {
+        data: datasets[0].data[i], // Bar data
+        color: datasets[0].backgroundColor // Bar background color
+      },
+      line: {
+        data: datasets[1].data[i], // Line data
+        color: datasets[1].borderColor // Line border color
+      }
+    });
+  }
+
+  return newData;
+}
 
 export const distribution_horizontal_bar_chart_labels = [
   'DT Export LC Negotiation',
