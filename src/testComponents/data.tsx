@@ -36,18 +36,25 @@ export const volume_vertical_bar_chart_datasets = [
 ];
 
 const transformData = (datasets) => {
-  const length = datasets[0].data.length; // Get the length of the first dataset's data array
+  const barDataset = datasets.find(dataset => dataset.type === 'bar');
+  const lineDataset = datasets.find(dataset => dataset.type === 'line');
+  
+  if (!barDataset || !lineDataset) {
+    throw new Error('Bar or line dataset not found');
+  }
+
+  const length = barDataset.data.length; // Get the length of the bar dataset's data array
   const newData: any = [];
 
   for (let i = 0; i < length; i++) {
     newData.push({
       bar: {
-        data: datasets[0].data[i], // Bar data
-        color: datasets[0].backgroundColor // Bar background color
+        data: barDataset.data[i], // Bar data
+        color: barDataset.backgroundColor // Bar background color
       },
       line: {
-        data: datasets[1].data[i], // Line data
-        color: datasets[1].borderColor // Line border color
+        data: lineDataset.data[i], // Line data
+        color: lineDataset.borderColor // Line border color
       }
     });
   }
