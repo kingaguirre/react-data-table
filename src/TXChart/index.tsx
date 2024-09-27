@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 import { Bar, Line, Pie, Radar, PolarArea, Bubble, Scatter } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -88,8 +89,8 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
       y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
     },
     plugins: {
-      legend: { display: true, position: 'bottom' },
-      title: { display: true, text: '', font: { size: 20 } },
+      legend: { display: false },
+      title: { display: true, text: '', font: { size: 20 }, position: 'top' }, // Set to 'top' initially
       datalabels: { display: false },
     },
   },
@@ -104,7 +105,7 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
     plugins: {
       legend: { display: false },
       datalabels: { display: true, anchor: 'end', align: 'end', clip: false, color: 'black' },
-      title: { display: true, text: '', font: { size: 20 } },
+      title: { display: false },
     },
   },
   "line-chart": {
@@ -223,8 +224,8 @@ const TXChart: React.FC<TXChartProps> = ({
       ...options,
       scales: {
         ...options.scales,
-        y: { ...options.scales.y, display: !hideLabels, grid: { display: false }, padding: { left: 20 } }, // Add padding-left and hide grid for y-axis
-        x: { ...options.scales.x, grid: { display: false } } // Hide grid for x-axis
+        y: { ...options.scales.y, display: !hideLabels, grid: { display: false }, padding: { left: 20 } },
+        x: { ...options.scales.x, grid: { display: false } }
       },
       plugins: {
         ...options.plugins,
@@ -236,24 +237,77 @@ const TXChart: React.FC<TXChartProps> = ({
     };
   }
 
-  options = customOptions ? { ...options, ...customOptions } : options;
-
-  // Set the chart title
+  // If a title is provided, set it in the options
   if (title) {
-    options.plugins!.title!.text = title;
+    options.plugins.title.text = title;
   }
 
+  // Custom title plugin
+  const customTitlePlugin = {
+    id: 'customTitle',
+    beforeDraw(chart) {
+      const { ctx, chartArea: { bottom, left } } = chart;
+      ctx.save();
+      ctx.font = 'bold 20px Arial'; // Adjust font style
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = chart.options.plugins.title.color || '#000'; // Default title color
+
+      const titleText = chart.options.plugins.title.text;
+      if (titleText) { // Only draw if titleText exists
+        const padding = 0; // Left padding
+        const xPosition = left + padding; // X position with padding
+        const yPosition = bottom + 24; // Y position below the chart
+
+        ctx.fillText(titleText, xPosition, yPosition); // X and Y positions for title
+      }
+      ctx.restore();
+    }
+  };
+
+  console.log(datasets)
   return (
-    <div style={{ width: '100%', height }}>
-      <ChartComponent
-        data={{
-          labels: labels,
-          datasets: datasets,
-        }}
-        options={options}
-      />
+    <div>
+      <div style={{ width: '100%', height }}>
+        <ChartComponent
+          data={{
+            labels: labels,
+            datasets: datasets,
+          }}
+          options={options}
+          plugins={type === 'distribution-horizontal-bar-chart' ? [customTitlePlugin] : undefined}
+        />
+      </div>
+
+      {type === 'volume-vertical-bar-chart' && (
+        <BottomDataContainer>
+          {datasets?.[0]?.data?.map(i => (
+            <BottomData>
+              <div>{i}</div>
+              <div>10</div>
+            </BottomData>
+          ))}
+        </BottomDataContainer>
+      )}
     </div>
   );
 };
+
+const BottomDataContainer = styled.div`
+  display: flex;
+  padding: 0 50px;
+`
+const BottomData = styled.div`
+  flex: 1;
+  > div {
+    text-align: center;
+    &:first-child {
+      color: yellow;
+    }
+    &:nth-child(2) {
+      color: blue
+    }
+  }
+`
 
 export default TXChart;
