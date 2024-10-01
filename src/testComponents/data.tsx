@@ -80,6 +80,17 @@ export const volume_vertical_bar_chart_datasets = [
   },
 ];
 
+export const mergeDatasets = (baseDatasets, propsDatasets) => {
+  return baseDatasets.map((baseDataset) => {
+    // Find the corresponding dataset in the props based on the label
+    const propsDataset = propsDatasets.find(
+      (propsDataset) => propsDataset.label === baseDataset.label
+    );
+
+    // If propsDataset is found, merge it with the baseDataset, with props taking priority
+    return propsDataset ? Object.assign({}, baseDataset, propsDataset) : baseDataset;
+  });
+};
 
 const transformData = (datasets) => {
   const barDataset = datasets.find(dataset => dataset.type === 'bar');
