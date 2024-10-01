@@ -80,6 +80,17 @@ export const volume_vertical_bar_chart_datasets = [
   },
 ];
 
+// Helper function to ensure undefined is the first value in the data array
+const ensureUndefinedFirstIndex = (data) => {
+  // If data is not an array or the first value is already undefined, return the data as is
+  if (!Array.isArray(data)) return data;
+  if (data[0] === undefined) return data;
+
+  // Otherwise, add undefined at the beginning of the array
+  return [undefined, ...data];
+};
+
+// Merge function comparing based on `type` and `pointStyle` (if defined)
 export const mergeDatasets = (baseDatasets, propsDatasets) => {
   return baseDatasets.map((baseDataset) => {
     // Find the corresponding dataset in the props based on type and pointStyle
@@ -91,9 +102,20 @@ export const mergeDatasets = (baseDatasets, propsDatasets) => {
     });
 
     // If propsDataset is found, merge it with the baseDataset, with props taking priority
-    return propsDataset ? Object.assign({}, baseDataset, propsDataset) : baseDataset;
+    if (propsDataset) {
+      // Ensure the data array in propsDataset has undefined as the first value
+      const updatedPropsDataset = {
+        ...propsDataset,
+        data: ensureUndefinedFirstIndex(propsDataset.data),
+      };
+
+      return Object.assign({}, baseDataset, updatedPropsDataset);
+    }
+
+    return baseDataset;
   });
 };
+
 
 const transformData = (datasets) => {
   const barDataset = datasets.find(dataset => dataset.type === 'bar');
