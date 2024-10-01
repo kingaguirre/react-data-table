@@ -1,4 +1,5 @@
 export const volume_vertical_bar_chart_labels = [undefined, '2024-Jan', '2024-Feb', '2024-Mar', '2024-Apr', '2024-May', '2024-Jun', '2024-Jul'];
+
 export const volume_vertical_bar_chart_datasets = [
   {
     type: 'bar',
@@ -7,6 +8,18 @@ export const volume_vertical_bar_chart_datasets = [
     backgroundColor: 'rgba(0, 119, 204, 0.8)', // Blue bars
     yAxisID: 'y', // Associate with left y-axis
     order: 2,
+    datalabels: {
+      color: 'rgba(0, 119, 204, 1)', // Blue label color
+      align: 'center', // Align label in the middle of the bar
+      anchor: 'center', // Anchor label in the middle
+      formatter: function(value, context) {
+        const index = context.dataIndex;
+        const prevValue = context.dataset.data[index - 1];
+        if (value === undefined || prevValue === undefined) return ''; // Handle undefined values
+        const percentageChange = ((value - prevValue) / prevValue) * 100;
+        return `${percentageChange.toFixed(2)}%`; // Show percentage increase or decrease
+      },
+    },
   },
   {
     type: 'line',
@@ -20,6 +33,22 @@ export const volume_vertical_bar_chart_datasets = [
     pointStyle: 'circle',
     pointRadius: 6,
     order: 0,
+    datalabels: {
+      align: 'top', // Place the label at the top of the line
+      anchor: 'end',
+      color: 'rgba(255, 165, 0)', // Orange label
+      font: {
+        weight: 'bold',
+        size: 12,
+      },
+      formatter: function(value, context) {
+        const index = context.dataIndex;
+        const prevValue = context.dataset.data[index - 1];
+        if (value === undefined || prevValue === undefined) return ''; // Handle undefined values
+        const percentageChange = ((value - prevValue) / prevValue) * 100;
+        return `${percentageChange.toFixed(2)}%`; // Show percentage increase or decrease
+      },
+    },
   },
   {
     type: 'line',
@@ -32,8 +61,25 @@ export const volume_vertical_bar_chart_datasets = [
     yAxisID: 'y', // Associate with left y-axis
     pointRadius: 0, // No points
     order: 1,
+    datalabels: {
+      align: 'bottom', // Place the label below the line
+      anchor: 'start',
+      color: 'rgba(0, 0, 0, 0.5)', // Black label
+      font: {
+        weight: 'bold',
+        size: 12,
+      },
+      formatter: function(value, context) {
+        const index = context.dataIndex;
+        const prevValue = context.dataset.data[index - 1];
+        if (value === undefined || prevValue === undefined) return ''; // Handle undefined values
+        const percentageChange = ((value - prevValue) / prevValue) * 100;
+        return `${percentageChange.toFixed(2)}%`; // Show percentage increase or decrease
+      },
+    },
   },
 ];
+
 
 const transformData = (datasets) => {
   const barDataset = datasets.find(dataset => dataset.type === 'bar');
