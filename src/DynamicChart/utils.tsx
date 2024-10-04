@@ -19,7 +19,7 @@ export const LABELS = [
 export const VALUES = [
   {
     title: 'Already Distributed',
-    value: 125000000,
+    value: 2023222,
     color: 'green',
     // details: { info: 'Some more details about Already Distributed' },
     popupTitle: 'Already Distributed Details',
@@ -60,10 +60,20 @@ export const calculateHeights = (
     height: `${(label.value / maxValue) * 100}%`
   })).sort((a, b) => b.value - a.value);
 
-  const calculatedValues = values.map(value => ({
-    ...value,
-    height: `${(value.value / maxValue) * 100}%`
-  }));
+  // Start with accumulatedHeight as 0 for reverse calculation
+  let accumulatedHeight = 0;
+
+  // Reverse loop through values array and calculate accumulatedHeight based on the next values
+  const calculatedValues = [...values].reverse().map((value, index) => {
+    const height = (value.value / maxValue) * 100;
+    accumulatedHeight += height; // Add the height of the current item to the accumulatedHeight
+
+    return {
+      ...value,
+      height: `${height}%`,
+      accumulatedHeight
+    };
+  }).reverse(); // Reverse back the array to maintain original order
 
   return { sortedLabels, calculatedValues };
 };

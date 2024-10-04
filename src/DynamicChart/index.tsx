@@ -26,7 +26,7 @@ interface IProps {
 }
 
 const ChartComponent: React.FC<IProps> = (props) => {
-  const { chartHeight, labels = LABELS, values = VALUES, popoverWidth = 500 } = props;
+  const { chartHeight = '400px', labels = LABELS, values = VALUES, popoverWidth = 500 } = props;
   const [popoverContent, setPopoverContent] = useState<ReactNode | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [popoverTarget, setPopoverTarget] = useState<HTMLElement | null>(null);
@@ -164,6 +164,26 @@ const ChartComponent: React.FC<IProps> = (props) => {
     return () => clearTimeout(timeout);
   }, [calculatedValues]);
 
+  const valueContainerTopValue = (label, index) => {
+    const heightInPX = parseFloat(chartHeight) * (parseFloat(label.height) / 100);
+    const textContainerHeight = valueBottomValues[index] ?? 0;
+
+    if (heightInPX > textContainerHeight) {
+      return '50%';
+    } else {
+      /** calculate if we will make the top position at middle of the bar or at top most of bar */
+      const getMaxPercentage = 100 - (textContainerHeight / parseFloat(chartHeight)) * 100;
+      const isMiddlePosition = label.accumulatedHeight < getMaxPercentage;
+
+      if (isMiddlePosition) {
+        const previousTetContainerHeight = valueBottomValues[index + 1]
+        return `calc(50% - ${textContainerHeight + (textContainerHeight > 0 ? previousTetContainerHeight : 0)}px)`
+      }
+
+      return 0;
+    }
+  }
+
   return (
     <Container chartHeight={chartHeight} className="chart-container">
       <ChartWrapper>
@@ -204,7 +224,7 @@ const ChartComponent: React.FC<IProps> = (props) => {
                 className="values-details"
                 style={{
                   cursor: label.popoverContent ? 'pointer' : 'default',
-                  top: `calc(50% - ${valueBottomValues[i] + (valueBottomValues[i] > 0 ? valueBottomValues[i + 1] : 0)}px)`,
+                  top: valueContainerTopValue(label, i),
                   opacity: valueBottomValues[i] !== undefined ? 1 : 0
                 }}
                 tabIndex={label.popoverContent ? 0 : undefined}
@@ -216,7 +236,7 @@ const ChartComponent: React.FC<IProps> = (props) => {
                   }
                 } : {}}
               >
-                <p>{label.title}</p>
+                <p>{label.title}{label.currentHeight}</p>
                 <b>{label.currency || 'USD'} {label.value}</b>
               </div>
             </Tippy>
