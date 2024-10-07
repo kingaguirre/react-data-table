@@ -4,22 +4,22 @@ import React from "react";
 export const LABELS = [
   {
     title: 'Program Limit',
-    value: 55000000
+    value: 10000
   },
   {
     title: 'NAR Limit',
-    value: 50000000
+    value: 10000
   },
   {
     title: 'Main SCB HOLD(20% of PGM Limit)',
-    value: 24000000
+    value: 10000
   }
 ];
 
 export const VALUES = [
   {
     title: 'Already Distributed',
-    value: 2023222,
+    value: 0,
     color: 'green',
     // details: { info: 'Some more details about Already Distributed' },
     popupTitle: 'Already Distributed Details',
@@ -37,7 +37,7 @@ export const VALUES = [
   },
   {
     title: 'SCB Exposure',
-    value: 95000000,
+    value: 0,
     color: 'blue'
   }
 ];
@@ -78,3 +78,20 @@ export const calculateHeights = (
   return { sortedLabels, calculatedValues };
 };
 
+
+// Function to remove circular references
+const removeCircularReferences = (obj, seen = new WeakSet()) => {
+  if (obj && typeof obj === 'object') {
+    if (seen.has(obj)) {
+      return; // Circular reference detected, returning undefined to avoid it
+    }
+    seen.add(obj);
+
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        obj[key] = removeCircularReferences(obj[key], seen);
+      }
+    }
+  }
+  return obj;
+};
