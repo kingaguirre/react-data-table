@@ -14,7 +14,6 @@ jest.mock('../../utils/index', () => ({
 let mockDataTableContext;
 
 beforeAll(() => {
-  // Mocking clipboard API
   Object.assign(navigator, {
     clipboard: {
       writeText: jest.fn(),
@@ -33,7 +32,6 @@ beforeEach(() => {
     onUndo: jest.fn(),
     setCanPaste: jest.fn(),
     canPaste: true,
-    hasAction: jest.fn((action) => mockDataTableContext.actions.includes(action)), // Fixed hasAction
     actionsDropdownItems: [{ text: 'Custom Action', onClick: jest.fn() }],
     rowKey: 'id',
     state: {
