@@ -1,0 +1,151 @@
+import React from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { ActionsColumn } from './ActionsColumn';
+import { DataTableContext } from '../../index';
+import { Actions } from '../../interfaces';
+
+// Mocking utilities used in the component
+jest.mock('../../utils/index', () => ({
+  isStringExist: jest.fn().mockReturnValue(true),
+  isValidDataWithSchema: jest.fn().mockReturnValue(true),
+  getDeepValue: jest.fn().mockReturnValue('rowKeyValue'),
+  getValue: jest.fn().mockReturnValue('someValue'),
+}));
+
+describe('ActionsColumn Component', () => {
+  let mockDataTableContext;
+
+  beforeEach(() => {
+    mockDataTableContext = {
+      actions: [Actions.COPY, Actions.PASTE, Actions.DUPLICATE, Actions.DELETE],
+      onAddRow: jest.fn(),
+      onDeleteRow: jest.fn(),
+      onSave: jest.fn(),
+      onCancel: jest.fn(),
+      onUndo: jest.fn(),
+      setCanPaste: jest.fn(),
+      canPaste: true,
+      hasAction: jest.fn(action => true),
+      actionsDropdownItems: [{ text: 'Custom Action', onClick: jest.fn() }],
+      rowKey: 'id',
+      state: {
+        columns: [],
+        fetchedData: { data: [{ id: 1 }] },
+        localData: [{ id: 1 }]
+      },
+    };
+  });
+
+  it('renders the action icons for default row', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    // Default action icons should be rendered
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /ellipsis/i })).toBeInTheDocument();
+  });
+
+  it('toggles the dropdown on ellipsis click', async () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    // Click the ellipsis to open dropdown
+    const ellipsisIcon = screen.getByRole('button', { name: /ellipsis/i });
+    fireEvent.click(ellipsisIcon);
+
+    // Wait for the dropdown to appear
+    await screen.findByText(/Copy/);
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+    expect(screen.getByText('Paste')).toBeInTheDocument();
+    expect(screen.getByText('Duplicate')).toBeInTheDocument();
+    expect(screen.getByText('Custom Action')).toBeInTheDocument();
+  });
+
+  it('handles copy action', async () => {
+    navigator.clipboard.writeText = jest.fn();
+
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /ellipsis/i }));
+    await screen.findByText('Copy');
+
+    const copyButton = screen.getByText('Copy');
+    fireEvent.click(copyButton);
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(JSON.stringify({ id: 1 }));
+    expect(mockDataTableContext.setCanPaste).toHaveBeenCalledWith(true);
+  });
+
+  it('handles paste action', async () => {
+    navigator.clipboard.readText = jest.fn().mockResolvedValue(JSON.stringify({ id: 2 }));
+
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /ellipsis/i }));
+    await screen.findByText('Paste');
+
+    const pasteButton = screen.getByText('Paste');
+    fireEvent.click(pasteButton);
+
+    // Simulate confirm action
+    global.confirm = jest.fn(() => true);
+
+    expect(navigator.clipboard.readText).toHaveBeenCalled();
+    expect(mockDataTableContext.onPasteRow).toHaveBeenCalled();
+  });
+
+  it('handles duplicate action', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /ellipsis/i }));
+    const duplicateButton = screen.getByText('Duplicate');
+    fireEvent.click(duplicateButton);
+
+    expect(mockDataTableContext.onAddRow).toHaveBeenCalledWith({ id: 1 }, 0);
+  });
+
+  it('handles delete row action', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={JSON.stringify({ id: 1 })} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    const deleteIcon = screen.getByRole('button', { name: /delete/i });
+    fireEvent.click(deleteIcon);
+
+    expect(mockDataTableContext.onDeleteRow).toHaveBeenCalledWith(JSON.stringify({ id: 1 }), 0);
+  });
+
+  it('handles undo action for deleted rows', () => {
+    const data = JSON.stringify({ id: 1, intentAction: 'R' });
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <ActionsColumn data={data} rowIndex={0} />
+      </DataTableContext.Provider>
+    );
+
+    const undoIcon = screen.getByRole('button', { name: /undo/i });
+    fireEvent.click(undoIcon);
+
+    expect(mockDataTableContext.onUndo).toHaveBeenCalledWith(data);
+  });
+});
