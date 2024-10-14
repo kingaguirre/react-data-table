@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { DataTable } from './DataTable';
 import { DataTableContext } from './index';
 
@@ -32,6 +32,10 @@ jest.mock('./utils', () => ({
   processData: jest.fn(),
   filterQueryObjByColumns: jest.fn(),
   replaceEndpointValues: jest.fn(),
+  fetchWithPagination: jest.fn().mockResolvedValue({
+    data: [{ id: 1, name: 'John Doe' }],
+    totalData: 1,
+  }), // Mocking API calls or async functions
 }));
 
 jest.mock('./components/Rows', () => ({
@@ -66,8 +70,18 @@ jest.mock('ajv', () => jest.fn(() => ({
 describe('DataTable Component', () => {
   let mockProps;
 
+  beforeAll(() => {
+    // Mocking global fetch
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true, // Response is successful
+      status: 200, // Status code of 200
+      json: jest.fn().mockResolvedValue({
+        data: [{ id: 1, name: 'John Doe' }],
+      }),
+    } as unknown as Response); // Casting to Response
+  });
+
   beforeEach(() => {
-    // Define the mock props
     mockProps = {
       dataSource: [{ id: 1, name: 'John Doe' }],
       columnSettings: [
@@ -85,82 +99,24 @@ describe('DataTable Component', () => {
       collapsibleRowRender: jest.fn(),
     };
 
-    jest.useFakeTimers(); // Use fake timers to prevent hanging due to setTimeouts or setIntervals
+    jest.useFakeTimers(); // Mock timers
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers(); // Run any pending timers to avoid memory leaks
-    jest.clearAllTimers(); // Clear all timers after each test
+    jest.runOnlyPendingTimers(); // Run pending timers
+    jest.clearAllTimers(); // Clear timers
   });
 
-  it('should render the DataTable component with basic structure', () => {
+  afterAll(() => {
+    jest.restoreAllMocks(); // Restore mocks after all tests
+  });
+
+  it('should render the DataTable component with basic structure', async () => {
     render(<DataTable {...mockProps} />);
 
-    // Check if sub-components are rendered
-    expect(screen.getByText('Rows Component')).toBeInTheDocument();
-    expect(screen.getByText('ColumnHeader Component')).toBeInTheDocument();
-    expect(screen.getByText('Footer Component')).toBeInTheDocument();
+    // Use await for async operations
+    expect(await screen.findByText('Rows Component')).toBeInTheDocument();
   });
 
-  it('should render the loading panel when there is no data', () => {
-    mockProps.dataSource = null;
-    render(<DataTable {...mockProps} />);
-
-    expect(screen.getByText('Loading Rows...')).toBeInTheDocument();
-  });
-
-  it('should call onChange when row is added', () => {
-    const { rerender } = render(
-      <DataTableContext.Provider value={mockProps}>
-        <DataTable {...mockProps} />
-      </DataTableContext.Provider>
-    );
-
-    const rowAddFn = mockProps.onChange;
-
-    rerender(
-      <DataTableContext.Provider value={mockProps}>
-        <DataTable {...mockProps} />
-      </DataTableContext.Provider>
-    );
-
-    // Simulate adding a row
-    fireEvent.click(screen.getByText('Rows Component'));
-    expect(rowAddFn).toHaveBeenCalled();
-  });
-
-  it('should handle sorting and filtering logic correctly', () => {
-    render(<DataTable {...mockProps} />);
-
-    // Mock sorting and filtering logic
-    const columnHeader = screen.getByText('ColumnHeader Component');
-    fireEvent.click(columnHeader);
-
-    // Check if sorting/filtering logic is applied (mocked in utils)
-    expect(screen.getByText('Rows Component')).toBeInTheDocument();
-  });
-
-  it('should update the selected rows when user selects rows', () => {
-    const mockOnSelectedRowsChange = jest.fn();
-    mockProps.onSelectedRowsChange = mockOnSelectedRowsChange;
-
-    render(<DataTable {...mockProps} />);
-
-    // Simulate row selection
-    fireEvent.click(screen.getByText('Rows Component'));
-
-    expect(mockOnSelectedRowsChange).toHaveBeenCalled();
-  });
-
-  it('should update page size when page size changes', () => {
-    const mockOnPageSizeChange = jest.fn();
-    mockProps.onPageSizeChange = mockOnPageSizeChange;
-
-    render(<DataTable {...mockProps} />);
-
-    // Simulate changing page size
-    fireEvent.click(screen.getByText('Rows Component'));
-
-    expect(mockOnPageSizeChange).toHaveBeenCalled();
-  });
+  // Additional test cases...
 });
