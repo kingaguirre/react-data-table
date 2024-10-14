@@ -1,0 +1,163 @@
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Rows } from './Rows'; // assuming Rows component is in the same folder
+import { DataTableContext } from '../../index';
+import { Actions } from '../../interfaces';
+
+// Mock necessary utility functions and modules
+jest.mock('../../utils', () => ({
+  useDoubleClick: jest.fn((onSingleClick, onDoubleClick) => onSingleClick),
+  getDeepValue: jest.fn(),
+  highlightText: jest.fn(),
+  getPinnedDetails: jest.fn().mockReturnValue({ isPinned: false, colWidth: 0, pinnedStyle: {} }),
+  mergeCustomStylesForRow: jest.fn(),
+  setDeepValue: jest.fn(),
+  isStringExist: jest.fn(),
+  getValue: jest.fn(),
+  useCheckOverflow: jest.fn().mockReturnValue({ addElement: jest.fn(), ellipsisMap: new Map(), refsMap: new Map() }),
+  getTableCellClass: jest.fn(),
+  getHightLightedRow: jest.fn(),
+}));
+
+const mockDataTableContext = {
+  rowKey: 'id',
+  visibleRows: [{ id: 1, name: 'John' }],
+  clickableRow: true,
+  collapsibleRowHeight: 50,
+  fetchConfig: null,
+  selectable: true,
+  customRowSettings: {},
+  actions: [Actions.EDIT],
+  onChange: jest.fn(),
+  state: {
+    selectedRows: [],
+    activeRow: null,
+    columns: [
+      { column: 'id', title: 'ID', width: 100, actionConfig: true },
+      { column: 'name', title: 'Name', width: 200, actionConfig: true },
+    ],
+    search: '',
+    fetchedData: {},
+    localData: [{ id: 1, name: 'John' }],
+    localPageSize: 10,
+    localPageIndex: 0,
+  },
+  setState: jest.fn(),
+  onMouseDown: jest.fn(),
+  onRowClick: jest.fn(),
+  onRowDoubleClick: jest.fn(),
+  collapsibleRowRender: jest.fn(),
+  onSelectedRowsChange: jest.fn(),
+  editingCells: [],
+  setEditingCells: jest.fn(),
+  hasAction: jest.fn(),
+  multiSelect: false,
+  selectedColumn: null,
+  setSelectedColumn: jest.fn(),
+  selectionRange: null,
+  selectionRangeRef: { current: null },
+  updatedRows: [],
+  setUpdatedRows: jest.fn(),
+};
+
+describe('Rows Component', () => {
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+  });
+
+  it('should render the table rows with data', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    expect(screen.getByText('John')).toBeInTheDocument();
+  });
+
+  it('should handle row click', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    const row = screen.getByText('John');
+    fireEvent.click(row);
+
+    expect(mockDataTableContext.onRowClick).toHaveBeenCalledWith({ id: 1, name: 'John' });
+  });
+
+  it('should handle cell editing', () => {
+    render(
+      <DataTableContext.Provider value={mockDataTableContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    const row = screen.getByText('John');
+    fireEvent.click(row);
+
+    const input = screen.getByDisplayValue('John');
+    fireEvent.change(input, { target: { value: 'John Doe' } });
+
+    expect(mockDataTableContext.setEditingCells).toHaveBeenCalledWith(expect.anything());
+  });
+
+  it('should handle row collapse toggle', () => {
+    const customContext = {
+      ...mockDataTableContext,
+      collapsibleRowRender: jest.fn(),
+    };
+
+    render(
+      <DataTableContext.Provider value={customContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    const collapseButton = screen.getAllByRole('button')[0]; // assuming the first button is the collapse
+    fireEvent.click(collapseButton);
+
+    expect(customContext.collapsibleRowRender).toHaveBeenCalledWith({ id: 1, name: 'John' });
+  });
+
+  it('should handle row selection when selectable is true', () => {
+    const customContext = {
+      ...mockDataTableContext,
+      selectable: true,
+      multiSelect: false,
+    };
+
+    render(
+      <DataTableContext.Provider value={customContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    const checkbox = screen.getByRole('checkbox');
+    fireEvent.click(checkbox);
+
+    expect(customContext.onSelectedRowsChange).toHaveBeenCalledWith([{ id: 1, name: 'John' }]);
+  });
+
+  it('should handle row editing when editing is enabled', () => {
+    const customContext = {
+      ...mockDataTableContext,
+      actions: [Actions.EDIT],
+      editingCells: [{ rowIndex: 0, columnIndex: 1, value: 'John', editable: true }],
+    };
+
+    render(
+      <DataTableContext.Provider value={customContext}>
+        <Rows />
+      </DataTableContext.Provider>
+    );
+
+    const input = screen.getByDisplayValue('John');
+    fireEvent.change(input, { target: { value: 'John Doe' } });
+
+    expect(customContext.setEditingCells).toHaveBeenCalledWith(expect.anything());
+  });
+});
