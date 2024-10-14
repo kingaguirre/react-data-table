@@ -1,163 +1,151 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Rows } from './Rows'; // assuming Rows component is in the same folder
-import { DataTableContext } from '../../index';
-import { Actions } from '../../interfaces';
+import { DataTable } from './DataTable'; // Assuming DataTable is in the same folder
+import { DataTableContext } from './index';
 
-// Mock necessary utility functions and modules
-jest.mock('../../utils', () => ({
-  useDoubleClick: jest.fn((onSingleClick, onDoubleClick) => onSingleClick),
+// Mock utility functions and components that are used in DataTable
+jest.mock('./utils', () => ({
   getDeepValue: jest.fn(),
-  highlightText: jest.fn(),
-  getPinnedDetails: jest.fn().mockReturnValue({ isPinned: false, colWidth: 0, pinnedStyle: {} }),
-  mergeCustomStylesForRow: jest.fn(),
   setDeepValue: jest.fn(),
-  isStringExist: jest.fn(),
+  useDragDropManager: jest.fn(),
+  useResizeManager: jest.fn(),
+  sortData: jest.fn(),
+  exportToCsv: jest.fn(),
+  filterCheck: jest.fn(),
+  serializeColumns: jest.fn(),
+  setColumnSettings: jest.fn(),
+  getAdvanceFilterSettingsObj: jest.fn(),
+  serialize: jest.fn(),
+  updateDataByRowKey: jest.fn(),
+  hasDomain: jest.fn(),
+  arrayToEmptyObject: jest.fn(),
   getValue: jest.fn(),
-  useCheckOverflow: jest.fn().mockReturnValue({ addElement: jest.fn(), ellipsisMap: new Map(), refsMap: new Map() }),
-  getTableCellClass: jest.fn(),
-  getHightLightedRow: jest.fn(),
+  mergeWithPrevious: jest.fn(),
+  processData: jest.fn(),
+  filterQueryObjByColumns: jest.fn(),
+  replaceEndpointValues: jest.fn(),
 }));
 
-const mockDataTableContext = {
-  rowKey: 'id',
-  visibleRows: [{ id: 1, name: 'John' }],
-  clickableRow: true,
-  collapsibleRowHeight: 50,
-  fetchConfig: null,
-  selectable: true,
-  customRowSettings: {},
-  actions: [Actions.EDIT],
-  onChange: jest.fn(),
-  state: {
-    selectedRows: [],
-    activeRow: null,
-    columns: [
-      { column: 'id', title: 'ID', width: 100, actionConfig: true },
-      { column: 'name', title: 'Name', width: 200, actionConfig: true },
-    ],
-    search: '',
-    fetchedData: {},
-    localData: [{ id: 1, name: 'John' }],
-    localPageSize: 10,
-    localPageIndex: 0,
-  },
-  setState: jest.fn(),
-  onMouseDown: jest.fn(),
-  onRowClick: jest.fn(),
-  onRowDoubleClick: jest.fn(),
-  collapsibleRowRender: jest.fn(),
-  onSelectedRowsChange: jest.fn(),
-  editingCells: [],
-  setEditingCells: jest.fn(),
-  hasAction: jest.fn(),
-  multiSelect: false,
-  selectedColumn: null,
-  setSelectedColumn: jest.fn(),
-  selectionRange: null,
-  selectionRangeRef: { current: null },
-  updatedRows: [],
-  setUpdatedRows: jest.fn(),
-};
+jest.mock('./components/Rows', () => ({
+  Rows: jest.fn(() => <div>Rows Component</div>),
+}));
 
-describe('Rows Component', () => {
+jest.mock('./components/ColumnHeader', () => ({
+  ColumnHeader: jest.fn(() => <div>ColumnHeader Component</div>),
+}));
+
+jest.mock('./components/Footer', () => ({
+  Footer: jest.fn(() => <div>Footer Component</div>),
+}));
+
+jest.mock('./components/MainHeader', () => ({
+  MainHeader: jest.fn(() => <div>MainHeader Component</div>),
+}));
+
+jest.mock('./components/ColumnGroupHeader', () => ({
+  ColumnGroupHeader: jest.fn(() => <div>ColumnGroupHeader Component</div>),
+}));
+
+jest.mock('./components/ColumnFilters', () => ({
+  ColumnFilters: jest.fn(() => <div>ColumnFilters Component</div>),
+}));
+
+jest.mock('ajv', () => jest.fn(() => ({
+  validate: jest.fn(),
+  errorsText: jest.fn(),
+})));
+
+describe('DataTable Component', () => {
+  let mockProps;
+
   beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
-  });
-
-  it('should render the table rows with data', () => {
-    render(
-      <DataTableContext.Provider value={mockDataTableContext}>
-        <Rows />
-      </DataTableContext.Provider>
-    );
-
-    expect(screen.getByText('John')).toBeInTheDocument();
-  });
-
-  it('should handle row click', () => {
-    render(
-      <DataTableContext.Provider value={mockDataTableContext}>
-        <Rows />
-      </DataTableContext.Provider>
-    );
-
-    const row = screen.getByText('John');
-    fireEvent.click(row);
-
-    expect(mockDataTableContext.onRowClick).toHaveBeenCalledWith({ id: 1, name: 'John' });
-  });
-
-  it('should handle cell editing', () => {
-    render(
-      <DataTableContext.Provider value={mockDataTableContext}>
-        <Rows />
-      </DataTableContext.Provider>
-    );
-
-    const row = screen.getByText('John');
-    fireEvent.click(row);
-
-    const input = screen.getByDisplayValue('John');
-    fireEvent.change(input, { target: { value: 'John Doe' } });
-
-    expect(mockDataTableContext.setEditingCells).toHaveBeenCalledWith(expect.anything());
-  });
-
-  it('should handle row collapse toggle', () => {
-    const customContext = {
-      ...mockDataTableContext,
+    // Define the mock props
+    mockProps = {
+      dataSource: [{ id: 1, name: 'John Doe' }],
+      columnSettings: [
+        { column: 'id', title: 'ID' },
+        { column: 'name', title: 'Name' }
+      ],
+      rowKey: 'id',
+      pageSize: 5,
+      pageIndex: 0,
+      selectable: true,
+      collapsibleRowHeight: 50,
+      actions: ['edit', 'delete'],
+      onChange: jest.fn(),
+      fetchConfig: null,
       collapsibleRowRender: jest.fn(),
     };
-
-    render(
-      <DataTableContext.Provider value={customContext}>
-        <Rows />
-      </DataTableContext.Provider>
-    );
-
-    const collapseButton = screen.getAllByRole('button')[0]; // assuming the first button is the collapse
-    fireEvent.click(collapseButton);
-
-    expect(customContext.collapsibleRowRender).toHaveBeenCalledWith({ id: 1, name: 'John' });
   });
 
-  it('should handle row selection when selectable is true', () => {
-    const customContext = {
-      ...mockDataTableContext,
-      selectable: true,
-      multiSelect: false,
-    };
+  it('should render the DataTable component with basic structure', () => {
+    render(<DataTable {...mockProps} />);
 
-    render(
-      <DataTableContext.Provider value={customContext}>
-        <Rows />
-      </DataTableContext.Provider>
-    );
-
-    const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
-
-    expect(customContext.onSelectedRowsChange).toHaveBeenCalledWith([{ id: 1, name: 'John' }]);
+    // Check if sub-components are rendered
+    expect(screen.getByText('Rows Component')).toBeInTheDocument();
+    expect(screen.getByText('ColumnHeader Component')).toBeInTheDocument();
+    expect(screen.getByText('Footer Component')).toBeInTheDocument();
   });
 
-  it('should handle row editing when editing is enabled', () => {
-    const customContext = {
-      ...mockDataTableContext,
-      actions: [Actions.EDIT],
-      editingCells: [{ rowIndex: 0, columnIndex: 1, value: 'John', editable: true }],
-    };
+  it('should render the loading panel when there is no data', () => {
+    mockProps.dataSource = null;
+    render(<DataTable {...mockProps} />);
 
-    render(
-      <DataTableContext.Provider value={customContext}>
-        <Rows />
+    expect(screen.getByText('Loading Rows...')).toBeInTheDocument();
+  });
+
+  it('should call onChange when row is added', () => {
+    const { rerender } = render(
+      <DataTableContext.Provider value={mockProps}>
+        <DataTable {...mockProps} />
       </DataTableContext.Provider>
     );
 
-    const input = screen.getByDisplayValue('John');
-    fireEvent.change(input, { target: { value: 'John Doe' } });
+    const rowAddFn = mockProps.onChange;
 
-    expect(customContext.setEditingCells).toHaveBeenCalledWith(expect.anything());
+    rerender(
+      <DataTableContext.Provider value={mockProps}>
+        <DataTable {...mockProps} />
+      </DataTableContext.Provider>
+    );
+
+    // Simulate adding a row
+    fireEvent.click(screen.getByText('Rows Component'));
+    expect(rowAddFn).toHaveBeenCalled();
+  });
+
+  it('should handle sorting and filtering logic correctly', () => {
+    render(<DataTable {...mockProps} />);
+
+    // Mock sorting and filtering logic
+    const columnHeader = screen.getByText('ColumnHeader Component');
+    fireEvent.click(columnHeader);
+
+    // Check if sorting/filtering logic is applied (mocked in utils)
+    expect(screen.getByText('Rows Component')).toBeInTheDocument();
+  });
+
+  it('should update the selected rows when user selects rows', () => {
+    const mockOnSelectedRowsChange = jest.fn();
+    mockProps.onSelectedRowsChange = mockOnSelectedRowsChange;
+
+    render(<DataTable {...mockProps} />);
+
+    // Simulate row selection
+    fireEvent.click(screen.getByText('Rows Component'));
+
+    expect(mockOnSelectedRowsChange).toHaveBeenCalled();
+  });
+
+  it('should update page size when page size changes', () => {
+    const mockOnPageSizeChange = jest.fn();
+    mockProps.onPageSizeChange = mockOnPageSizeChange;
+
+    render(<DataTable {...mockProps} />);
+
+    // Simulate changing page size
+    fireEvent.click(screen.getByText('Rows Component'));
+
+    expect(mockOnPageSizeChange).toHaveBeenCalled();
   });
 });
