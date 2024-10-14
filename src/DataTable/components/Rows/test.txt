@@ -1,14 +1,22 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { DataTable } from './DataTable'; // Assuming DataTable is in the same folder
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { DataTable } from './DataTable';
 import { DataTableContext } from './index';
 
-// Mock utility functions and components that are used in DataTable
 jest.mock('./utils', () => ({
   getDeepValue: jest.fn(),
   setDeepValue: jest.fn(),
-  useDragDropManager: jest.fn(),
-  useResizeManager: jest.fn(),
+  useDragDropManager: jest.fn(() => ({
+    onDragStart: jest.fn(),
+    onDragEnd: jest.fn(),
+    onDragOver: jest.fn(),
+    onDrop: jest.fn(),
+    dropTargetIndex: null,
+    draggedColumnIndex: null,
+  })),
+  useResizeManager: jest.fn(() => ({
+    onMouseDown: jest.fn(),
+  })),
   sortData: jest.fn(),
   exportToCsv: jest.fn(),
   filterCheck: jest.fn(),
@@ -76,6 +84,13 @@ describe('DataTable Component', () => {
       fetchConfig: null,
       collapsibleRowRender: jest.fn(),
     };
+
+    jest.useFakeTimers(); // Use fake timers to prevent hanging due to setTimeouts or setIntervals
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers(); // Run any pending timers to avoid memory leaks
+    jest.clearAllTimers(); // Clear all timers after each test
   });
 
   it('should render the DataTable component with basic structure', () => {
