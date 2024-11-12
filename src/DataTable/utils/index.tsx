@@ -1437,6 +1437,7 @@ export const copyDataWithJsonFormat = (data, selectedCells) => {
 
   // Populate the grid with data
   selectedCells.forEach(cell => {
+    // Ensure the row exists in grid and avoid null rows
     if (!grid[cell.rowIndex]) {
       grid[cell.rowIndex] = new Array(headerRow.length).fill(null);
     }
@@ -1450,14 +1451,19 @@ export const copyDataWithJsonFormat = (data, selectedCells) => {
     }
   });
 
+  // Skip the first index if it's null
+  if (!grid[0] || grid[0].every(cell => cell === null || cell === "")) {
+    grid.shift();
+  }
+
   // Convert grid into JSON format
   const jsonData = grid.map(row => {
     const rowData = {};
     headers.forEach((header, index) => {
-      rowData[header] = row[index] || ""; // Add each header-value pair for the row
+      rowData[header] = row[index] || ""; // Map each header to corresponding value in row
     });
     return rowData;
-  }).filter(row => Object.values(row).some(cell => cell !== "")); // Filter out empty rows
+  });
 
   return jsonData;
 }
