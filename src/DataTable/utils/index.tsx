@@ -1413,6 +1413,55 @@ export const Highlighted = ({ text = '', highlight = '' }) => {
   );
 };
 
+export const copyDataWithJsonFormat = (data, selectedCells) => {
+  let grid = [];
+
+  // Sort selectedCells by rowIndex
+  selectedCells.sort((a, b) => a.rowIndex - b.rowIndex);
+
+  // Calculate the required length for the header row
+  const headerLength = Math.max(...selectedCells.map(cell => cell.columnIndex + 1));
+  
+  // Initialize the header row
+  const headerRow = new Array(headerLength).fill(null);
+
+  // Populate the header row
+  selectedCells.forEach(cell => {
+    if (headerRow[cell.columnIndex] === null) {
+      headerRow[cell.columnIndex] = cell.columnName;
+    }
+  });
+
+  // Filter out null values from the header row
+  const headers = headerRow.filter(cell => cell !== null);
+
+  // Populate the grid with data
+  selectedCells.forEach(cell => {
+    if (!grid[cell.rowIndex]) {
+      grid[cell.rowIndex] = new Array(headerRow.length).fill(null);
+    }
+
+    if (!cell.disableCopy) {
+      const dataSourceItem = data[cell.rowIndex];
+      const value = getValue(getDeepValue(dataSourceItem, cell.column)) || "";
+      grid[cell.rowIndex][cell.columnIndex] = value;
+    } else {
+      grid[cell.rowIndex][cell.columnIndex] = "";
+    }
+  });
+
+  // Convert grid into JSON format
+  const jsonData = grid.map(row => {
+    const rowData = {};
+    headers.forEach((header, index) => {
+      rowData[header] = row[index] || ""; // Add each header-value pair for the row
+    });
+    return rowData;
+  }).filter(row => Object.values(row).some(cell => cell !== "")); // Filter out empty rows
+
+  return jsonData;
+}
+
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
