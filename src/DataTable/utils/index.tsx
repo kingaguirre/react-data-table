@@ -1469,6 +1469,35 @@ export const copyDataWithJsonFormat = (data, selectedCells) => {
 }
 
 
+const updateData = (data, updates) => {
+  // Deep clone the data to avoid mutations
+  const deepClone = (obj) => {
+    return JSON.parse(JSON.stringify(obj));
+  };
+
+  const updatedData = deepClone(data);
+
+  updates.forEach(update => {
+    const { rowIndex, column, value } = update;
+    
+    if (updatedData[rowIndex]) { // Check if the rowIndex exists in data
+      const keys = column.split('.'); // Split the column string by '.' to handle nested properties
+      let target = updatedData[rowIndex];
+
+      // Traverse to the correct depth, stopping at the second-to-last key
+      keys.slice(0, -1).forEach(key => {
+        if (target[key] === undefined) target[key] = {}; // Create nested objects if they don't exist
+        target = target[key];
+      });
+
+      // Set the value at the final key
+      target[keys[keys.length - 1]] = value;
+    }
+  });
+  
+  return updatedData;
+};
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
