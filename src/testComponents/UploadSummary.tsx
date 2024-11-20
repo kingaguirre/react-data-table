@@ -229,3 +229,61 @@ const downloadTestFile4 = () => {
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
   XLSX.writeFile(workbook, 'TestFile4.xlsx');
 };
+
+
+export const FeatureDescription = () => {
+  return (
+    <BulletContainer>
+      <BulletTitle>Row Selection and Deletion Feature</BulletTitle>
+      <BulletList>
+        <BulletItem>
+          If <Highlight>onBulkDelete</Highlight> is defined:
+          <BulletSubList>
+            <BulletSubItem>
+              The selection mode is always set to <Highlight>multiSelect: true</Highlight>, allowing multiple rows to be selected for deletion.
+            </BulletSubItem>
+          </BulletSubList>
+        </BulletItem>
+        <BulletItem>
+          A <Highlight>panel</Highlight> will appear above the table when rows are selected, providing actions like deletion.
+        </BulletItem>
+        <BulletItem>
+          Clicking the <Highlight>Delete</Highlight> button in the panel:
+          <BulletSubList>
+            <BulletSubItem>
+              Triggers the <Highlight>onBulkDelete</Highlight> function, returning the <Highlight>deleted rows</Highlight>.
+            </BulletSubItem>
+            <BulletSubItem>
+              Executes the row deletion process.
+            </BulletSubItem>
+          </BulletSubList>
+        </BulletItem>
+        <BulletItem>
+          <Highlight>isPermanentDelete</Highlight> behavior:
+          <BulletSubList>
+            <BulletSubItem>
+              If <Highlight>true</Highlight>, selected rows are permanently removed from the table.
+            </BulletSubItem>
+            <BulletSubItem>
+              If <Highlight>false</Highlight>, the <Highlight>intentAction</Highlight> value for selected rows is set to <Highlight>'D'</Highlight>, indicating a soft delete.
+            </BulletSubItem>
+          </BulletSubList>
+        </BulletItem>
+        <BulletItem>
+          If <Highlight>ssrConfig</Highlight> is defined:
+          <BulletSubList>
+            <BulletSubItem>
+              Row deletion is handled server-side by the API.
+            </BulletSubItem>
+            <BulletSubItem>
+              The API updates the <Highlight>dataSource</Highlight> accordingly.
+            </BulletSubItem>
+            <BulletSubItem>
+              The <Highlight>onBulkDelete</Highlight> function still returns the <Highlight>deleted rows</Highlight> for reference.
+            </BulletSubItem>
+          </BulletSubList>
+        </BulletItem>
+      </BulletList>
+    </BulletContainer>
+  );
+};
