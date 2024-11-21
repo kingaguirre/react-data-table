@@ -1551,13 +1551,11 @@ export const _updateDataSourceFromExcelWithoutMutation = (
     return row && adjustedColumnIndex >= 0 && adjustedColumnIndex < row.length ? row[adjustedColumnIndex] : null;
   };
 
-  // Helper function to check if a title exists in columnSettings
-  const getColumnKey = (header) => {
-    const setting = columnSettings.find(
+  // Helper function to get column settings for a title (case-insensitive)
+  const getColumnSetting = (header) =>
+    columnSettings.find(
       (setting) => setting.title.toLowerCase() === header.toLowerCase()
     );
-    return setting ? setting.column : null;
-  };
 
   // Step 2: Deep clone the original data_source to avoid mutations
   let newData = deepClone(data_source);
@@ -1568,10 +1566,10 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   // Step 3: Iterate over selected_cells to update newData
   selected_cells.forEach((cell) => {
-    const { rowIndex, columnIndex, columnName, column, disablePaste } = cell;
+    const { rowIndex, columnIndex, columnName, column, disablePaste, disableUpload } = cell;
 
-    // Skip update if disablePaste is true
-    if (disablePaste) {
+    // Skip update if disablePaste or disableUpload is true
+    if (disablePaste || disableUpload) {
       return;
     }
 
@@ -1579,40 +1577,56 @@ export const _updateDataSourceFromExcelWithoutMutation = (
       ? getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex)
       : getValueCaseInsensitive(data_source, rowIndex, columnName);
 
-    const pathParts = column?.split('.');
-    if (excelValue !== null && !!pathParts) {
-      // Navigate to the correct location in newData and update it
-      let currentObj = newData[rowIndex];
-      for (let i = 0; i < pathParts?.length - 1; i++) {
+    const columnSetting = getColumnSetting(columnName);
+    if (!columnSetting || columnSetting.disableUpload) {
+      return; // Skip invalid columns or those with disableUpload = true
+    }
+
+    const columnKey = columnSetting.column; // Use columnSettings.column as the key
+
+    if (excelValue !== null) {
+      // Handle nested paths using pathParts
+      const pathParts = columnKey.split('.');
+      let currentObj = newData[rowIndex] || {}; // Create row if it doesn't exist
+      newData[rowIndex] = currentObj;
+
+      // Navigate to the correct nested location in newData
+      for (let i = 0; i < pathParts.length - 1; i++) {
         if (!currentObj[pathParts[i]]) {
           currentObj[pathParts[i]] = {}; // Create nested objects if they don't exist
         }
         currentObj = currentObj[pathParts[i]];
       }
-      // Directly update the last part of the path with the excel value
-      currentObj[pathParts[(pathParts?.length || 0) - 1]] = excelValue;
+
+      // Update the value at the final path part
+      currentObj[pathParts[pathParts.length - 1]] = excelValue;
     }
   });
 
-  // Step 4: Update rows with columnSettings.column as the key
+  // Step 4: Clean up invalid or empty rows
   newData = newData.map((row) => {
-    const updatedRow = {};
-    for (const key in row) {
-      const columnKey = getColumnKey(key); // Get the columnSettings.column for this key
-      if (columnKey) {
-        updatedRow[columnKey] = row[key];
+    // Filter the row to only include valid columns
+    const filteredRow = Object.keys(row).reduce((acc, key) => {
+      const columnSetting = columnSettings.find(
+        (setting) => setting.column === key
+      );
+      if (columnSetting && !columnSetting.disableUpload) {
+        acc[key] = row[key];
       }
-    }
-    return updatedRow;
+      return acc;
+    }, {});
+
+    return filteredRow;
   });
 
-  // Filter out rows where all cells are empty
+  // Remove rows that are entirely empty
   newData = newData.filter((row) =>
     Object.values(row).some((value) => value !== null && value !== '')
   );
 
   return newData;
 };
+
 
 
 
