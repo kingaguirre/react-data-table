@@ -1552,10 +1552,12 @@ export const _updateDataSourceFromExcelWithoutMutation = (
   };
 
   // Helper function to check if a title exists in columnSettings
-  const isTitleValid = (header) =>
-    columnSettings.some(
+  const getColumnKey = (header) => {
+    const setting = columnSettings.find(
       (setting) => setting.title.toLowerCase() === header.toLowerCase()
     );
+    return setting ? setting.column : null;
+  };
 
   // Step 2: Deep clone the original data_source to avoid mutations
   let newData = deepClone(data_source);
@@ -1592,18 +1594,16 @@ export const _updateDataSourceFromExcelWithoutMutation = (
     }
   });
 
-  // Step 4: Remove invalid column data and empty rows
+  // Step 4: Update rows with columnSettings.column as the key
   newData = newData.map((row) => {
-    // Remove invalid columns from the row
-    const filteredRow = Object.keys(row).reduce((acc, key) => {
-      if (isTitleValid(key)) {
-        acc[key] = row[key];
+    const updatedRow = {};
+    for (const key in row) {
+      const columnKey = getColumnKey(key); // Get the columnSettings.column for this key
+      if (columnKey) {
+        updatedRow[columnKey] = row[key];
       }
-      return acc;
-    }, {});
-
-    // Return filtered row
-    return filteredRow;
+    }
+    return updatedRow;
   });
 
   // Filter out rows where all cells are empty
@@ -1613,6 +1613,7 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   return newData;
 };
+
 
 
 export * from "./useDragDropManager";
