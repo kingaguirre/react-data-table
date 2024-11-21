@@ -1579,7 +1579,7 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
     const columnSetting = getColumnSetting(columnName);
     if (!columnSetting || columnSetting.disableUpload) {
-      return; // Skip invalid columns or those with disableUpload = true
+      return; // Skip invalid titles or columns with disableUpload = true
     }
 
     const columnKey = columnSetting.column; // Use columnSettings.column as the key
@@ -1626,9 +1626,6 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   return newData;
 };
-
-
-
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
