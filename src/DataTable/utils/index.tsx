@@ -1530,6 +1530,24 @@ const updateDataSource = (dataSource, deletedRows, rowKey, isPermanentDelete) =>
   }
 };
 
+const _getValueCaseInsensitive = (data_source, rowIndex, columnName) => {
+  if (!columnName) {
+    return undefined; // Safeguard against undefined columnName
+  }
+
+  // Preprocess the row at the specified index
+  const row = data_source[rowIndex];
+  const keyMap = new Map();
+
+  for (const key in row) {
+    keyMap.set(key.toLowerCase(), key);
+  }
+
+  // Lookup the column name case-insensitively
+  const originalKey = keyMap.get(columnName.toLowerCase());
+  return originalKey ? row[originalKey] : undefined;
+};
+
 export const _updateDataSourceFromExcelWithoutMutation = (
   data_source,
   selected_cells,
@@ -1566,10 +1584,10 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   // Step 3: Iterate over selected_cells to update newData
   selected_cells.forEach((cell) => {
-    const { rowIndex, columnIndex, columnName, column, disablePaste, disableUpload } = cell;
+    const { rowIndex, columnIndex, columnName, column, disablePaste } = cell;
 
-    // Skip update if disablePaste or disableUpload is true
-    if (disablePaste || disableUpload) {
+    // Skip update if disablePaste is true
+    if (disablePaste) {
       return;
     }
 
@@ -1578,8 +1596,8 @@ export const _updateDataSourceFromExcelWithoutMutation = (
       : getValueCaseInsensitive(data_source, rowIndex, columnName);
 
     const columnSetting = getColumnSetting(columnName);
-    if (!columnSetting || columnSetting.disableUpload) {
-      return; // Skip invalid titles or columns with disableUpload = true
+    if (!columnSetting) {
+      return; // Skip invalid titles
     }
 
     const columnKey = columnSetting.column; // Use columnSettings.column as the key
@@ -1610,7 +1628,7 @@ export const _updateDataSourceFromExcelWithoutMutation = (
       const columnSetting = columnSettings.find(
         (setting) => setting.column === key
       );
-      if (columnSetting && !columnSetting.disableUpload) {
+      if (columnSetting) {
         acc[key] = row[key];
       }
       return acc;
@@ -1635,6 +1653,7 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   return newData;
 };
+
 
 
 export * from "./useDragDropManager";
