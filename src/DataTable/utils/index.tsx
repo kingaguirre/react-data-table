@@ -1621,7 +1621,16 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
   // Remove rows that are entirely empty or contain only null/undefined/empty strings
   newData = newData.filter((row) =>
-    Object.values(row).some((value) => value !== null && value !== undefined && value !== '')
+    Object.entries(row).some(([key, value]) => {
+      const columnSetting = columnSettings.find((setting) => setting.column === key);
+      return (
+        columnSetting && // Ensure the column exists in settings
+        !columnSetting.disableUpload && // Ensure the column is not marked for disableUpload
+        value !== null &&
+        value !== undefined &&
+        value !== ''
+      );
+    })
   );
 
   return newData;
