@@ -16,7 +16,9 @@ import TXChart from '../TXChart';
 import { dateFormat } from '../DataTable_/utils/index'
 import { volume_vertical_bar_chart_labels, volume_vertical_bar_chart_datasets, distribution_horizontal_bar_chart_labels, distribution_horizontal_bar_chart_datasets } from './data';
 import {UploadSummary, DownloadSummary} from './UploadSummary'
+import {DevelopersGuide} from './DevelopersGuide'
 import { ParentComponent } from './ReRenderComponent'
+import { DataTableEnhancement } from './DataTableEnhancement'
 import Popover from './Popover'
 
 const getRandomBirthdate = () => {
@@ -511,7 +513,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <div style={{margin: 400}}>
+      {/* <div style={{margin: 400}}>
         <Popover
           trigger="click"
           content={<div style={{width: 600}}>Your content here</div>}
@@ -529,7 +531,33 @@ export default () => {
           target="test1"
         />
         <button data-popover-id="test1">Show Popover on hover</button>
-      </div>
+      </div> */}
+      {/* <TXChart
+        title='1testasdasda'
+        type="volume-vertical-bar-chart"
+        labels={volume_vertical_bar_chart_labels}
+        datasets={volume_vertical_bar_chart_datasets}
+        volumeVerticalBarChartOptions={{
+          y1Title: 'Custom Volume Title',
+          y2Title: 'Custom USD Title',
+        }}
+      /> */}
+      {/* <TXChart
+        title='1231123'
+        type="distribution-horizontal-bar-chart"
+        labels={distribution_horizontal_bar_chart_labels}
+        datasets={distribution_horizontal_bar_chart_datasets}
+      />
+      <TXChart
+        title='testasdasda'
+        type="distribution-horizontal-bar-chart"
+        labels={distribution_horizontal_bar_chart_labels}
+        datasets={distribution_horizontal_bar_chart_datasets}
+        distributionHorizontalBarChartOptions={{
+          hideLabels: true, // Option to hide labels
+          valueFormatter: (value) => `$${value}`, // Custom formatter for values
+        }}
+      /> */}
       {/* <ParentComponent/> */}
       {/* <TXChart
         title='1testasdasda'
@@ -708,12 +736,12 @@ export default () => {
       
      */}
      {/* <BarChart/> */}
-     <DynamicChart/>
+     {/* <DynamicChart/>
       <div style={{transform: 'translateZ(0)'}}>
         <Panel title="test" width='500px' height='400px'>
           <DynamicChart/>
         </Panel>
-      </div>
+      </div> */}
       {/* <Chart/> */}
       {/* <CombinedChart/> */}
       {/* <ResizableTable/>
@@ -851,7 +879,7 @@ export default () => {
         selectionRange
 
       /> */}
-      {/* <DataTable
+       {/* <DataTable
         ref={dataTableRef}
         actions={actions}
         dataSource={dataSource}
@@ -944,7 +972,9 @@ export default () => {
         selectionRange
 
       />
-      <UploadSummary/>
+      <DataTableEnhancement/> */}
+      <DevelopersGuide/>
+      {/*<UploadSummary/>
       <DownloadSummary/> */}
     <div style={{height: 100}}/>
       {/* <DataTable

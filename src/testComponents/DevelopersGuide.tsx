@@ -3,11 +3,10 @@ import styled from 'styled-components';
 
 const GuideContainer = styled.div`
   padding: 16px;
-  background-color: #f0f0f0;
+  background-color: #f9f9f9; /* From Upload styles */
   border-radius: 8px;
   font-family: Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 14px;
 `;
 
 const GuideTitle = styled.h2`
@@ -41,7 +40,7 @@ const BulletItem = styled.li`
 `;
 
 const Highlight = styled.code`
-  color: #e91e63;
+  color: #e91e63; /* Pink highlight from Upload styles */
 `;
 
 const CodeSnippet = styled.pre`
@@ -252,7 +251,6 @@ export interface ButtonProps {
 
       <GuideSection>
         <GuideTitle>How to Use the Package in Another Repository:</GuideTitle>
-        {/* <GuideStepNumber>How to Use the Package in Another Repository:</GuideStepNumber> */}
         <BulletList>
           <BulletItem>1. **Install the package** by running:</BulletItem>
           <CodeSnippet>npm install tx-react-component</CodeSnippet>

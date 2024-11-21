@@ -1584,7 +1584,7 @@ export const _updateDataSourceFromExcelWithoutMutation = (
 
     const columnKey = columnSetting.column; // Use columnSettings.column as the key
 
-    if (excelValue !== null) {
+    if (excelValue !== null && excelValue !== undefined) {
       // Handle nested paths using pathParts
       const pathParts = columnKey.split('.');
       let currentObj = newData[rowIndex] || {}; // Create row if it doesn't exist
@@ -1619,13 +1619,14 @@ export const _updateDataSourceFromExcelWithoutMutation = (
     return filteredRow;
   });
 
-  // Remove rows that are entirely empty
+  // Remove rows that are entirely empty or contain only null/undefined/empty strings
   newData = newData.filter((row) =>
-    Object.values(row).some((value) => value !== null && value !== '')
+    Object.values(row).some((value) => value !== null && value !== undefined && value !== '')
   );
 
   return newData;
 };
+
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";

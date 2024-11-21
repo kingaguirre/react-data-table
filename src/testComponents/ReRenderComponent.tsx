@@ -18,9 +18,16 @@ export const useFlasher = () => {
 };
 
 /**
- * Shallow comparison of objects
+ * Get deep value from object using dot notation
  */
-const shallowEqual = (obj1: any, obj2: any) => {
+const getDeepValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, key) => acc?.[key], obj);
+};
+
+/**
+ * Shallow comparison of objects excluding function props
+ */
+const shallowEqualExcludingFunctions = (obj1: any, obj2: any) => {
   if (obj1 === obj2) return true;
 
   if (
@@ -32,8 +39,8 @@ const shallowEqual = (obj1: any, obj2: any) => {
     return false;
   }
 
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  const keys1 = Object.keys(obj1).filter(key => typeof obj1[key] !== 'function');
+  const keys2 = Object.keys(obj2).filter(key => typeof obj2[key] !== 'function');
 
   if (keys1.length !== keys2.length) return false;
 
@@ -45,77 +52,140 @@ const shallowEqual = (obj1: any, obj2: any) => {
 };
 
 /**
- * Wrapper component to handle selective re-renders based on the name and value props.
+ * Wrapper component to handle selective re-renders based on deep path or name and value props.
  */
 interface WrapperProps {
   name: string;
+  path?: string; // Path is optional and will be checked first if provided
   value: Record<string, any>;
   children: React.ReactNode;
   [key: string]: any; // For other props
 }
 
 const Wrapper = React.memo(
-  ({ name, value, children, ...rest }: WrapperProps) => {
-    // Pass the relevant value and all additional props to the child
-    const childProps = { value: value[name], ...rest };
+  ({ name, path, value, children, ...rest }: WrapperProps) => {
+    // Use path if defined, otherwise fallback to name
+    const valuePath = path ? `${path}.${name}` : name;
 
-    return React.cloneElement(children as React.ReactElement, childProps);
+    // Get the deep value using the `getDeepValue` function
+    const deepValue = getDeepValue(value, valuePath);
+
+    // Separate function props from non-function props
+    const functionProps = Object.keys(rest).reduce((acc, key) => {
+      if (typeof rest[key] === 'function') {
+        acc[key] = rest[key];
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
+    const nonFunctionProps = Object.keys(rest).reduce((acc, key) => {
+      if (typeof rest[key] !== 'function') {
+        acc[key] = rest[key];
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Only pass non-function props by default to avoid re-renders from function prop changes
+    const childProps = { value: deepValue?.value || deepValue, ...nonFunctionProps };
+
+    // Clone the element and pass function props separately if needed
+    return React.cloneElement(children as React.ReactElement, {
+      ...childProps,
+      ...functionProps, // Include functions separately to control re-rendering
+    });
   },
   (prevProps, nextProps) => {
-    const prevValue = prevProps.value[prevProps.name];
-    const nextValue = nextProps.value[nextProps.name];
+    // Determine the path to use (either the provided path + name or just the name)
+    const prevPath = prevProps.path ? `${prevProps.path}.${prevProps.name}` : prevProps.name;
+    const nextPath = nextProps.path ? `${nextProps.path}.${nextProps.name}` : nextProps.name;
 
-    // Check if value[name] has changed
+    // Get the previous and next deep values based on the determined path
+    const prevValue = getDeepValue(prevProps.value, prevPath);
+    const nextValue = getDeepValue(nextProps.value, nextPath);
+
+    // Check if the deep value has changed
     if (prevValue !== nextValue) return false;
 
-    // Shallow compare the rest of the props
-    return shallowEqual(prevProps, nextProps);
+    // Shallow compare the rest of the props, ignoring function props
+    return shallowEqualExcludingFunctions(prevProps, nextProps);
   }
 );
 
 /**
  * Child component, which receives all props from Wrapper.
  */
-/** This ChildComponent will be the TXInput will be */
-const ChildComponent: React.FC<{ value?: string }> = React.memo(({ value, ...rest }) => {
+const ChildComponent: React.FC<{ value?: string | number }> = React.memo((props) => {
+  const { value, ...rest } = props;
   console.log("ChildComponent re-rendered with props:", rest);
-  return <div ref={useFlasher()}>{value}</div>;
+  return <div ref={useFlasher()}>{typeof value === 'object' ? JSON.stringify(value) : value}</div>;
 });
 
 /**
  * Parent component.
  */
 export const ParentComponent = () => {
-  const [obj, setObj] = React.useState({ name1: "test1", name2: "test2" });
+  const [obj, setObj] = React.useState({
+    item1: {
+      item11: {
+        item111: {
+          value: "test1"
+        }
+      }
+    },
+    item2: "test2"
+  });
   const [otherProp1, setOtherProp1] = React.useState("123");
 
-  const updateName1 = () => {
-    setObj((prev) => ({ ...prev, name1: "test3" }));
-  };
-  
-  const updateName1OtherProps = () => {
+  // Use useCallback to memoize event handlers to avoid unnecessary re-renders
+  const updateItem1 = React.useCallback(() => {
+    setObj((prev) => ({ ...prev, item1: { item11: { item111: {value: "test3" } } } }));
+  }, []);
+
+  const updateItem1OtherProps = React.useCallback(() => {
     setOtherProp1("22323");
-  };
+  }, []);
 
-  const updateName2 = () => {
-    setObj((prev) => ({ ...prev, name2: "newTest2" }));
-  };
+  const updateItem2 = React.useCallback(() => {
+    setObj((prev) => ({ ...prev, item2: "newTest2" }));
+  }, []);
 
-  const reset = () => {
-    setObj({ name1: "test1", name2: "test2" });
-  };
+  const reset = React.useCallback(() => {
+    setObj({
+      item1: {
+        item11: {
+          item111: {
+            value: "test1"
+          }
+        }
+      },
+      item2: "test2"
+    });
+  }, []);
 
   return (
     <div>
-      <Wrapper name="name1" value={obj} otherProp1={otherProp1} otherProp2="456">
+      <Wrapper
+        path="item1.item11"
+        name="item111"
+        onChange={React.useCallback(() => console.log(123), [])}
+        value={obj}
+        otherProp1={otherProp1}
+        otherProp2="456"
+      >
         <ChildComponent />
       </Wrapper>
-      <Wrapper name="name2" value={obj} otherProp1="789" otherProp2="101">
+      <Wrapper
+        name="item2"
+        onChange={React.useCallback(() => console.log(123), [])}
+        value={obj}
+        otherProp1="789"
+        otherProp2="101"
+      >
         <ChildComponent />
       </Wrapper>
-      <button onClick={updateName1}>Update Name1</button>
-      <button onClick={updateName1OtherProps}>Update Name1 OtherProps</button>
-      <button onClick={updateName2}>Update Name2</button>
+      <button onClick={updateItem1}>Update Item1</button>
+      <button onClick={updateItem1OtherProps}>Update Item1 OtherProps</button>
+      <button onClick={updateItem2}>Update Item2</button>
       <button onClick={reset}>Reset</button>
     </div>
   );

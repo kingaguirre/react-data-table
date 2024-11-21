@@ -184,6 +184,7 @@ const ChartComponent: React.FC<IProps> = (props) => {
     }
   }
 
+  console.log(123)
   return (
     <Container chartHeight={chartHeight} className="chart-container">
       <ChartWrapper>
@@ -192,11 +193,15 @@ const ChartComponent: React.FC<IProps> = (props) => {
             key={i}
             ref={(el) => labelRefs.current[i] = el}
             height={label.height}
+            data-height-in-px={(parseFloat(label.height) / 100) * parseFloat(chartHeight)}
+            data-height-in-px1={label?.offset || 0}
+            data-height-in-px2={(parseFloat(label.height) / 100)}
           >
             <div
               className="label-container"
+              data-bottom-values={labelBottomValues[i]}
               style={{ 
-                bottom: labelBottomValues[i] + (labelBottomValues[i] > 0 ? labelBottomValues[i + 1] : 0),
+                [parseFloat(label.height) > 95 ? 'top' : 'bottom']: labelBottomValues[i] + (labelBottomValues[i] > 0 ? labelBottomValues[i + 1] : 0),
                 opacity: labelBottomValues[i] !== undefined ? 1 : 0
               }}
             >

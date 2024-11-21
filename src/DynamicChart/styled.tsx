@@ -8,7 +8,7 @@ export const Container = styled.div<any>`
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  height: ${({ chartHeight }) => chartHeight || '600px'};
+  height: ${({ chartHeight }) => chartHeight};
   padding-top: 40px;
 `;
 

@@ -91,7 +91,7 @@ const chartOptions: Record<string, ChartOptions<'bar' | 'line' | 'pie'>> = {
     plugins: {
       legend: { display: false },
       title: { display: true, text: '', font: { size: 20 }, position: 'top' }, // Set to 'top' initially
-      datalabels: { display: false },
+      datalabels: { display: true },
     },
   },
   "distribution-horizontal-bar-chart": {
@@ -265,7 +265,6 @@ const TXChart: React.FC<TXChartProps> = ({
     }
   };
 
-  console.log(datasets)
   return (
     <div>
       <div style={{ width: '100%', height }}>
