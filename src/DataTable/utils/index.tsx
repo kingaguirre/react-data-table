@@ -898,15 +898,27 @@ export const copyDataWithExcelFormat = (data, selectedCells) => {
   return excelReadyText;
 }
 
+const getValueCaseInsensitive = (data_source, rowIndex, columnName) => {
+  // Preprocess the row at the specified index
+  const row = data_source[rowIndex];
+  const keyMap = new Map();
+
+  for (const key in row) {
+      keyMap.set(key.toLowerCase(), key);
+  }
+
+  // Lookup the column name case-insensitively
+  const originalKey = keyMap.get(columnName.toLowerCase());
+  return originalKey ? row[originalKey] : undefined;
+};
+
 // Assuming getValue and getDeepValue are utility functions you've defined elsewhere
 export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_cells, excelData) => {
   // Deep clone function to avoid mutating the original data_source
   const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
   // Step 1: Parse the Excel copied data
-  console.log('excelData: ', excelData)
   const rows = excelData.split('\n').map(row => row.split('\t'));
-  console.log('rows: ', rows)
 
   // Helper function to get column data from Excel data based on rowIndex and columnIndex
   const getExcelData = (rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex) => {
@@ -926,17 +938,19 @@ export const updateDataSourceFromExcelWithoutMutation = (data_source, selected_c
 
   // Step 3: Iterate over selected_cells to update newData
   selected_cells.forEach(cell => {
-    const { rowIndex, columnIndex, column, disablePaste } = cell;
+    const { rowIndex, columnIndex, columnName, column, disablePaste } = cell;
 
     // Skip update if disablePaste is true
     if (disablePaste) {
       return;
     }
 
-    const excelValue = getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex);
-    const pathParts = column?.split('.');
-    if (excelValue !== null && !!pathParts) {
+    const excelValue = excelData ? getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex) :
+      getValueCaseInsensitive(data_source, rowIndex, columnName);
+
+    if (excelValue !== null) {
       // Navigate to the correct location in newData and update it
+      const pathParts = column?.split('.');
       
       let currentObj: any = newData[rowIndex];
       for (let i = 0; i < pathParts?.length - 1; i++) {
@@ -1515,6 +1529,91 @@ const updateDataSource = (dataSource, deletedRows, rowKey, isPermanentDelete) =>
     );
   }
 };
+
+export const _updateDataSourceFromExcelWithoutMutation = (
+  data_source,
+  selected_cells,
+  excelData,
+  columnSettings
+) => {
+  // Deep clone function to avoid mutating the original data_source
+  const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+  // Step 1: Parse the Excel copied data
+  const rows = excelData.split('\n').map((row) => row.split('\t'));
+
+  // Helper function to get column data from Excel data based on rowIndex and columnIndex
+  const getExcelData = (rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex) => {
+    const adjustedRowIndex = rowIndex - lowestRowIndex;
+    if (adjustedRowIndex < 0 || adjustedRowIndex >= rows.length) return null;
+    const row = rows[adjustedRowIndex];
+    const adjustedColumnIndex = columnIndex - lowestColumnIndex;
+    return row && adjustedColumnIndex >= 0 && adjustedColumnIndex < row.length ? row[adjustedColumnIndex] : null;
+  };
+
+  // Helper function to check if a title exists in columnSettings
+  const isTitleValid = (header) =>
+    columnSettings.some(
+      (setting) => setting.title.toLowerCase() === header.toLowerCase()
+    );
+
+  // Step 2: Deep clone the original data_source to avoid mutations
+  let newData = deepClone(data_source);
+
+  // Find the lowest rowIndex and columnIndex for adjustment
+  const lowestRowIndex = Math.min(...selected_cells.map((cell) => cell.rowIndex));
+  const lowestColumnIndex = Math.min(...selected_cells.map((cell) => cell.columnIndex));
+
+  // Step 3: Iterate over selected_cells to update newData
+  selected_cells.forEach((cell) => {
+    const { rowIndex, columnIndex, columnName, column, disablePaste } = cell;
+
+    // Skip update if disablePaste is true
+    if (disablePaste) {
+      return;
+    }
+
+    const excelValue = excelData
+      ? getExcelData(rowIndex, columnIndex, lowestRowIndex, lowestColumnIndex)
+      : getValueCaseInsensitive(data_source, rowIndex, columnName);
+
+    const pathParts = column?.split('.');
+    if (excelValue !== null && !!pathParts) {
+      // Navigate to the correct location in newData and update it
+      let currentObj = newData[rowIndex];
+      for (let i = 0; i < pathParts?.length - 1; i++) {
+        if (!currentObj[pathParts[i]]) {
+          currentObj[pathParts[i]] = {}; // Create nested objects if they don't exist
+        }
+        currentObj = currentObj[pathParts[i]];
+      }
+      // Directly update the last part of the path with the excel value
+      currentObj[pathParts[(pathParts?.length || 0) - 1]] = excelValue;
+    }
+  });
+
+  // Step 4: Remove invalid column data and empty rows
+  newData = newData.map((row) => {
+    // Remove invalid columns from the row
+    const filteredRow = Object.keys(row).reduce((acc, key) => {
+      if (isTitleValid(key)) {
+        acc[key] = row[key];
+      }
+      return acc;
+    }, {});
+
+    // Return filtered row
+    return filteredRow;
+  });
+
+  // Filter out rows where all cells are empty
+  newData = newData.filter((row) =>
+    Object.values(row).some((value) => value !== null && value !== '')
+  );
+
+  return newData;
+};
+
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
