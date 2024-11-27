@@ -1654,7 +1654,26 @@ export const _updateDataSourceFromExcelWithoutMutation = (
   return newData;
 };
 
+export const findMismatchedCells = (columnSettings, selected_cells) => {
+  // Filter column settings to exclude those with class = "custom-action-column"
+  const filteredColumnSettings = columnSettings.filter(setting => setting.class !== "custom-action-column");
+  
+  // Create a map of columnSettings where the key is the column and value is the title
+  const columnTitleMap = filteredColumnSettings.reduce((map, setting) => {
+    map[setting.column] = setting.title;
+    return map;
+  }, {});
 
+  // Find mismatched cells
+  const mismatchedCells = selected_cells.filter(cell => {
+    // Check if columnName in selected_cells matches the title in columnSettings
+    const expectedTitle = columnTitleMap[cell.column];
+    return expectedTitle !== cell.columnName;
+  });
+
+  // Return mismatched cells
+  return mismatchedCells;
+}
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
