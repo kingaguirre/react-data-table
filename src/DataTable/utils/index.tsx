@@ -1675,6 +1675,48 @@ export const findMismatchedCells = (columnSettings, selected_cells) => {
   return mismatchedCells;
 }
 
+
+// export const isValidDate = (dateValue: string, returnBoolean = false) => {
+//   const dateFormat1Regex = /^\d{4}-\d{2}-\d{2}$/;  // e.g. "2023-27-04"
+//   const dateFormat2Regex = /^\d{2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/; // e.g. "27-Apr-2023"
+
+//   // Only process if the string strictly matches one of the expected formats.
+//   if (!dateFormat1Regex.test(dateValue) && !dateFormat2Regex.test(dateValue)) {
+//     return returnBoolean ? false : "Invalid Date.";
+//   }
+
+//   const months: Record<string, string> = {
+//     Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+//     Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+//   };
+
+//   let parsedDate: Date;
+
+//   if (dateFormat2Regex.test(dateValue)) {
+//     const parts = dateValue.split("-");
+//     // Convert "27-Apr-2023" to "2023-04-27"
+//     parsedDate = new Date(`${parts[2]}-${months[parts[1]]}-${parts[0]}`);
+//   } else {
+//     // For format "2023-27-04" (if this is really the intended format)
+//     parsedDate = new Date(dateValue);
+//   }
+
+//   // Check if the parsed date is valid.
+//   if (isNaN(parsedDate.getTime())) {
+//     return returnBoolean ? false : "Invalid Date.";
+//   }
+
+//   // Validate that the day is within the valid range for the month,
+//   // and that the year meets the minimum requirement.
+//   const minYear = 1910;
+//   const validDaysInMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 1, 0).getDate();
+//   if (parsedDate.getFullYear() < minYear || parsedDate.getDate() > validDaysInMonth) {
+//     return returnBoolean ? false : "Invalid Date.";
+//   }
+
+//   return returnBoolean ? true : "VALID";
+// }
+
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
 export * from "./useCheckOverflow";
