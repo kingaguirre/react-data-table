@@ -20,6 +20,9 @@ import {DevelopersGuide} from './DevelopersGuide'
 import { ParentComponent } from './ReRenderComponent'
 import { DataTableEnhancement } from './DataTableEnhancement'
 import Popover from './Popover'
+import { TXPopOver } from '../TXPopOver'
+import { PopupTooltip } from '../TXPopOver/index_'
+import { VirtualList } from '../Virtualizer'
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -513,6 +516,22 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/>
+      {/* <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black'}}>
+        <div style={{width: 1000, height: 1000, padding: 200}}>
+          <TXPopOver content={(
+            <div style={{width: 300, height: 300, padding: 20}}>test</div>
+          )} trigger='click'>
+            <button>test</button>
+          </TXPopOver>
+
+          <PopupTooltip title='test' content={(
+            <div style={{width: 300, height: 300, padding: 20}}>test</div>
+          )} trigger='click'>
+            <button>test</button>
+          </PopupTooltip>
+        </div>
+      </div> */}
       {/* <div style={{margin: 400}}>
         <Popover
           trigger="click"
@@ -747,10 +766,10 @@ export default () => {
       {/* <ResizableTable/>
       <ResizableTable/> */}
       {/* <App/> */}
-      <button onClick={handleClick}>Validate</button>
+      {/* <button onClick={handleClick}>Validate</button>
       <button onClick={handleGetSelectedRows}>Get Selected Rows</button>
       <button onClick={handleClearSelectedRows}>Clear Selected Rows</button>
-      <button onClick={handleClearActiveRow}>Clear Active Rows</button>
+      <button onClick={handleClearActiveRow}>Clear Active Rows</button> */}
       {/* <MenuForm
         ref={menuFormRef}
         formSettings={FORM_MENU_FIELD_SETTINGS}
@@ -973,7 +992,7 @@ export default () => {
 
       />
       <DataTableEnhancement/> */}
-      <DevelopersGuide/>
+      {/* <DevelopersGuide/> */}
       {/*<UploadSummary/>
       <DownloadSummary/> */}
     <div style={{height: 100}}/>
