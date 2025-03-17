@@ -10,7 +10,7 @@ export function VirtualList({ items }: VirtualListProps) {
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 35, // estimated row height in pixels
+    itemSize: 35, // estimated row height in pixels
     overscan: 5,
   });
 
@@ -32,7 +32,6 @@ export function VirtualList({ items }: VirtualListProps) {
           {rowVirtualizer.virtualItems.map((virtualRow: VirtualItem) => (
             <div
               key={virtualRow.key}
-              ref={virtualRow.measureRef}
               style={{
                 position: 'absolute',
                 top: 0,
