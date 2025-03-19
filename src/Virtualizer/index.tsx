@@ -53,7 +53,7 @@ export function VirtualList({ items }: VirtualListProps) {
     getScrollElement: () => parentRef.current,
     itemSize: 35, // default row height in pixels
     overscan: 5,
-    disabled: true
+    // disabled: true
   });
 
   // Track which rows are in edit mode.
@@ -107,6 +107,7 @@ export function VirtualList({ items }: VirtualListProps) {
               key={virtualRow.key}
               virtualRow={virtualRow}
               registerRowHeight={rowVirtualizer.registerRowHeight}
+              // disabled
             >
               <MyActualRow
                 index={virtualRow.index}

@@ -5,13 +5,19 @@ interface VirtualRowItemProps {
   virtualRow: VirtualItem;
   registerRowHeight: (index: number, height: number) => void;
   children: React.ReactNode;
+  disabled: boolean;
 }
 
 export const VirtualRowItem: React.FC<VirtualRowItemProps> = ({
   virtualRow,
   registerRowHeight,
   children,
+  disabled
 }) => {
+  if (disabled) {
+    return <>{children}</>
+  }
+
   const rowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
