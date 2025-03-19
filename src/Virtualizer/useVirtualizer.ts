@@ -12,19 +12,38 @@ export interface UseVirtualizerOptions {
   getScrollElement: () => HTMLElement | null;
   itemSize: number; // default height in pixels
   overscan?: number;
+  disabled?: boolean;
 }
 
 /**
  * useVirtualizer
  *
- * Virtualizer hook that supports dynamic row heights.
+ * Virtualizer hook that supports dynamic row heights. When "disabled" is true,
+ * it returns a basic result without attaching any event listeners or calculations.
  */
 export function useVirtualizer({
   count,
   getScrollElement,
   itemSize,
   overscan = 5,
+  disabled = false,
 }: UseVirtualizerOptions) {
+  // If disabled, skip all extra calculations.
+  if (disabled) {
+    const virtualItems: VirtualItem[] = Array.from({ length: count }, (_, i) => ({
+      index: i,
+      start: i * itemSize,
+      size: itemSize,
+      key: i.toString(),
+    }));
+    return {
+      virtualItems,
+      totalSize: count * itemSize,
+      scrollToIndex: () => {},
+      registerRowHeight: () => {},
+    };
+  }
+
   // Track scroll offset and viewport height.
   const [scrollOffset, setScrollOffset] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);

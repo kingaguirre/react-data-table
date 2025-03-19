@@ -53,6 +53,7 @@ export function VirtualList({ items }: VirtualListProps) {
     getScrollElement: () => parentRef.current,
     itemSize: 35, // default row height in pixels
     overscan: 5,
+    disabled: true
   });
 
   // Track which rows are in edit mode.
