@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
 export interface VirtualItem {
   index: number;
@@ -10,15 +10,14 @@ export interface VirtualItem {
 export interface UseVirtualizerOptions {
   count: number;
   getScrollElement: () => HTMLElement | null;
-  itemSize: number; // fixed height for each item in pixels
+  itemSize: number; // default height in pixels
   overscan?: number;
 }
 
 /**
  * useVirtualizer
  *
- * A simple virtualizer hook that computes visible items using a fixed item height.
- * This removes the need for ref-based measurement.
+ * Updated virtualizer hook to handle dynamic row heights.
  */
 export function useVirtualizer({
   count,
@@ -26,24 +25,37 @@ export function useVirtualizer({
   itemSize,
   overscan = 5,
 }: UseVirtualizerOptions) {
-  // State to track the current scroll offset and the viewport's height
+  // Track scroll offset and viewport height.
   const [scrollOffset, setScrollOffset] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
+
+  // Keep an array of heights, starting with the default itemSize.
+  const [heights, setHeights] = useState<number[]>(() =>
+    Array(count).fill(itemSize)
+  );
+
+  // If count changes, preserve previous heights when possible.
+  useEffect(() => {
+    setHeights(prev => {
+      const newHeights = Array(count).fill(itemSize);
+      for (let i = 0; i < Math.min(prev.length, count); i++) {
+        newHeights[i] = prev[i];
+      }
+      return newHeights;
+    });
+  }, [count, itemSize]);
 
   useEffect(() => {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
 
-    // Set initial measurements
+    // Set initial measurements.
     setViewportHeight(scrollElement.clientHeight);
     setScrollOffset(scrollElement.scrollTop);
 
-    // Update on scroll
     const onScroll = () => {
       setScrollOffset(scrollElement.scrollTop);
     };
-
-    // Update on window resize
     const onResize = () => {
       setViewportHeight(scrollElement.clientHeight);
     };
@@ -57,49 +69,96 @@ export function useVirtualizer({
     };
   }, [getScrollElement]);
 
-  // Calculate total container height
-  const totalSize = count * itemSize;
+  // Compute cumulative offsets based on measured heights.
+  const cumulativeOffsets = useMemo(() => {
+    const offsets = new Array(count + 1);
+    offsets[0] = 0;
+    for (let i = 0; i < count; i++) {
+      offsets[i + 1] = offsets[i] + heights[i];
+    }
+    return offsets;
+  }, [heights, count]);
 
-  // Determine the visible range based on scroll position and viewport height
-  const startIndex = Math.floor(scrollOffset / itemSize);
-  const endIndex = Math.min(count - 1, Math.floor((scrollOffset + viewportHeight) / itemSize));
+  // Total container height.
+  const totalSize = cumulativeOffsets[count];
+
+  // Binary search to find the start index based on scrollOffset.
+  const findStartIndex = (offset: number) => {
+    let low = 0;
+    let high = count - 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      if (cumulativeOffsets[mid] <= offset && cumulativeOffsets[mid + 1] > offset) {
+        return mid;
+      } else if (cumulativeOffsets[mid] > offset) {
+        high = mid - 1;
+      } else {
+        low = mid + 1;
+      }
+    }
+    return 0;
+  };
+
+  const startIndex = findStartIndex(scrollOffset);
+
+  // Find the end index by advancing until we exceed the viewport height.
+  let endIndex = startIndex;
+  while (
+    endIndex < count &&
+    cumulativeOffsets[endIndex + 1] < scrollOffset + viewportHeight
+  ) {
+    endIndex++;
+  }
+
   const visibleStartIndex = Math.max(0, startIndex - overscan);
   const visibleEndIndex = Math.min(count - 1, endIndex + overscan);
 
-  // Generate the list of virtual items to render
+  // Create the virtual items with dynamic positions and sizes.
   const virtualItems: VirtualItem[] = [];
   for (let i = visibleStartIndex; i <= visibleEndIndex; i++) {
     virtualItems.push({
       index: i,
-      start: i * itemSize,
-      size: itemSize,
+      start: cumulativeOffsets[i],
+      size: heights[i],
       key: i.toString(),
     });
   }
 
-  // Helper to scroll to a specific item
+  // Callback to update a row's height.
+  const registerRowHeight = useCallback((index: number, height: number) => {
+    setHeights(prev => {
+      if (prev[index] === height) return prev;
+      const newHeights = [...prev];
+      newHeights[index] = height;
+      return newHeights;
+    });
+  }, []);
+
+  // Scroll to a specific index using the computed offsets.
   const scrollToIndex = useCallback(
     (index: number, options?: { align?: 'start' | 'center' | 'end' }) => {
       const scrollElement = getScrollElement();
       if (!scrollElement) return;
       const align = options?.align || 'start';
-      const itemStart = index * itemSize;
+      const itemStart = cumulativeOffsets[index];
+      const itemHeight = heights[index];
       let newScroll: number;
       if (align === 'center') {
-        newScroll = itemStart - viewportHeight / 2 + itemSize / 2;
+        newScroll = itemStart - viewportHeight / 2 + itemHeight / 2;
       } else if (align === 'end') {
-        newScroll = itemStart - viewportHeight + itemSize;
+        newScroll = itemStart - viewportHeight + itemHeight;
       } else {
         newScroll = itemStart;
       }
       scrollElement.scrollTo({ top: newScroll, behavior: 'smooth' });
     },
-    [getScrollElement, itemSize, viewportHeight]
+    [getScrollElement, cumulativeOffsets, heights, viewportHeight]
   );
 
   return {
     virtualItems,
     totalSize,
     scrollToIndex,
+    registerRowHeight,
   };
 }
