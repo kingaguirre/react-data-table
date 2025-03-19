@@ -17,7 +17,7 @@ export interface UseVirtualizerOptions {
 /**
  * useVirtualizer
  *
- * Updated virtualizer hook to handle dynamic row heights.
+ * Virtualizer hook that supports dynamic row heights.
  */
 export function useVirtualizer({
   count,

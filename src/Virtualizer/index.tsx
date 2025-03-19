@@ -1,9 +1,50 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useVirtualizer, VirtualItem } from './useVirtualizer';
+import React, { useState, useRef } from 'react';
+import { useVirtualizer } from './useVirtualizer';
+import { VirtualRowItem } from './VirtualRowItem';
 
 interface VirtualListProps {
   items: string[];
 }
+
+// A simple row component that toggles edit mode.
+const MyActualRow: React.FC<{
+  index: number;
+  isEditing: boolean;
+  toggleEditing: (index: number) => void;
+  content: string;
+}> = ({ index, isEditing, toggleEditing, content }) => {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        background: isEditing ? '#f0f8ff' : '#fff',
+      }}
+    >
+      <div style={{ flex: '0 0 80px', fontWeight: 'bold' }}>
+        Row {index}
+      </div>
+      <div style={{ flex: 1, padding: '0 8px' }}>
+        {isEditing ? (
+          <textarea
+            defaultValue={content}
+            style={{ width: '100%', minHeight: '60px' }}
+          />
+        ) : (
+          <span>{content}</span>
+        )}
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleEditing(index);
+        }}
+      >
+        {isEditing ? 'Save' : 'Edit'}
+      </button>
+    </div>
+  );
+};
 
 export function VirtualList({ items }: VirtualListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -14,79 +55,11 @@ export function VirtualList({ items }: VirtualListProps) {
     overscan: 5,
   });
 
-  // Track which rows are in "edit" mode for the dynamic cell.
+  // Track which rows are in edit mode.
   const [editingRows, setEditingRows] = useState<Record<number, boolean>>({});
 
   const toggleEditing = (index: number) => {
     setEditingRows(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  // VirtualRow component uses ResizeObserver to monitor height changes.
-  const VirtualRow = ({
-    virtualRow,
-  }: {
-    virtualRow: VirtualItem;
-  }) => {
-    const rowRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      if (!rowRef.current) return;
-      const observer = new ResizeObserver(entries => {
-        for (let entry of entries) {
-          const newHeight = entry.contentRect.height;
-          rowVirtualizer.registerRowHeight(virtualRow.index, newHeight);
-        }
-      });
-      observer.observe(rowRef.current);
-      return () => {
-        observer.disconnect();
-      };
-    }, [virtualRow.index, rowVirtualizer]);
-
-    return (
-      <div
-        ref={rowRef}
-        style={{
-          position: 'absolute',
-          top: virtualRow.start,
-          left: 0,
-          width: '100%',
-          borderBottom: '1px solid #ccc',
-          boxSizing: 'border-box',
-          padding: '8px',
-          background: editingRows[virtualRow.index] ? '#f0f8ff' : '#fff',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {/* First cell: fixed width label */}
-          <div style={{ flex: '0 0 80px', fontWeight: 'bold' }}>
-            Row {virtualRow.index}
-          </div>
-          {/* Second cell: dynamic content */}
-          <div style={{ flex: 1, padding: '0 8px' }}>
-            {editingRows[virtualRow.index] ? (
-              // When in edit mode, show a textarea (larger height)
-              <textarea
-                defaultValue={items[virtualRow.index]}
-                style={{ width: '100%', minHeight: '60px' }}
-              />
-            ) : (
-              // Otherwise, show text content.
-              <span>{items[virtualRow.index]}</span>
-            )}
-          </div>
-          {/* Toggle button for switching between text and textbox */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleEditing(virtualRow.index);
-            }}
-          >
-            {editingRows[virtualRow.index] ? 'Save' : 'Edit'}
-          </button>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -101,7 +74,7 @@ export function VirtualList({ items }: VirtualListProps) {
       }}
     >
       <div style={{ width: 1000, border: '1px solid black', position: 'relative' }}>
-        {/* Sticky headers */}
+        {/* Sticky Headers */}
         <div
           style={{
             position: 'sticky',
@@ -126,10 +99,21 @@ export function VirtualList({ items }: VirtualListProps) {
         >
           Header 2
         </div>
-        {/* Virtualized rows container */}
+        {/* Virtualized Rows */}
         <div style={{ height: rowVirtualizer.totalSize, position: 'relative' }}>
           {rowVirtualizer.virtualItems.map(virtualRow => (
-            <VirtualRow key={virtualRow.key} virtualRow={virtualRow} />
+            <VirtualRowItem
+              key={virtualRow.key}
+              virtualRow={virtualRow}
+              registerRowHeight={rowVirtualizer.registerRowHeight}
+            >
+              <MyActualRow
+                index={virtualRow.index}
+                isEditing={!!editingRows[virtualRow.index]}
+                toggleEditing={toggleEditing}
+                content={items[virtualRow.index]}
+              />
+            </VirtualRowItem>
           ))}
         </div>
       </div>
