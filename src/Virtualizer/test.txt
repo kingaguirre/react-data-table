@@ -6,43 +6,52 @@ const TestWrapperForTXDataTable = () => {
   const [dataSource, setDataSource] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  // The fetchPageData function calls the DummyJSON API and updates parent state.
+  // Simulate the fetchPageData function without calling an external API.
+  // This function returns a promise that resolves to fake data.
   const fetchPageData = useCallback(async (values) => {
     const { pageIndex, pageSize } = values;
-    // Using DummyJSON's API (for example, "users" endpoint)
-    const response = await fetch(
-      `https://dummyjson.com/users?limit=${pageSize}&skip=${pageIndex * pageSize}`
-    );
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    const json = await response.json();
-    // DummyJSON returns an object with "users" and "total" keys.
-    // We'll map it to your expected structure:
-    setDataSource(json.users);
-    setTotalRecords(json.total);
-    return { data: json.users, totalData: json.total };
+    // Simulate asynchronous delay if needed:
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    
+    const fakeResponse = {
+      // Simulate 10 records
+      data: Array.from({ length: pageSize }, (_, i) => ({
+        id: pageIndex * pageSize + i + 1,
+        name: `Name ${pageIndex * pageSize + i + 1}`,
+        username: `username${pageIndex * pageSize + i + 1}`,
+        email: `email${pageIndex * pageSize + i + 1}@dummy.com`,
+        address: { city: `City ${pageIndex * pageSize + i + 1}` },
+        company: { name: `Company ${pageIndex * pageSize + i + 1}` },
+      })),
+      totalData: 100, // For example, total records is 100
+    };
+
+    // Update parent state with the fake data.
+    setDataSource(fakeResponse.data);
+    setTotalRecords(fakeResponse.totalData);
+    return { data: fakeResponse.data, totalData: fakeResponse.totalData };
   }, []);
 
-  // Simulate an initial fetch when the component mounts
+  // Simulate an initial data fetch when the component mounts.
   useEffect(() => {
     fetchPageData({ pageIndex: 0, pageSize: 10 });
   }, [fetchPageData]);
 
   return (
     <TXDataTableComponent
-      columnSettings={[{ title: 'Name', column: 'firstName' }]} // adjust based on DummyJSON structure
+      columnSettings={[{ title: 'Name', column: 'name' }]}
       dataSource={dataSource}
       totalItems={totalRecords}
       ssrConfig={{
         fetchPageData,
-        // Optionally add other callbacks like allData or onDownloadAllClick
+        // Optionally, add other callbacks like allData or onDownloadAllClick.
       }}
     />
   );
 };
 
 export default TestWrapperForTXDataTable;
+
 
 
 // __tests__/TXDataTable.test.js
