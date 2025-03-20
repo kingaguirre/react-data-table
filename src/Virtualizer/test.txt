@@ -1,0 +1,80 @@
+// __tests__/TXDataTable.test.js
+import React from 'react';
+import { render, waitFor, screen, fireEvent } from '@testing-library/react';
+import TXDataTableComponent from '../TXDataTableComponent'; // adjust the import to your file location
+
+// Mock global fetch so that API calls are simulated and isolated
+global.fetch = jest.fn();
+
+describe('TXDataTableComponent', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+  });
+
+  test('should fetch page data and render 10 records with total count', async () => {
+    // Simulate API response for fetching page data
+    // This response mimics a DummyJSON-like structure with "data" and "totalData"
+    const fakePageDataResponse = {
+      data: Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        name: `Name ${i + 1}`,
+        username: `username${i + 1}`,
+        email: `email${i + 1}@dummy.com`,
+        address: { city: `City ${i + 1}` },
+        company: { name: `Company ${i + 1}` }
+      })),
+      totalData: 100
+    };
+
+    // When the component calls fetch for page data, resolve with the fake response
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => fakePageDataResponse,
+    });
+
+    render(<TXDataTableComponent />);
+
+    // Wait for fetch to be called and state to update
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+
+    // Check that one of the records is rendered
+    expect(screen.getByText('Name 1')).toBeInTheDocument();
+
+    // Verify that the total count (100) is being rendered somewhere in the component.
+    // Adjust the regex as needed based on your actual rendering.
+    expect(screen.getByText(/100/)).toBeInTheDocument();
+  });
+
+  test('should fetch all data when handleGetAllData is triggered', async () => {
+    // Simulate API response for fetching all data (e.g., for a download or similar action)
+    const fakeAllDataResponse = {
+      data: Array.from({ length: 50 }, (_, i) => ({
+        id: i + 1,
+        name: `Name ${i + 1}`,
+        username: `username${i + 1}`,
+        email: `email${i + 1}@dummy.com`,
+        address: { city: `City ${i + 1}` },
+        company: { name: `Company ${i + 1}` }
+      }))
+    };
+
+    // Resolve fetch with the fake "all data" response when called
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => fakeAllDataResponse,
+    });
+
+    render(<TXDataTableComponent />);
+
+    // For example, if your TXDataTable exposes a "Download All" button via ssrConfig.onDownloadAllClick,
+    // find and click that button. Adjust the query below based on your actual UI.
+    const downloadButton = screen.getByText(/download all/i);
+    fireEvent.click(downloadButton);
+
+    // Wait for the fetch call to be triggered for downloading all data
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+
+    // Optionally, if the component displays something after fetching all data,
+    // add assertions here. Otherwise, the test verifies the API was called correctly.
+  });
+});
