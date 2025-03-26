@@ -1676,46 +1676,100 @@ export const findMismatchedCells = (columnSettings, selected_cells) => {
 }
 
 
-// export const isValidDate = (dateValue: string, returnBoolean = false) => {
-//   const dateFormat1Regex = /^\d{4}-\d{2}-\d{2}$/;  // e.g. "2023-27-04"
-//   const dateFormat2Regex = /^\d{2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/; // e.g. "27-Apr-2023"
+// export const isValidDate = (dateValue, returnBoolean = false) => {
+//   // Trim any extra whitespace from the beginning and end.
+//   dateValue = dateValue.trim();
 
-//   // Only process if the string strictly matches one of the expected formats.
+//   // Only two allowed formats:
+//   // Format 1 (ISO): "YYYY-MM-DD" e.g., "2023-04-27"
+//   // Format 2: "DD-MMM-YYYY" e.g., "27-Apr-2023" (month is case-insensitive)
+//   const dateFormat1Regex = /^\d{4}-\d{2}-\d{2}$/;
+//   const dateFormat2Regex = /^\d{2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/i;
+
+//   // Reject any input that doesn't strictly match one of the valid formats.
 //   if (!dateFormat1Regex.test(dateValue) && !dateFormat2Regex.test(dateValue)) {
 //     return returnBoolean ? false : "Invalid Date.";
 //   }
 
-//   const months: Record<string, string> = {
-//     Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
-//     Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
-//   };
+//   let day, month, year;
 
-//   let parsedDate: Date;
-
-//   if (dateFormat2Regex.test(dateValue)) {
+//   if (dateFormat1Regex.test(dateValue)) {
+//     // Format 1: "YYYY-MM-DD"
 //     const parts = dateValue.split("-");
-//     // Convert "27-Apr-2023" to "2023-04-27"
-//     parsedDate = new Date(`${parts[2]}-${months[parts[1]]}-${parts[0]}`);
+//     year = parseInt(parts[0], 10);
+//     month = parseInt(parts[1], 10);
+//     day = parseInt(parts[2], 10);
 //   } else {
-//     // For format "2023-27-04" (if this is really the intended format)
-//     parsedDate = new Date(dateValue);
+//     // Format 2: "DD-MMM-YYYY" with case-insensitive month.
+//     const parts = dateValue.split("-");
+//     day = parseInt(parts[0], 10);
+//     year = parseInt(parts[2], 10);
+//     // Normalize month (first letter uppercase, rest lowercase)
+//     const monthStr = parts[1];
+//     const formattedMonthStr = monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase();
+//     const months = {
+//       Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6,
+//       Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12
+//     };
+//     month = months[formattedMonthStr];
 //   }
 
-//   // Check if the parsed date is valid.
-//   if (isNaN(parsedDate.getTime())) {
-//     return returnBoolean ? false : "Invalid Date.";
-//   }
-
-//   // Validate that the day is within the valid range for the month,
-//   // and that the year meets the minimum requirement.
+//   // Validate year (with a minimum year of 1910)
 //   const minYear = 1910;
-//   const validDaysInMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 1, 0).getDate();
-//   if (parsedDate.getFullYear() < minYear || parsedDate.getDate() > validDaysInMonth) {
+//   if (year < minYear) {
 //     return returnBoolean ? false : "Invalid Date.";
 //   }
 
+//   // Check month range
+//   if (month < 1 || month > 12) {
+//     return returnBoolean ? false : "Invalid Date.";
+//   }
+
+//   // Determine the valid number of days in the month (handles leap years)
+//   const validDaysInMonth = new Date(year, month, 0).getDate();
+//   if (day < 1 || day > validDaysInMonth) {
+//     return returnBoolean ? false : "Invalid Date.";
+//   }
+
+//   // If all checks pass, the date is valid.
 //   return returnBoolean ? true : "VALID";
-// }
+// };
+
+// // -- Test examples --
+
+// const testCases = [
+//   // Valid inputs
+//   { input: "2023-04-27", expected: "VALID" },
+//   { input: "27-Apr-2023", expected: "VALID" },
+//   { input: "27-aPr-2023", expected: "VALID" },
+//   { input: "2024-02-29", expected: "VALID" },   // Leap year
+//   { input: "1910-01-01", expected: "VALID" },
+//   { input: "15-Aug-1947", expected: "VALID" },
+//   { input: "29-FEB-2020", expected: "VALID" },   // Case-insensitive month
+//   { input: "29-feb-2020", expected: "VALID" },
+//   { input: " 2023-04-27 ", expected: "VALID" },   // Extra spaces at beginning/end
+
+//   // Invalid inputs
+//   { input: "2024 - 02-22", expected: "Invalid Date." }, // Spaces within the date string
+//   { input: "2023-02-29", expected: "Invalid Date." },    // 2023 is not a leap year
+//   { input: "29-Feb-2023", expected: "Invalid Date." },
+//   { input: "89-Feb-2024", expected: "Invalid Date." },
+//   { input: "123123123", expected: "Invalid Date." },
+//   { input: "24/feb/2025", expected: "Invalid Date." },
+//   { input: "1909-12-31", expected: "Invalid Date." },    // Year below minimum
+//   { input: "31-Apr-2023", expected: "Invalid Date." },     // April has 30 days
+//   { input: "00-Jan-2020", expected: "Invalid Date." },     // Day cannot be 0
+//   { input: "2023-00-27", expected: "Invalid Date." },      // Month cannot be 0
+//   { input: "2023-13-01", expected: "Invalid Date." },      // Month exceeds 12
+//   { input: "2023-11-31", expected: "Invalid Date." },      // November has 30 days
+//   { input: "Feb 27 2023", expected: "Invalid Date." }       // Wrong format
+// ];
+
+// testCases.forEach(({ input, expected }) => {
+//   const result = isValidDate(input);
+//   console.log(`Input: "${input}" → Output: ${result} (Expected: ${expected})`);
+// });
+
 
 export * from "./useDragDropManager";
 export * from "./useResizeManager";
