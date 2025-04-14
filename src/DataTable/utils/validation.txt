@@ -52,3 +52,33 @@ const MyComponent = (props) => {
     </>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+// stateWorker.ts
+// NOTE: this runs in a Web Worker context
+
+type MsgIn  = { key: string; value: any };
+type MsgOut = { key: string; value: any };
+
+self.onmessage = (e: MessageEvent<MsgIn>) => {
+  const { key, value } = e.data;
+
+  // (optional) do any expensive transformation here,
+  // e.g. sorting/filtering huge arrays, etc.
+  // const processed = heavyCompute(value);
+
+  // For now we just pass it straight through:
+  const processed = value;
+
+  // post back the result
+  (self as any).postMessage({ key, value: processed } as MsgOut);
+};
