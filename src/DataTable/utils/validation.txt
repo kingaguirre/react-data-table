@@ -1,56 +1,29 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import StateWorker from './stateWorker.ts'; // assuming you have bundler support for workers
+// MyComponent.tsx
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-const MyComponent = (props) => {
-  const [globalState, setGlobalState] = useState<IGlobalState>({
-    /* … your initial state … */,
-    loading: false,
-  });
+// this tells the bundler “treat this TS file as a worker module”
+const workerURL = new URL('./stateWorker.ts', import.meta.url);
 
-  // keep a ref to the worker so we don’t recreate it every render
+const MyComponent = () => {
+  const [globalState, setGlobalState] = useState<IGlobalState>({ /* … */ loading: false });
   const workerRef = useRef<Worker>();
 
-  // initialize worker once
   useEffect(() => {
-    workerRef.current = new StateWorker();
+    // note the `{ type: 'module' }` so it can import/export
+    workerRef.current = new Worker(workerURL, { type: 'module' });
     workerRef.current.onmessage = (e: MessageEvent<{ key: string; value: any }>) => {
       const { key, value } = e.data;
-      // merge in the processed value and turn off loading
-      setGlobalState(prev => ({
-        ...prev,
-        [key]: value,
-        loading: false,
-      }));
+      setGlobalState(prev => ({ ...prev, [key]: value, loading: false }));
     };
-    return () => {
-      workerRef.current?.terminate();
-    };
+    return () => workerRef.current?.terminate();
   }, []);
 
-  // updated setter that uses the worker
   const setGlobalStateByKey = useCallback((key: string, value: any) => {
-    // flip on loading
     setGlobalState(prev => ({ ...prev, loading: true }));
-    // send work to the worker
     workerRef.current?.postMessage({ key, value });
   }, []);
 
-  // likewise for bulk updates
-  const setGlobalStateByObj = useCallback((newValues: Record<string, any>) => {
-    setGlobalState(prev => ({ ...prev, loading: true }));
-    // if you want to batch them, send each key individually:
-    Object.entries(newValues).forEach(([key, value]) =>
-      workerRef.current?.postMessage({ key, value })
-    );
-  }, []);
-
-  // … your component render …
-  return (
-    <>
-      {globalState.loading && <div className="spinner">Updating…</div>}
-      {/* rest of your UI */}
-    </>
-  );
+  // …
 };
 
 
