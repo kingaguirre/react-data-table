@@ -1,16 +1,22 @@
 // MyComponent.tsx
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-// this tells the bundler “treat this TS file as a worker module”
-const workerURL = new URL('./stateWorker.ts', import.meta.url);
+const workerCode = `
+  self.onmessage = function(e) {
+    const { key, value } = e.data;
+    // any heavy compute here...
+    self.postMessage({ key, value });
+  };
+`;
 
-const MyComponent = () => {
-  const [globalState, setGlobalState] = useState<IGlobalState>({ /* … */ loading: false });
+export const MyComponent = () => {
+  const [globalState, setGlobalState] = useState<IGlobalState>({ /* … */, loading: false });
   const workerRef = useRef<Worker>();
 
   useEffect(() => {
-    // note the `{ type: 'module' }` so it can import/export
-    workerRef.current = new Worker(workerURL, { type: 'module' });
+    // create a blob URL from our inline code
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    workerRef.current = new Worker(URL.createObjectURL(blob));
     workerRef.current.onmessage = (e: MessageEvent<{ key: string; value: any }>) => {
       const { key, value } = e.data;
       setGlobalState(prev => ({ ...prev, [key]: value, loading: false }));
@@ -24,34 +30,4 @@ const MyComponent = () => {
   }, []);
 
   // …
-};
-
-
-
-
-
-
-
-
-
-
-
-// stateWorker.ts
-// NOTE: this runs in a Web Worker context
-
-type MsgIn  = { key: string; value: any };
-type MsgOut = { key: string; value: any };
-
-self.onmessage = (e: MessageEvent<MsgIn>) => {
-  const { key, value } = e.data;
-
-  // (optional) do any expensive transformation here,
-  // e.g. sorting/filtering huge arrays, etc.
-  // const processed = heavyCompute(value);
-
-  // For now we just pass it straight through:
-  const processed = value;
-
-  // post back the result
-  (self as any).postMessage({ key, value: processed } as MsgOut);
 };
