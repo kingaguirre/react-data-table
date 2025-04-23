@@ -278,160 +278,69 @@ function _mergeObject(obj1, obj2) {
   return result;
 }
 */
+// src/utils/getInputProps.ts
+import { cloneDeep } from 'lodash'      // you can remove this if you don't need it anymore
+import { _mergeObject } from './utils'
+const KEY_NAME = 'key_name'
 
-// src/utils/input-props.ts
-import { useEffect, useRef, useMemo, useCallback } from 'react';
-import { debounce } from 'lodash';
-import { _mergeObject } from '..'; // Make sure this import points to your actual merge function
+let mergeWorker: Worker | null = null
 
-// Deep clone function that safely handles undefined values
-function deepClone(obj: any) {
-  if (obj === null || obj === undefined || typeof obj !== 'object') {
-    return obj;
+function getMergeWorker() {
+  if (!mergeWorker) {
+    // serialize your merge function into the worker
+    const mergeFn = _mergeObject.toString()
+    const blobCode = `
+      // rehydrate your merge function
+      const _mergeObject = ${mergeFn};
+
+      self.onmessage = function(e) {
+        const { currentFields, update } = e.data;
+        // run your custom merge
+        const newValue = _mergeObject(currentFields, update);
+        self.postMessage(newValue);
+      };
+    `
+    const blob = new Blob([blobCode], { type: 'application/javascript' })
+    mergeWorker = new Worker(URL.createObjectURL(blob))
   }
-  
-  if (obj instanceof Date) {
-    return new Date(obj.getTime());
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item));
-  }
-  
-  const result = {};
-  Object.keys(obj).forEach(key => {
-    if (obj[key] !== undefined) { 
-      result[key] = deepClone(obj[key]);
-    }
-  });
-  
-  return result;
+  return mergeWorker
 }
 
-// Create a worker instance outside the component to avoid recreating it on each render
-let mergeWorker: Worker | null = null;
+export const getInputProps = (
+  props: any,
+  currentFields?: any,
+  setCurrentFields?: any,
+  fieldRefs?: any,
+  onChange?: any,
+  disableOnChange = false
+) => {
+  const {
+    schema,
+    displayType,
+    disabledConditions,
+    requiredConditions,
+    readOnlyConditions,
+    size,
+    institution,
+    isGridElement,
+  } = props
 
-// Initialize worker
-const initWorker = () => {
-  if (typeof Worker !== 'undefined' && !mergeWorker) {
-    try {
-      // For CommonJS, use a relative path to your worker file
-      mergeWorker = new Worker('./worker/merge.js');
-      console.log('Worker Initialized successfully');
-    } catch (error) {
-      console.error('Error Initializing worker: ', error);
-      return null;
+  const value = cloneDeep(currentFields)
+  const isGridRowSelected =
+    props?.isGridRowSelected || (!!currentFields && !!currentFields[KEY_NAME])
+
+  const callWorkerMerge = (payload: any) => {
+    if (!setCurrentFields) return
+    const worker = getMergeWorker()
+    const listener = (evt: MessageEvent) => {
+      setCurrentFields(evt.data)
+      onChange?.(evt.data)
+      worker.removeEventListener('message', listener)
     }
+    worker.addEventListener('message', listener)
+    worker.postMessage({ currentFields, update: payload })
   }
-  return mergeWorker;
-};
 
-// Cleanup function to terminate worker when no longer needed
-export const cleanupWorker = () => {
-  if (mergeWorker) {
-    mergeWorker.terminate();
-    mergeWorker = null;
-  }
-};
-
-export const getOptimizedInputProps = (props: any, currentFields?: any, setCurrentFields?: any, fieldRefs?: any, onChange?: any, disableOnChange = false) => {
-  const { schema, displayType, disabledConditions, requiredConditions, readOnlyConditions, size, institution, isGridElement } = props;
-  const value = currentFields ? deepClone(currentFields) : undefined;
-  const KEY_NAME = '_id'; // Make sure to define KEY_NAME or import it
-  const isGridRowSelected = props?.isGridRowSelected || (!!currentFields && !!currentFields[KEY_NAME]);
-  
-  // Use refs to maintain stable function references
-  const currentFieldsRef = useRef(currentFields);
-  const setCurrentFieldsRef = useRef(setCurrentFields);
-  const onChangeRef = useRef(onChange);
-  
-  // Update refs when props change
-  useEffect(() => {
-    currentFieldsRef.current = currentFields;
-    setCurrentFieldsRef.current = setCurrentFields;
-    onChangeRef.current = onChange;
-  }, [currentFields, setCurrentFields, onChange]);
-  
-  // Initialize worker once
-  const workerRef = useRef<Worker | null>(null);
-  useEffect(() => {
-    workerRef.current = initWorker();
-    console.log('Worker initialized:', !!workerRef.current);
-    
-    return () => {
-      cleanupWorker();
-    };
-  }, []);
-  
-  // Use a stable debounced function
-  const debouncedUpdateState = useMemo(() => 
-    debounce((newValue) => {
-      console.log('4. Debounced update triggered with value:', newValue);
-      if (setCurrentFieldsRef.current) {
-        console.log('Calling setCurrentFields');
-        setCurrentFieldsRef.current(newValue);
-      } else {
-        console.warn('setCurrentFields is not available');
-      }
-      
-      if (onChangeRef.current) {
-        console.log('Calling onChange');
-        onChangeRef.current(newValue);
-      }
-    }, 150),
-    []
-  );
-  
-  // Setup worker message handler - use a stable listener
-  useEffect(() => {
-    const worker = workerRef.current;
-    if (!worker) return;
-    
-    const handleWorkerMessage = (e: MessageEvent) => {
-      console.log('Worker message received:', e.data);
-      if (e.data.type === 'mergeResult') {
-        console.log('5. Processing merge result');
-        debouncedUpdateState(e.data.result);
-      }
-    };
-    
-    worker.addEventListener('message', handleWorkerMessage);
-    console.log('Added message event listener to worker');
-    
-    return () => {
-      worker.removeEventListener('message', handleWorkerMessage);
-      console.log('Removed message event listener from worker');
-    };
-  }, [debouncedUpdateState]);
-  
-  // Function to process changes using the worker
-  const processChangeWithWorker = useCallback((newData) => {
-    const worker = workerRef.current;
-    if (worker) {
-      try {
-        console.log('2. Sending data to worker', {
-          operation: 'merge',
-          currentFields: currentFieldsRef.current,
-          newData
-        });
-        worker.postMessage({
-          operation: 'merge',
-          currentFields: currentFieldsRef.current,
-          newData
-        });
-      } catch (error) {
-        console.error('Error sending message to worker:', error);
-        // Fallback if worker communication fails
-        const newValue = _mergeObject(currentFieldsRef.current, newData);
-        debouncedUpdateState(newValue);
-      }
-    } else {
-      console.log('3. Worker not available, using fallback');
-      const newValue = _mergeObject(currentFieldsRef.current, newData);
-      debouncedUpdateState(newValue);
-    }
-  }, [debouncedUpdateState]);
-  
   return {
     size,
     schema,
@@ -442,18 +351,30 @@ export const getOptimizedInputProps = (props: any, currentFields?: any, setCurre
     institution,
     isGridElement,
     isGridRowSelected,
+
     ...(currentFields !== undefined && { value }),
-    ...(!!fieldRefs && { innerRef: el => !!el && !fieldRefs?.current?.find(item => item.uniqueID === el.uniqueID) && fieldRefs?.current?.push(el) }),
-    ...((!!setCurrentFields || !!onChange) && {
-      ...!disableOnChange ? {
-        onChange: (value) => {
-          processChangeWithWorker(value);
-        },
-      } : {},
-      textBlurValue: (data: any) => {
-        console.log('1. textBlurValue called');
-        processChangeWithWorker(data);
-      }
+
+    ...(fieldRefs && {
+      innerRef: (el: any) => {
+        if (!el) return
+        if (!fieldRefs.current.find((item: any) => item.uniqueID === el.uniqueID)) {
+          fieldRefs.current.push(el)
+        }
+      },
     }),
-  };
-};
+
+    ...((setCurrentFields || onChange) && {
+      ...!disableOnChange
+        ? {
+            onChange: (val: any) => {
+              callWorkerMerge(val)
+            },
+          }
+        : {},
+
+      textBlurValue: (data: any) => {
+        callWorkerMerge(data)
+      },
+    }),
+  }
+}
