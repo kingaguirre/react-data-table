@@ -33,17 +33,22 @@ const TableContainer = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   overflow-x: auto;
+  code {
+    color: #e83e8c;
+  }
 `;
 const Table = styled.div`
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
+  overflow: auto;
 `;
 const Cell = styled.div`
   text-align: left;
   padding: 12px;
   font-size: 14px;
   color: #333;
+  border-bottom: 1px solid #ddd;
 `;
 const HeaderCell = styled(Cell)`
   font-weight: 600;
@@ -63,14 +68,14 @@ const Row = styled.div`
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
-  &:not(:last-child) {
-    border-bottom: 1px solid #ddd;
-  }
   > * {
     flex: 1;
     &:first-child {
       max-width: 220px;
       min-width: 220px;
+    }
+    &:nth-child(2) {
+      min-width: 320px;
     }
     &:nth-child(3) {
       max-width: 200px;
@@ -87,7 +92,6 @@ const Body = styled.div`
   filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.10));
   border: 1px solid #ddd;
   border-radius: 4px;
-  overflow: auto;
   border-top: 2px solid #ddd;
 `;
 const Badge = styled.code`
@@ -319,7 +323,7 @@ const iFilterConfigProps: PropDefinition[] = [
 ];
 
 const columnSettingsInterfaces: { title: string; props: PropDefinition[] }[] = [
-  { title: 'DataTableProps',       props: dataTableProps },
+  { title: 'DataTable Props',       props: dataTableProps },
   { title: 'ColumnSettings',       props: columnSettingsProps },
   { title: 'FetchConfig',          props: fetchConfigProps },
   { title: 'RequestData',          props: requestDataProps },
