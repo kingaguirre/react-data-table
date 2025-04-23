@@ -278,30 +278,48 @@ function _mergeObject(obj1, obj2) {
   return result;
 }
 */
+
+
+
+// public/mergeWorker.js
+// — paste your exact _mergeObject code here, e.g.:
+
+function _mergeObject(target, update) {
+  // … your real merge logic, recursive if needed …
+  for (const key in update) {
+    if (
+      typeof target[key] === "object" &&
+      typeof update[key] === "object" &&
+      target[key] !== null
+    ) {
+      target[key] = _mergeObject(target[key], update[key]);
+    } else {
+      target[key] = update[key];
+    }
+  }
+  return target;
+}
+
+self.onmessage = function(e) {
+  const { currentFields, update } = e.data;
+  // (Optionally clone if your merge mutates)
+  const copy = JSON.parse(JSON.stringify(currentFields));
+  const merged = _mergeObject(copy, update);
+  self.postMessage(merged);
+};
+
+
+
 // src/utils/getInputProps.ts
-import { cloneDeep } from 'lodash'      // you can remove this if you don't need it anymore
-import { _mergeObject } from './utils'
+import { cloneDeep } from 'lodash'
 const KEY_NAME = 'key_name'
 
-let mergeWorker: Worker | null = null
-
+/** One singleton worker for all merges */
+let mergeWorker: Worker|null = null
 function getMergeWorker() {
   if (!mergeWorker) {
-    // serialize your merge function into the worker
-    const mergeFn = _mergeObject.toString()
-    const blobCode = `
-      // rehydrate your merge function
-      const _mergeObject = ${mergeFn};
-
-      self.onmessage = function(e) {
-        const { currentFields, update } = e.data;
-        // run your custom merge
-        const newValue = _mergeObject(currentFields, update);
-        self.postMessage(newValue);
-      };
-    `
-    const blob = new Blob([blobCode], { type: 'application/javascript' })
-    mergeWorker = new Worker(URL.createObjectURL(blob))
+    // public/mergeWorker.js is served at the root
+    mergeWorker = new Worker('/mergeWorker.js')
   }
   return mergeWorker
 }
@@ -338,6 +356,7 @@ export const getInputProps = (
       worker.removeEventListener('message', listener)
     }
     worker.addEventListener('message', listener)
+    // send raw currentFields + update
     worker.postMessage({ currentFields, update: payload })
   }
 
@@ -364,17 +383,10 @@ export const getInputProps = (
     }),
 
     ...((setCurrentFields || onChange) && {
-      ...!disableOnChange
-        ? {
-            onChange: (val: any) => {
-              callWorkerMerge(val)
-            },
-          }
-        : {},
-
-      textBlurValue: (data: any) => {
-        callWorkerMerge(data)
+      ...!disableOnChange && {
+        onChange: (val: any) => callWorkerMerge(val),
       },
+      textBlurValue: (data: any) => callWorkerMerge(data),
     }),
   }
 }
