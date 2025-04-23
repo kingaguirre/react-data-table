@@ -283,43 +283,41 @@ function _mergeObject(obj1, obj2) {
 
 // public/mergeWorker.js
 // — paste your exact _mergeObject code here, e.g.:
-
-function _mergeObject(target, update) {
-  // … your real merge logic, recursive if needed …
-  for (const key in update) {
-    if (
-      typeof target[key] === "object" &&
-      typeof update[key] === "object" &&
-      target[key] !== null
-    ) {
-      target[key] = _mergeObject(target[key], update[key]);
-    } else {
-      target[key] = update[key];
-    }
-  }
-  return target;
-}
-
-self.onmessage = function(e) {
-  const { currentFields, update } = e.data;
-  // (Optionally clone if your merge mutates)
-  const copy = JSON.parse(JSON.stringify(currentFields));
-  const merged = _mergeObject(copy, update);
-  self.postMessage(merged);
-};
-
-
-
 // src/utils/getInputProps.ts
 import { cloneDeep } from 'lodash'
 const KEY_NAME = 'key_name'
 
-/** One singleton worker for all merges */
-let mergeWorker: Worker|null = null
+let mergeWorker: Worker | null = null
 function getMergeWorker() {
   if (!mergeWorker) {
-    // public/mergeWorker.js is served at the root
-    mergeWorker = new Worker('/mergeWorker.js')
+    // <-- inline your exact merge logic here
+    const workerCode = `
+      function _mergeObject(target, update) {
+        for (var key in update) {
+          if (
+            typeof target[key] === 'object' &&
+            typeof update[key] === 'object' &&
+            target[key] !== null
+          ) {
+            target[key] = _mergeObject(target[key], update[key]);
+          } else {
+            target[key] = update[key];
+          }
+        }
+        return target;
+      }
+
+      self.onmessage = function(e) {
+        var cf = e.data.currentFields;
+        var up = e.data.update;
+        // clone so your original isn't mutated:
+        var copy = JSON.parse(JSON.stringify(cf));
+        var merged = _mergeObject(copy, up);
+        self.postMessage(merged);
+      };
+    `
+    const blob = new Blob([workerCode], { type: 'application/javascript' })
+    mergeWorker = new Worker(URL.createObjectURL(blob))
   }
   return mergeWorker
 }
@@ -356,7 +354,6 @@ export const getInputProps = (
       worker.removeEventListener('message', listener)
     }
     worker.addEventListener('message', listener)
-    // send raw currentFields + update
     worker.postMessage({ currentFields, update: payload })
   }
 
