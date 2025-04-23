@@ -242,95 +242,86 @@ export const distribution_horizontal_bar_chart_datasets = [
 
 
 
-// First, create a web worker file named 'mergeWorker.js'
-// mergeWorker.js
-self.onmessage = function(e) {
-  const { operation, currentFields, newData } = e.data;
-  
-  if (operation === 'merge') {
-    // Implement _mergeObject logic in the worker
-    const result = _mergeObject(currentFields, newData);
-    self.postMessage({ type: 'mergeResult', result });
-  }
-};
-
-// Helper function to deep merge objects (implement your _mergeObject logic here)
-function _mergeObject(obj1, obj2) {
-  // Your existing _mergeObject implementation
-  // This is a placeholder - replace with your actual implementation
-  return { ...obj1, ...obj2 };
-}
-
-// In your main component file:
-// Create a worker instance outside the component to avoid recreating it on each render
-let mergeWorker;
-
-// Initialize worker
-const initWorker = () => {
-  if (typeof Worker !== 'undefined' && !mergeWorker) {
-    mergeWorker = new Worker('mergeWorker.js');
-  }
-  return mergeWorker;
-};
-
-// Cleanup function to terminate worker when no longer needed
-export const cleanupWorker = () => {
-  if (mergeWorker) {
-    mergeWorker.terminate();
-    mergeWorker = null;
-  }
-};
-
-/** Get inputProps values */
-/** Provide 'onChange' prop only when the organism(in which this function is used) doesn't have it's grid */
-export const getInputProps = (props: any, currentFields?: any, setCurrentFields?: any, fieldRefs?: any, onChange?: any, disableOnChange = false) => {
+export const getOptimizedInputProps = (props: any, currentFields?: any, setCurrentFields?: any, fieldRefs?: any, onChange?: any, disableOnChange = false) => {
   const { schema, displayType, disabledConditions, requiredConditions, readOnlyConditions, size, institution, isGridElement } = props;
-  const value = JSON.parse(JSON.stringify(currentFields)); // Using JSON methods instead of cloneDeep for better performance
+  const value = currentFields ? deepClone(currentFields) : undefined;
   const isGridRowSelected = props?.isGridRowSelected || (!!currentFields && !!currentFields[KEY_NAME]);
   
-  // Initialize our web worker if needed
-  const worker = initWorker();
+  // Use refs to maintain stable function references
+  const currentFieldsRef = useRef(currentFields);
+  const setCurrentFieldsRef = useRef(setCurrentFields);
+  const onChangeRef = useRef(onChange);
   
-  // Use a debounced function for handling state updates
-  const debouncedUpdateState = useCallback(
+  // Update refs when props change
+  useEffect(() => {
+    currentFieldsRef.current = currentFields;
+    setCurrentFieldsRef.current = setCurrentFields;
+    onChangeRef.current = onChange;
+  }, [currentFields, setCurrentFields, onChange]);
+  
+  // Initialize worker once
+  const workerRef = useRef(null);
+  useEffect(() => {
+    workerRef.current = initWorker();
+    console.log('Worker initialized:', !!workerRef.current);
+    
+    return () => {
+      cleanupWorker();
+    };
+  }, []);
+  
+  // Use a stable debounced function
+  const debouncedUpdateState = useMemo(() => 
     debounce((newValue) => {
-      setCurrentFields(newValue);
-      onChange?.(newValue);
+      console.log('4. Debounced update triggered');
+      setCurrentFieldsRef.current?.(newValue);
+      onChangeRef.current?.(newValue);
     }, 150),
-    [setCurrentFields, onChange]
+    []
   );
   
-  // Setup worker message handler
+  // Setup worker message handler - use a stable listener
   useEffect(() => {
+    const worker = workerRef.current;
     if (!worker) return;
     
     const handleWorkerMessage = (e) => {
+      console.log('Worker message received:', e.data);
       if (e.data.type === 'mergeResult') {
+        console.log('5. Processing merge result');
         debouncedUpdateState(e.data.result);
       }
     };
     
     worker.addEventListener('message', handleWorkerMessage);
+    console.log('Added message event listener to worker');
     
     return () => {
       worker.removeEventListener('message', handleWorkerMessage);
+      console.log('Removed message event listener from worker');
     };
-  }, [worker, debouncedUpdateState]);
+  }, [debouncedUpdateState]);
   
   // Function to process changes using the worker
-  const processChangeWithWorker = (newData) => {
+  const processChangeWithWorker = useCallback((newData) => {
+    const worker = workerRef.current;
     if (worker) {
+      console.log('2. Sending data to worker', {
+        operation: 'merge',
+        currentFields: currentFieldsRef.current,
+        newData
+      });
       worker.postMessage({
         operation: 'merge',
-        currentFields,
+        currentFields: currentFieldsRef.current,
         newData
       });
     } else {
-      // Fallback if web workers aren't available
-      const newValue = _mergeObject(currentFields, newData);
+      console.log('3. Worker not available, using fallback');
+      const newValue = _mergeObject(currentFieldsRef.current, newData);
       debouncedUpdateState(newValue);
     }
-  };
+  }, [debouncedUpdateState]);
   
   return {
     size,
@@ -351,12 +342,9 @@ export const getInputProps = (props: any, currentFields?: any, setCurrentFields?
         },
       } : {},
       textBlurValue: (data: any) => {
+        console.log('1. textBlurValue called');
         processChangeWithWorker(data);
       }
     }),
   };
 };
-
-// Don't forget to import the necessary hooks
-import { useCallback, useEffect } from 'react';
-import { debounce } from 'lodash'; // Make sure this is imported
