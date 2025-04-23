@@ -241,10 +241,103 @@ export const distribution_horizontal_bar_chart_datasets = [
 
 
 
+// src/utils/worker/merge.js (Create this as a JavaScript file, not TypeScript)
+// This file needs to be separate as web workers must be in their own file
+/*
+self.onmessage = function(e) {
+  const { operation, currentFields, newData } = e.data;
+  
+  if (operation === 'merge') {
+    if (currentFields === null || currentFields === undefined) {
+      self.postMessage({ type: 'mergeResult', result: newData });
+      return;
+    }
+    
+    // Implement your merge logic here - simplified example
+    const result = _mergeObject(currentFields, newData);
+    self.postMessage({ type: 'mergeResult', result });
+  }
+};
+
+// Simple deep merge function - replace with your actual implementation
+function _mergeObject(obj1, obj2) {
+  if (!obj1 || typeof obj1 !== 'object') return obj2;
+  if (!obj2 || typeof obj2 !== 'object') return obj1;
+  
+  const result = {...obj1};
+  
+  Object.keys(obj2).forEach(key => {
+    if (typeof obj2[key] === 'object' && !Array.isArray(obj2[key]) && obj2[key] !== null && 
+        typeof obj1[key] === 'object' && !Array.isArray(obj1[key]) && obj1[key] !== null) {
+      result[key] = _mergeObject(obj1[key], obj2[key]);
+    } else {
+      result[key] = obj2[key];
+    }
+  });
+  
+  return result;
+}
+*/
+
+// src/utils/input-props.ts
+import { useEffect, useRef, useMemo, useCallback } from 'react';
+import { debounce } from 'lodash';
+import { _mergeObject } from '..'; // Make sure this import points to your actual merge function
+
+// Deep clone function that safely handles undefined values
+function deepClone(obj: any) {
+  if (obj === null || obj === undefined || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (obj instanceof Date) {
+    return new Date(obj.getTime());
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => deepClone(item));
+  }
+  
+  const result = {};
+  Object.keys(obj).forEach(key => {
+    if (obj[key] !== undefined) { 
+      result[key] = deepClone(obj[key]);
+    }
+  });
+  
+  return result;
+}
+
+// Create a worker instance outside the component to avoid recreating it on each render
+let mergeWorker: Worker | null = null;
+
+// Initialize worker
+const initWorker = () => {
+  if (typeof Worker !== 'undefined' && !mergeWorker) {
+    try {
+      // For CommonJS, use a relative path to your worker file
+      mergeWorker = new Worker('./worker/merge.js');
+      console.log('Worker Initialized successfully');
+    } catch (error) {
+      console.error('Error Initializing worker: ', error);
+      return null;
+    }
+  }
+  return mergeWorker;
+};
+
+// Cleanup function to terminate worker when no longer needed
+export const cleanupWorker = () => {
+  if (mergeWorker) {
+    mergeWorker.terminate();
+    mergeWorker = null;
+  }
+};
 
 export const getOptimizedInputProps = (props: any, currentFields?: any, setCurrentFields?: any, fieldRefs?: any, onChange?: any, disableOnChange = false) => {
   const { schema, displayType, disabledConditions, requiredConditions, readOnlyConditions, size, institution, isGridElement } = props;
   const value = currentFields ? deepClone(currentFields) : undefined;
+  const KEY_NAME = '_id'; // Make sure to define KEY_NAME or import it
   const isGridRowSelected = props?.isGridRowSelected || (!!currentFields && !!currentFields[KEY_NAME]);
   
   // Use refs to maintain stable function references
@@ -260,7 +353,7 @@ export const getOptimizedInputProps = (props: any, currentFields?: any, setCurre
   }, [currentFields, setCurrentFields, onChange]);
   
   // Initialize worker once
-  const workerRef = useRef(null);
+  const workerRef = useRef<Worker | null>(null);
   useEffect(() => {
     workerRef.current = initWorker();
     console.log('Worker initialized:', !!workerRef.current);
@@ -273,9 +366,18 @@ export const getOptimizedInputProps = (props: any, currentFields?: any, setCurre
   // Use a stable debounced function
   const debouncedUpdateState = useMemo(() => 
     debounce((newValue) => {
-      console.log('4. Debounced update triggered');
-      setCurrentFieldsRef.current?.(newValue);
-      onChangeRef.current?.(newValue);
+      console.log('4. Debounced update triggered with value:', newValue);
+      if (setCurrentFieldsRef.current) {
+        console.log('Calling setCurrentFields');
+        setCurrentFieldsRef.current(newValue);
+      } else {
+        console.warn('setCurrentFields is not available');
+      }
+      
+      if (onChangeRef.current) {
+        console.log('Calling onChange');
+        onChangeRef.current(newValue);
+      }
     }, 150),
     []
   );
@@ -285,7 +387,7 @@ export const getOptimizedInputProps = (props: any, currentFields?: any, setCurre
     const worker = workerRef.current;
     if (!worker) return;
     
-    const handleWorkerMessage = (e) => {
+    const handleWorkerMessage = (e: MessageEvent) => {
       console.log('Worker message received:', e.data);
       if (e.data.type === 'mergeResult') {
         console.log('5. Processing merge result');
@@ -306,16 +408,23 @@ export const getOptimizedInputProps = (props: any, currentFields?: any, setCurre
   const processChangeWithWorker = useCallback((newData) => {
     const worker = workerRef.current;
     if (worker) {
-      console.log('2. Sending data to worker', {
-        operation: 'merge',
-        currentFields: currentFieldsRef.current,
-        newData
-      });
-      worker.postMessage({
-        operation: 'merge',
-        currentFields: currentFieldsRef.current,
-        newData
-      });
+      try {
+        console.log('2. Sending data to worker', {
+          operation: 'merge',
+          currentFields: currentFieldsRef.current,
+          newData
+        });
+        worker.postMessage({
+          operation: 'merge',
+          currentFields: currentFieldsRef.current,
+          newData
+        });
+      } catch (error) {
+        console.error('Error sending message to worker:', error);
+        // Fallback if worker communication fails
+        const newValue = _mergeObject(currentFieldsRef.current, newData);
+        debouncedUpdateState(newValue);
+      }
     } else {
       console.log('3. Worker not available, using fallback');
       const newValue = _mergeObject(currentFieldsRef.current, newData);
