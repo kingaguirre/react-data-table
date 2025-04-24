@@ -389,86 +389,115 @@ export const getInputProps = (
 }
 
 // mergeWorker.test.ts
-import { Worker } from 'worker_threads';
+/**
+ * @jest-environment jsdom
+ */
+import { getMergeWorker } from './mergeWorker';
 
-const workerScript = `
-  const { parentPort } = require('worker_threads');
+//
+// 1) Shim Blob so we can read its `.text()` later
+//
+class MockBlob {
+  private _parts: string[];
+  constructor(parts: any[]) {
+    // we know we only ever pass [ workerCodeString ]
+    this._parts = parts as string[];
+  }
+  async text(): Promise<string> {
+    return this._parts.join('');
+  }
+}
+(global as any).Blob = MockBlob;
 
-  function _mergeObject(target, update) {
-    for (var key in update) {
-      if (
-        typeof target[key] === 'object' &&
-        typeof update[key] === 'object' &&
-        target[key] !== null
-      ) {
-        target[key] = _mergeObject(target[key], update[key]);
-      } else {
-        target[key] = update[key];
-      }
-    }
-    return target;
+//
+// 2) Capture the last-created Blob in createObjectURL
+//
+let _lastBlob: MockBlob | null = null;
+URL.createObjectURL = (blob: MockBlob) => {
+  _lastBlob = blob;
+  return 'blob://test';
+};
+
+//
+// 3) Fake Worker that eval()s the captured script in a tiny sandbox
+//
+class MockWorker {
+  onmessage: ((e: { data: any }) => void) | null = null;
+  private _sandbox: any = {};
+  constructor(_url: string) {
+    if (!_lastBlob) throw new Error('No blob captured!');
+    // grab the code and eval it in a controlled "self" context
+    _lastBlob
+      .text()
+      .then(code => {
+        this._sandbox.self = {
+          postMessage: (data: any) => {
+            // when the worker calls postMessage, re-emit it here
+            this.onmessage && this.onmessage({ data });
+          },
+        };
+        // eval in sandbox so that `self.onmessage` gets wired
+        // eslint-disable-next-line no-eval
+        eval.call(this._sandbox, code);
+      })
+      .catch(err => {
+        throw err;
+      });
   }
 
-  parentPort.on('message', (e) => {
-    const cf = e.currentFields;
-    const up = e.update;
-    // deep-clone so original isn't mutated
-    const copy = JSON.parse(JSON.stringify(cf));
-    const merged = _mergeObject(copy, up);
-    parentPort.postMessage(merged);
+  postMessage(msg: any) {
+    // simulate message into the worker
+    setTimeout(() => {
+      this._sandbox.self.onmessage({ data: msg });
+    }, 0);
+  }
+
+  addEventListener(type: string, handler: any) {
+    if (type === 'message') this.onmessage = handler;
+  }
+  removeEventListener() {}
+}
+
+(global as any).Worker = MockWorker;
+
+//
+// 4) Tests
+//
+describe('mergeWorker under jsdom', () => {
+  afterEach(() => {
+    // clear singleton so each test re-inits the blob
+    // @ts-ignore
+    (getMergeWorker as any).mergeWorker = null;
   });
-`;
 
-describe('mergeWorker', () => {
-  let worker: Worker;
+  it('deeply merges two objects without mutating originals', done => {
+    const cf = { a: 1, nested: { x: 1, y: 2 } };
+    const up = { nested: { y: 9, z: 8 }, newKey: 'hey' };
 
-  beforeEach(() => {
-    // create a worker from the in-lined script
-    worker = new Worker(workerScript, { eval: true });
-  });
-
-  afterEach(async () => {
-    await worker.terminate();
-  });
-
-  it('deeply merges two plain objects', (done) => {
-    const currentFields = {
-      a: 1,
-      nested: { x: 10, y: 20 },
-      list: [1, 2, 3],
-    };
-    const update = {
-      nested: { y: 99, z: 42 },
-      newKey: 'hello',
-    };
-
-    worker.on('message', (merged) => {
-      expect(merged).toEqual({
+    const worker = getMergeWorker();
+    worker.addEventListener('message', evt => {
+      expect(evt.data).toEqual({
         a: 1,
-        nested: { x: 10, y: 99, z: 42 },
-        list: [1, 2, 3],
-        newKey: 'hello',
+        nested: { x: 1, y: 9, z: 8 },
+        newKey: 'hey',
       });
-      // original objects must be untouched
-      expect(currentFields).toEqual({
-        a: 1,
-        nested: { x: 10, y: 20 },
-        list: [1, 2, 3],
-      });
+      // original must be untouched
+      expect(cf).toEqual({ a: 1, nested: { x: 1, y: 2 } });
       done();
     });
 
-    worker.postMessage({ currentFields, update });
+    worker.postMessage({ currentFields: cf, update: up });
   });
 
-  it('overwrites non-object values', (done) => {
-    const cf = { foo: 'bar', baz: 123 };
-    const up = { foo: { nested: true }, baz: 999 };
+  it('overwrites non-objects correctly', done => {
+    const cf = { foo: 'bar', num: 5 };
+    const up = { foo: { nested: true }, num: 10 };
 
-    worker.on('message', (merged) => {
-      expect(merged).toEqual({
+    const worker = getMergeWorker();
+    worker.addEventListener('message', evt => {
+      expect(evt.data).toEqual({
         foo: { nested: true },
-        baz: 999,
+        num: 10,
       });
       done();
     });
