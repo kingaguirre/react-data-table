@@ -387,3 +387,92 @@ export const getInputProps = (
     }),
   }
 }
+
+// mergeWorker.test.ts
+import { Worker } from 'worker_threads';
+
+const workerScript = `
+  const { parentPort } = require('worker_threads');
+
+  function _mergeObject(target, update) {
+    for (var key in update) {
+      if (
+        typeof target[key] === 'object' &&
+        typeof update[key] === 'object' &&
+        target[key] !== null
+      ) {
+        target[key] = _mergeObject(target[key], update[key]);
+      } else {
+        target[key] = update[key];
+      }
+    }
+    return target;
+  }
+
+  parentPort.on('message', (e) => {
+    const cf = e.currentFields;
+    const up = e.update;
+    // deep-clone so original isn't mutated
+    const copy = JSON.parse(JSON.stringify(cf));
+    const merged = _mergeObject(copy, up);
+    parentPort.postMessage(merged);
+  });
+`;
+
+describe('mergeWorker', () => {
+  let worker: Worker;
+
+  beforeEach(() => {
+    // create a worker from the in-lined script
+    worker = new Worker(workerScript, { eval: true });
+  });
+
+  afterEach(async () => {
+    await worker.terminate();
+  });
+
+  it('deeply merges two plain objects', (done) => {
+    const currentFields = {
+      a: 1,
+      nested: { x: 10, y: 20 },
+      list: [1, 2, 3],
+    };
+    const update = {
+      nested: { y: 99, z: 42 },
+      newKey: 'hello',
+    };
+
+    worker.on('message', (merged) => {
+      expect(merged).toEqual({
+        a: 1,
+        nested: { x: 10, y: 99, z: 42 },
+        list: [1, 2, 3],
+        newKey: 'hello',
+      });
+      // original objects must be untouched
+      expect(currentFields).toEqual({
+        a: 1,
+        nested: { x: 10, y: 20 },
+        list: [1, 2, 3],
+      });
+      done();
+    });
+
+    worker.postMessage({ currentFields, update });
+  });
+
+  it('overwrites non-object values', (done) => {
+    const cf = { foo: 'bar', baz: 123 };
+    const up = { foo: { nested: true }, baz: 999 };
+
+    worker.on('message', (merged) => {
+      expect(merged).toEqual({
+        foo: { nested: true },
+        baz: 999,
+      });
+      done();
+    });
+
+    worker.postMessage({ currentFields: cf, update: up });
+  });
+});
