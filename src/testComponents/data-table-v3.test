@@ -1,0 +1,333 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { TXDataTable } from '../../../src/atoms/TXDataTableV2';
+import {
+  dateFormat,
+  deepClone,
+  setDeepValue,
+  extractValues,
+  getErrorMessage,
+  highlightText,
+  checkIsNewRow,
+  renderColumnCustomRenderer,
+  isValidJsonObj,
+  getParsedValue
+} from '../../../src/atoms/TXDataTableV2/utils';
+import { Actions } from '../../../src/atoms/TXDataTableV2/interfaces';
+import { EDITABLE_COLUMN_SETTINGS, DOWNLOAD_COLUMN_SETTINGS } from '../../../src/atoms/TXDataTableV2/data';
+
+// Common sample data
+const dataSource = [{ id: 1, name: 'John Doe' }];
+const initialData = [ { id: 1, name: 'John Doe' }, { id: 2, name: 'Jane Smith' }, { id: 3, name: 'Bob Lee' } ];
+const columnSettings = [
+  { column: 'id', title: 'ID' },
+  { column: 'name', title: 'Name' }
+];
+
+// Handlers
+const onChangeHandler = jest.fn();
+const onRowClickHandler = jest.fn();
+const onRowDoubleClickHandler = jest.fn();
+const onPageSizeChangeHandler = jest.fn();
+const onPageIndexChangeHandler = jest.fn();
+
+jest.mock('../../../src/atoms/TXDataTableV2/utils/index', () => ({
+  ...jest.requireActual('../../../src/atoms/TXDataTableV2/utils/index'),
+  getDeepValue: jest.fn().mockReturnValue({}),
+  mergeCustomStylesForRow: jest.fn().mockReturnValue({}),
+  isStringExist: jest.fn().mockReturnValue(false),
+}));
+
+describe('TXDataTable', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Basic rendering tests
+  it('renders with defaults', () => {
+    render(
+      <TXDataTable
+        columnSettings={columnSettings}
+        dataSource={dataSource}
+        rowKey="id"
+      />
+    );
+    expect(screen).toBeDefined();
+  });
+
+  it('renders "No data available" when dataSource is empty', () => {
+    render(<TXDataTable dataSource={[]} columnSettings={[]} />);
+    expect(screen.getByText('No data available.')).toBeDefined();
+  });
+
+  it('shows Add New button when ADD action is provided', async () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        actions={[Actions.ADD]}
+      />
+    );
+    const addNewButton = screen.getByText('Add New');
+    expect(addNewButton).toBeDefined();
+    await userEvent.click(addNewButton);
+    expect(screen.queryByTitle('Save')).toBeDefined();
+  });
+
+  it('enters edit mode on cell click when EDIT action is provided', async () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        actions={[Actions.EDIT]}
+      />
+    );
+    const cell = screen.getByText('John Doe');
+    await userEvent.click(cell);
+    const input = screen.getByDisplayValue('John Doe');
+    expect(input).toBeDefined();
+  });
+
+  it('renders selection checkboxes when selectable is true', () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        selectable
+        rowKey="id"
+      />
+    );
+    expect(screen.getAllByRole('checkbox')).toHaveLength(dataSource.length + 1);
+  });
+
+  it('renders header search input when headerSearchSettings provided', () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        headerSearchSettings={{ placeholder: 'Search...' }}
+        actions={[Actions.ADD]}
+        rowKey="id"
+      />
+    );
+    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+  });
+
+  it('hides footer when hideFooter is true', () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        hideFooter
+        rowKey="id"
+      />
+    );
+    expect(screen.queryByText(/of \d+/)).toBeNull();
+  });
+
+  it('calls onRowClick when a row is clicked', async () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="id"
+        onRowClick={onRowClickHandler}
+      />
+    );
+    await userEvent.click(screen.getByText('John Doe'));
+    expect(onRowClickHandler).toHaveBeenCalledWith(dataSource[0], 0);
+  });
+
+  it('calls onRowDoubleClick when a row is double-clicked', async () => {
+    render(
+      <TXDataTable
+        dataSource={dataSource}
+        columnSettings={columnSettings}
+        rowKey="id"
+        onRowDoubleClick={onRowDoubleClickHandler}
+      />
+    );
+    await userEvent.dblClick(screen.getByText('John Doe'));
+    expect(onRowDoubleClickHandler).toHaveBeenCalledWith(dataSource[0], 0);
+  });
+
+  it('allows page size change via dropdown', async () => {
+    render(
+      <TXDataTable
+        dataSource={Array(20).fill(null).map((_, i) => ({ id: i, name: `Name ${i}` }))}
+        columnSettings={columnSettings}
+        rowKey="id"
+        pageSize={5}
+        onPageSizeChange={onPageSizeChangeHandler}
+      />
+    );
+    const select = screen.getByLabelText('Rows per page');
+    await userEvent.selectOptions(select, '10');
+    expect(onPageSizeChangeHandler).toHaveBeenCalledWith(10);
+  });
+
+  it('allows page index change via pagination icons', async () => {
+    render(
+      <TXDataTable
+        dataSource={Array(20).fill(null).map((_, i) => ({ id: i, name: `Name ${i}` }))}
+        columnSettings={columnSettings}
+        rowKey="id"
+        pageIndex={0}
+        onPageIndexChange={onPageIndexChangeHandler}
+      />
+    );
+    await userEvent.click(screen.getByTitle('Next'));
+    expect(onPageIndexChangeHandler).toHaveBeenCalledWith(1);
+  });
+
+  // Extended pagination controls
+  it('renders pagination controls: first, previous, next, last', () => {
+    render(
+      <TXDataTable
+        dataSource={Array(50).fill(null).map((_, i) => ({ id: i, name: `Name ${i}` }))}
+        columnSettings={columnSettings}
+        rowKey="id"
+        pageSize={10}
+      />
+    );
+    ['First','Previous','Next','Last'].forEach(title => {
+      expect(screen.getByTitle(title)).toBeInTheDocument();
+    });
+  });
+
+  it('changes page size and validates visible row count', () => {
+    render(
+      <TXDataTable
+        dataSource={Array(30).fill(null).map((_, i) => ({ id: i, name: `Row ${i}` }))}
+        columnSettings={columnSettings}
+        rowKey="id"
+        pageSize={5}
+      />
+    );
+    // 5 rows plus header
+    expect(screen.getAllByRole('row').length).toBe(6);
+  });
+
+  it('navigates pages and calls onPageIndexChange', async () => {
+    render(
+      <TXDataTable
+        dataSource={Array(30).fill(null).map((_, i) => ({ id: i, name: `Item ${i}` }))}
+        columnSettings={columnSettings}
+        rowKey="id"
+        pageSize={10}
+        onPageIndexChange={onPageIndexChangeHandler}
+      />
+    );
+    await userEvent.click(screen.getByTitle('Next'));
+    expect(onPageIndexChangeHandler).toHaveBeenCalledWith(1);
+    await userEvent.click(screen.getByTitle('Previous'));
+    expect(onPageIndexChangeHandler).toHaveBeenCalledWith(0);
+  });
+
+  // CRUD operations
+  it('adds a new row when ADD action is enabled', async () => {
+    render(
+      <TXDataTable
+        dataSource={initialData}
+        columnSettings={columnSettings}
+        rowKey="id"
+        actions={[Actions.ADD]}
+        onChange={onChangeHandler}
+      />
+    );
+    await userEvent.click(screen.getByText('Add New'));
+    const saveBtn = screen.getByTitle('Save');
+    expect(saveBtn).toBeEnabled();
+    await userEvent.click(saveBtn);
+    expect(onChangeHandler).toHaveBeenCalled();
+  });
+
+  it('edits a cell with schema validation', async () => {
+    const schemaCols = [
+      { column: 'id', title: 'ID' },
+      { column: 'name', title: 'Name', actionConfig: { schema: { type: 'string', minLength: 5 } } }
+    ];
+    render(
+      <TXDataTable
+        dataSource={[{ id: 1, name: 'Alice' }]}
+        columnSettings={schemaCols}
+        rowKey="id"
+        actions={[Actions.EDIT]}
+      />
+    );
+    await userEvent.click(screen.getByText('Alice'));
+    const input = screen.getByDisplayValue('Alice');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Bob');
+    await userEvent.click(screen.getByTitle('Save'));
+    expect(screen.getByText(/Invalid Input/)).toBeInTheDocument();
+  });
+
+  it('deletes row with undo when non-permanent', async () => {
+    render(
+      <TXDataTable
+        dataSource={[{ id: 1, name: 'Temp' }]}
+        columnSettings={columnSettings}
+        rowKey="id"
+        actions={[Actions.DELETE]}
+        isPermanentDelete={false}
+      />
+    );
+    await userEvent.click(screen.getByTitle('Delete'));
+    expect(screen.getByTitle('Undo')).toBeInTheDocument();
+    await userEvent.click(screen.getByTitle('Undo'));
+    expect(screen.getByText('Temp')).toBeInTheDocument();
+  });
+
+  it('permanently deletes row when isPermanentDelete is true', async () => {
+    render(
+      <TXDataTable
+        dataSource={[{ id: 1, name: 'Final' }]}
+        columnSettings={columnSettings}
+        rowKey="id"
+        actions={[Actions.DELETE]}
+        isPermanentDelete={true}
+      />
+    );
+    await userEvent.click(screen.getByTitle('Delete'));
+    expect(screen.queryByText('Final')).toBeNull();
+  });
+
+  // Utility function tests
+  it('returns error message via getErrorMessage', () => {
+    const tMock = jest.fn().mockReturnValue('Error');
+    expect(getErrorMessage([{ message: 'err' }], 'Title', tMock)).toMatch(/Error/);
+  });
+
+  it('deepClone handles various inputs', () => {
+    expect(deepClone(null)).toBeNull();
+    expect(deepClone({ a: 1 })).toEqual({ a: 1 });
+  });
+
+  it('highlightText finds substrings', () => {
+    expect(highlightText('hello', 'ell')).toBeTruthy();
+  });
+
+  it('renderColumnCustomRenderer works', () => {
+    expect(renderColumnCustomRenderer({ foo: 'bar' }, 'foo')).toBe('bar');
+  });
+
+  it('extractValues returns array', () => {
+    expect(Array.isArray(extractValues([{}, {}]))).toBe(true);
+  });
+
+  it('checkIsNewRow identifies new rows', () => {
+    expect(checkIsNewRow({ intentAction: '*' })).toBe(true);
+  });
+
+  it('isValidJsonObj validates JSON strings', () => {
+    expect(isValidJsonObj('{}')).toBe(true);
+  });
+
+  it('getParsedValue extracts nested values', () => {
+    const mockCol = { column: 'value.value' };
+    expect(getParsedValue(JSON.stringify({ value: { value: 'test' } }), mockCol)).toBe('test');
+  });
+
+});
