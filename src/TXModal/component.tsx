@@ -27,25 +27,33 @@ export const TXModal = (props: ITXModalInterface) => {
   // ref to the modal container (for measuring height, etc)
   const modalRef = useRef<HTMLDivElement>(null);
   // ref to the dynamically created portal element
-  const portalContainerRef = useRef<HTMLDivElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
 
-  // Watch `show` to mount/unmount portal container
+  // Mount/unmount portal container and body class management
   useEffect(() => {
+    if (show && !portalRef.current) {
+      const el = document.createElement('div');
+      el.id = 'comp-modal-dynamic';
+      document.body.appendChild(el);
+      portalRef.current = el;
+    }
+    document.body.classList.toggle('is-modal-open', show);
+    if (show && !isViewed) setIsViewed(true);
     if (show) {
-      // create & append portal container if not already
-      if (!portalContainerRef.current) {
-        const el = document.createElement('div');
-        portalContainerRef.current = el;
-        document.body.appendChild(el);
-      }
       setShouldRender(true);
-      if (!isViewed) setIsViewed(true);
-      document.body.classList.add('is-modal-open');
-    } else {
-      document.body.classList.remove('is-modal-open');
-      // Unmount will happen in handleAnimationEnd()
     }
   }, [show, isViewed]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('is-modal-open');
+      if (portalRef.current) {
+        document.body.removeChild(portalRef.current);
+        portalRef.current = null;
+      }
+    };
+  }, []);
 
   // Handle ESC key close
   useEffect(() => {
@@ -58,26 +66,15 @@ export const TXModal = (props: ITXModalInterface) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [closeable, show, onClose]);
 
-  const handleOnClose = () => {
-    if (closeable && show) {
-      onClose?.();
-    }
-  };
-
-  // After hide-animation ends, remove portal container entirely
   const handleAnimationEnd = () => {
-    if (!show && portalContainerRef.current) {
-      ReactDOM.unmountComponentAtNode(portalContainerRef.current);
-      document.body.removeChild(portalContainerRef.current);
-      portalContainerRef.current = null;
+    if (!show && portalRef.current) {
+      document.body.removeChild(portalRef.current);
+      portalRef.current = null;
       setShouldRender(false);
     }
   };
 
-  // If there's nothing to render, bail out
-  if (!shouldRender || !portalContainerRef.current) {
-    return null;
-  }
+  if (!shouldRender || !portalRef.current) return null;
 
   return ReactDOM.createPortal(
     <Styled.Container
@@ -87,7 +84,7 @@ export const TXModal = (props: ITXModalInterface) => {
       onAnimationEnd={handleAnimationEnd}
     >
       <Styled.Overlay
-        onClick={handleOnClose}
+        onClick={() => show && closeable && onClose?.()}
         overlayHeight={modalRef.current?.scrollHeight}
         className={`${!show ? 'hide' : ''} ${isViewed ? 'viewed' : ''}`}
       />
@@ -100,23 +97,23 @@ export const TXModal = (props: ITXModalInterface) => {
         position={position}
       >
         {closeable && showCloseIcon && (
-          <Styled.CloseIcon onClick={handleOnClose}>
+          <Styled.CloseIcon onClick={() => onClose?.()}>
             <tx-core-icon icon={closeIcon} size={iconSize} color={iconColor} />
           </Styled.CloseIcon>
         )}
         {children}
       </Styled.ModalContainer>
     </Styled.Container>,
-    portalContainerRef.current
+    portalRef.current
   );
 };
 
 interface IProps {
-  children: any;
+  children: React.ReactNode;
   align?: 'right' | 'left' | 'center';
   buttonsWidth?: number;
   contentScrollable?: boolean;
-  bodyStyle?: any;
+  bodyStyle?: React.CSSProperties;
 }
 TXModal.Header = (props: IProps) => (
   <Styled.ModalHeader className="modal-header">{props.children}</Styled.ModalHeader>
