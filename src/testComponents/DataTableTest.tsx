@@ -22,7 +22,12 @@ import { DataTableEnhancement } from './DataTableEnhancement'
 import Popover from './Popover'
 import { TXPopOver } from '../TXPopOver'
 import { PopupTooltip } from '../TXPopOver/index_'
-import { VirtualList } from '../Virtualizer'
+// import { VirtualList } from '../Virtualizer'
+import TableUpdateTest from './TableUpdateTest'
+import TanstackTableWorkerExample from './TanstackTableWorkerExample'
+import TableTest from '../ReactDataTable/TableTest'
+import {DocumentationPage} from './DocumentationPage'
+import { TXModal } from '../TXModal'
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -514,9 +519,30 @@ export default () => {
     dataTableRef.current.clearActiveRow();
   };
 
+  const [show, setShow] = useState(false);
+
   return (
     <div style={{padding: 16}}>
-      <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/>
+      {/* <div>
+        <button onClick={() => setShow(true)}>Show Modal</button>
+        <TXModal
+          show={show}
+          onClose={() => setShow(false)}
+        >
+          <TXModal.Header>Modal Title</TXModal.Header>
+          <TXModal.Body>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. assumenda aliquam harum maxime dolores quod atque ea amet illo nesciunt voluptate deleniti, accusantium corporis sed necessitatibus expedita cum, eum quaerat? velit.
+          </TXModal.Body>
+          <TXModal.Footer buttonsWidth={120}>
+            <button onClick={() => setShow(false)}>Close</button>
+          </TXModal.Footer>
+        </TXModal>
+      </div> */}
+      {/* <DocumentationPage/> */}
+      <TableTest/>
+      {/* <TanstackTableWorkerExample/> */}
+      {/* <TableUpdateTest/> */}
+      {/* <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/> */}
       {/* <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black'}}>
         <div style={{width: 1000, height: 1000, padding: 200}}>
           <TXPopOver content={(
