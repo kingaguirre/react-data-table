@@ -523,23 +523,28 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      {/* <div>
+      <div>
         <button onClick={() => setShow(true)}>Show Modal</button>
         <TXModal
           show={show}
           onClose={() => setShow(false)}
         >
           <TXModal.Header>Modal Title</TXModal.Header>
+
           <TXModal.Body>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. assumenda aliquam harum maxime dolores quod atque ea amet illo nesciunt voluptate deleniti, accusantium corporis sed necessitatibus expedita cum, eum quaerat? velit.
+            <ExampleChild />
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda aliquam harum maxime dolores quod atque ea amet illo nesciunt voluptate deleniti, accusantium corporis sed necessitatibus expedita cum, eum quaerat? Velit.
+            </p>
           </TXModal.Body>
+
           <TXModal.Footer buttonsWidth={120}>
             <button onClick={() => setShow(false)}>Close</button>
           </TXModal.Footer>
         </TXModal>
-      </div> */}
+      </div>
       {/* <DocumentationPage/> */}
-      <TableTest/>
+      {/* <TableTest/> */}
       {/* <TanstackTableWorkerExample/> */}
       {/* <TableUpdateTest/> */}
       {/* <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/> */}
@@ -1251,5 +1256,25 @@ export default () => {
     </div>
   )
 }
+
+const ExampleChild: React.FC = () => {
+  React.useEffect(() => {
+    console.log('Child effect start');
+    const id = setTimeout(() => {
+      console.log('Delayed work fired');
+    }, 500);
+    return () => {
+      console.log('Child cleanup');
+      clearTimeout(id);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    console.log('[ExampleChild] modal show changed');
+  });
+
+  return <div>👋 I am an example child component.</div>;
+};
+
 
 

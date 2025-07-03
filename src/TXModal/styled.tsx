@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+// import { customScroll } from '@common/index';
 
 const containerStyle = `
   position: fixed;
@@ -56,7 +57,7 @@ interface IProps {
   position?: string | undefined;
 }
 
-export const Container = styled.div<IProps>`
+export const Container = styled.div<IProps | any>`
   ${containerStyle}
   display: flex;
   align-items: center;
@@ -96,11 +97,14 @@ export const Container = styled.div<IProps>`
 `;
 
 export const Overlay = styled.div<any>`
-  ${containerStyle}
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   z-index: 0;
   background-color: var(--color-neutral-darker);
   opacity: 0;
-  height: ${p => (p.overlayHeight || 0) + 32}px;
+  height: ${p => (p.overlayHeight || 0)}px;
   min-height: 100vh;
 
   &.viewed {

@@ -5,6 +5,8 @@ export interface ITXModalInterface {
   children?: ReactNode;
   closeable?: boolean;
   onClose?: () => void;
+  onOpening?: () => void;
+  onClosing?: () => void;
   modalWidth?: "small" | "medium" | "large" | undefined | string;
   autoWidth?: boolean;
   showCloseIcon?: boolean;
