@@ -21,82 +21,71 @@ export const TXModal = (props: ITXModalInterface) => {
     position = '',
     onOpening,
     onClosing,
+    keepMounted = false,    // <-- default false
   } = props;
 
-  // track if we've ever shown (for your "viewed" class)
+  // track if we've ever shown (for "viewed" class)
   const [isViewed, setIsViewed] = useState(false);
-  // control mounting/rendering of portal content
+  // control mount/unmount only when keepMounted===false
   const [shouldRender, setShouldRender] = useState(true);
-  // overlay height for smooth reveal animation
-  const [overlayHeight, setOverlayHeight] = useState<number | undefined>(undefined);
-
-  // ref to the modal container (for measuring height, etc)
+  // overlay height for smooth reveal
+  const [overlayHeight, setOverlayHeight] = useState<number>();
   const modalContainerRef = useRef<HTMLDivElement>(null);
-
-  // skip first-hide until after initial mount
   const firstMount = useRef(true);
 
-  // 1) mount once on first page load, then if show===false immediately hide
+  // ONLY run the “mount once then unmount” hack if keepMounted is false
   useEffect(() => {
+    if (keepMounted) return;
+
     if (firstMount.current) {
       firstMount.current = false;
       if (!show) {
-        // let children mount once so their useEffect runs, then hide
+        // let children mount once, then hide
         requestAnimationFrame(() => setShouldRender(false));
       }
     }
-  }, [show]);
+  }, [show, keepMounted]);
 
-  // 2) on every show toggle: body class, onOpening/onClosing, mount/unmount
   useEffect(() => {
     document.body.classList.toggle('is-modal-open', show);
 
     if (show) {
       if (!isViewed) setIsViewed(true);
-      setShouldRender(true);
+      if (!keepMounted) setShouldRender(true);
 
-      // delay 0 so modal is in DOM before calling onOpening
-      setTimeout(() => {
-        onOpening?.();
-      }, 0);
-
-      // measure height after your CSS animation (300ms + small buffer)
+      setTimeout(() => onOpening?.(), 0);
       setTimeout(() => {
         setOverlayHeight(modalContainerRef.current?.scrollHeight);
       }, 310);
     } else {
       onClosing?.();
-      // normal unmount happens in handleAnimationEnd
+      // when keepMounted=false, we rely on handleAnimationEnd to unmount
     }
-  }, [show, isViewed, onOpening, onClosing]);
+  }, [show, isViewed, onOpening, onClosing, keepMounted]);
 
-  // 3) clean up body class on unmount
-  useEffect(() => {
-    return () => {
-      document.body.classList.remove('is-modal-open');
-    };
+  // cleanup body class
+  useEffect(() => () => {
+    document.body.classList.remove('is-modal-open');
   }, []);
 
-  // 4) handle ESC key close
+  // ESC key
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && closeable && show) {
-        onClose?.();
-      }
+      if (e.key === 'Escape' && closeable && show) onClose?.();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [closeable, show, onClose]);
 
-  // when the hide animation finishes, unmount portal
   const handleAnimationEnd = () => {
-    if (!show) {
+    if (!show && !keepMounted) {
       setShouldRender(false);
       setOverlayHeight(undefined);
     }
   };
 
-  if (!shouldRender) return null;
+  // if not keeping mounted and we've been told to unmount, bail out
+  if (!keepMounted && !shouldRender) return null;
 
   return ReactDOM.createPortal(
     <Styled.Container
@@ -120,7 +109,6 @@ export const TXModal = (props: ITXModalInterface) => {
         {closeable && showCloseIcon && (
           <Styled.CloseIcon onClick={() => onClose?.()}>
             x
-            {/* <tx-core-icon icon={closeIcon} size={iconSize} color={iconColor} /> */}
           </Styled.CloseIcon>
         )}
         {children}
@@ -139,7 +127,7 @@ interface IProps {
   bodyStyle?: React.CSSProperties;
 }
 TXModal.Header = (props: IProps) => (
-  <Styled.ModalHeader className="modal-header">{props.children}</Styled.ModalHeader>
+  <Styled.ModalHeader>{props.children}</Styled.ModalHeader>
 );
 TXModal.Body = (props: IProps) => (
   <Styled.ModalBody contentScrollable={!!props.contentScrollable} style={props.bodyStyle}>
