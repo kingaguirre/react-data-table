@@ -1,9 +1,9 @@
-// portal.spec.ts
 import { newSpecPage } from '@stencil/core/dist/testing';
 import { MyPortal } from './portal';
 
 describe('my-portal (unit)', () => {
   beforeEach(() => {
+    // Remove any leftover portal roots before each test
     document
       .querySelectorAll('[data-portal-root="body"]')
       .forEach(el => el.remove());
@@ -12,48 +12,49 @@ describe('my-portal (unit)', () => {
   it('does not append when active="false"', async () => {
     const page = await newSpecPage({
       components: [MyPortal],
-      html: `<my-portal selector="body" active="false">
-               <div id="child">Hidden</div>
-             </my-portal>`,
+      html: `
+        <my-portal selector="body" active="false">
+          <div id="child">Hidden</div>
+        </my-portal>
+      `,
     });
 
-    // root can be null
-    const root: HTMLElement | null = page.win.document.querySelector('[data-portal-root="body"]');
+    const root = page.win.document.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).toBeNull();
   });
 
-  it('mounts when active="true" and unmounts when toggled off', async () => {
+  it('mounts content when active="true" and unmounts when toggled off', async () => {
     const page = await newSpecPage({
       components: [MyPortal],
-      html: `<my-portal selector="body" active="true">
-               <span id="child">Hello</span>
-             </my-portal>`,
+      html: `
+        <my-portal selector="body" active="true">
+          <span id="child">Hello</span>
+        </my-portal>
+      `,
     });
 
     // initial mount
-    let root: HTMLElement | null = page.win.document.querySelector('[data-portal-root="body"]');
+    let root = page.win.document.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).not.toBeNull();
-    // use ! now that we're sure it's not null
-    expect(root!.querySelector('#child')?.textContent).toBe('Hello');
+    expect(root?.querySelector('#child')?.textContent).toBe('Hello');
 
     // toggle off
     (page.root as any).active = false;
     await page.waitForChanges();
 
-    root = page.win.document.querySelector('[data-portal-root="body"]');
+    root = page.win.document.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).toBeNull();
 
     // toggle on again
     (page.root as any).active = true;
     await page.waitForChanges();
 
-    root = page.win.document.querySelector('[data-portal-root="body"]');
+    root = page.win.document.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).not.toBeNull();
-    expect(root!.querySelector('#child')?.textContent).toBe('Hello');
+    expect(root?.querySelector('#child')?.textContent).toBe('Hello');
   });
 
-  it('removes portal root when host is removed', async () => {
-    // start with a container div
+  it('removes portal root when the host is removed from the DOM', async () => {
     const page = await newSpecPage({
       components: [MyPortal],
       html: `<div id="container"></div>`,
@@ -70,16 +71,17 @@ describe('my-portal (unit)', () => {
     container.appendChild(host);
     await page.waitForChanges();
 
-    // should have mounted
-    let root: HTMLElement | null = doc.querySelector('[data-portal-root="body"]');
+    // verify it mounted under <body>
+    let root = doc.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).not.toBeNull();
-    expect(root!.querySelector('#x')).not.toBeNull();
+    expect(root?.querySelector('#x')).not.toBeNull();
 
     // remove the host
     container.removeChild(host);
     await page.waitForChanges();
 
-    root = doc.querySelector('[data-portal-root="body"]');
+    // portal root should also be gone
+    root = doc.querySelector<HTMLElement>('[data-portal-root="body"]');
     expect(root).toBeNull();
   });
 });
