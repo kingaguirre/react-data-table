@@ -4,13 +4,12 @@ import { MyPortal } from './portal';
 
 describe('my-portal (unit)', () => {
   beforeEach(() => {
-    // clean out any leftover portal roots
     document
       .querySelectorAll('[data-portal-root="body"]')
       .forEach(el => el.remove());
   });
 
-  it('does not append when active=false', async () => {
+  it('does not append when active="false"', async () => {
     const page = await newSpecPage({
       components: [MyPortal],
       html: `<my-portal selector="body" active="false">
@@ -18,11 +17,12 @@ describe('my-portal (unit)', () => {
              </my-portal>`,
     });
 
-    const root = page.win.document.querySelector('[data-portal-root="body"]');
+    // root can be null
+    const root: HTMLElement | null = page.win.document.querySelector('[data-portal-root="body"]');
     expect(root).toBeNull();
   });
 
-  it('mounts content when active=true and unmounts when toggled off', async () => {
+  it('mounts when active="true" and unmounts when toggled off', async () => {
     const page = await newSpecPage({
       components: [MyPortal],
       html: `<my-portal selector="body" active="true">
@@ -31,52 +31,55 @@ describe('my-portal (unit)', () => {
     });
 
     // initial mount
-    let root = page.win.document.querySelector('[data-portal-root="body"]') as HTMLElement;
+    let root: HTMLElement | null = page.win.document.querySelector('[data-portal-root="body"]');
     expect(root).not.toBeNull();
-    expect(root.querySelector('#child')?.textContent).toBe('Hello');
+    // use ! now that we're sure it's not null
+    expect(root!.querySelector('#child')?.textContent).toBe('Hello');
 
     // toggle off
     (page.root as any).active = false;
     await page.waitForChanges();
+
     root = page.win.document.querySelector('[data-portal-root="body"]');
     expect(root).toBeNull();
 
     // toggle on again
     (page.root as any).active = true;
     await page.waitForChanges();
-    root = page.win.document.querySelector('[data-portal-root="body"]') as HTMLElement;
+
+    root = page.win.document.querySelector('[data-portal-root="body"]');
     expect(root).not.toBeNull();
-    expect(root.querySelector('#child')?.textContent).toBe('Hello');
+    expect(root!.querySelector('#child')?.textContent).toBe('Hello');
   });
 
-  it('removes portal root when component is removed', async () => {
-    // attach a host container to the real document
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
+  it('removes portal root when host is removed', async () => {
+    // start with a container div
     const page = await newSpecPage({
       components: [MyPortal],
-      template: () => container,
+      html: `<div id="container"></div>`,
     });
 
-    // insert the portal host
-    const host = page.win.document.createElement('my-portal');
+    const doc = page.win.document;
+    const container = doc.getElementById('container')!;
+
+    // create and append the portal host
+    const host = doc.createElement('my-portal');
     host.setAttribute('selector', 'body');
     (host as any).active = true;
     host.innerHTML = `<b id="x">X</b>`;
     container.appendChild(host);
     await page.waitForChanges();
 
-    // ensure mounted
-    let root = page.win.document.querySelector('[data-portal-root="body"]') as HTMLElement;
-    expect(root.querySelector('#x')).not.toBeNull();
+    // should have mounted
+    let root: HTMLElement | null = doc.querySelector('[data-portal-root="body"]');
+    expect(root).not.toBeNull();
+    expect(root!.querySelector('#x')).not.toBeNull();
 
     // remove the host
     container.removeChild(host);
     await page.waitForChanges();
 
-    // portal root should be gone
-    root = page.win.document.querySelector('[data-portal-root="body"]');
+    root = doc.querySelector('[data-portal-root="body"]');
     expect(root).toBeNull();
   });
 });
