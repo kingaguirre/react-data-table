@@ -67,7 +67,7 @@ const DraggableHeader: React.FC<{ header: ComputedColumnSetting; children: React
 
 const MyTableComponent: React.FC = () => {
   // Table data state (e.g. 10,000 records)
-  const [tableData, setTableData] = useState(() => dataSource(10000));
+  const [tableData, setTableData] = useState(() => dataSource(100000));
 
   // Initialize the table hook with various UI features.
   const table = useReactTable({

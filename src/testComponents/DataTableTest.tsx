@@ -526,6 +526,7 @@ export default () => {
       <div>
         <button onClick={() => setShow(true)}>Show Modal</button>
         <TXModal
+        keepMounted
           show={show}
           onClose={() => setShow(false)}
         >
@@ -1259,7 +1260,7 @@ export default () => {
 
 const ExampleChild: React.FC = () => {
   React.useEffect(() => {
-    console.log('Child effect start');
+    console.log('---Child effect start');
     const id = setTimeout(() => {
       console.log('Delayed work fired');
     }, 500);

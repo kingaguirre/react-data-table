@@ -1,0 +1,6 @@
+Introducing react-components-lib — High-Performance UI Components for React 19
+react-components-lib is a modern, enterprise-ready React component library originally developed to support Angular-to-React migration initiatives. While purpose-built for migration scenarios, its architecture is flexible and robust enough for any React project.
+
+Originally implemented as StencilJS web components, the library has been fully refactored into native React components to eliminate performance bottlenecks commonly experienced when integrating web components in React applications.
+
+Now built entirely with React 19 and ViteJS, react-components-lib delivers lightning-fast development workflows, enhanced type safety with TypeScript, and scalable UI primitives tailored for modern React ecosystems — whether you’re migrating legacy systems or building from the ground up.

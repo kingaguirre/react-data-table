@@ -16,4 +16,5 @@ export interface ITXModalInterface {
   zIndex?: number;
   iconColor?: string;
   position?: string;
+  keepMounted?: boolean
 }
