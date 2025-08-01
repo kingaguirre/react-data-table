@@ -523,7 +523,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
-      <div>
+      {/* <div>
         <button onClick={() => setShow(true)}>Show Modal</button>
         <TXModal
         keepMounted
@@ -543,8 +543,8 @@ export default () => {
             <button onClick={() => setShow(false)}>Close</button>
           </TXModal.Footer>
         </TXModal>
-      </div>
-      {/* <DocumentationPage/> */}
+      </div> */}
+      <DocumentationPage/>
       {/* <TableTest/> */}
       {/* <TanstackTableWorkerExample/> */}
       {/* <TableUpdateTest/> */}

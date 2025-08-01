@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>TXDataTable API Documentation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #202020; padding: 20px;">
+<div style="width:100%; max-width:1000px; margin:0 auto; overflow-x:auto;">
+<!-- Documentation Reference -->
+<div style="background-color: #e6f9fd; border-left: 4px solid #005c84; padding: 15px; margin: 20px 0;">
+<p><strong>📝 Documentation Reference</strong></p>
+<p>This documentation was generated against commit (mvp1.7.0)
+        <code style="color: #A31515;">ebd6050b50b87220f69364027e60dcadbc937dae</code>.</p>
+        <p style="font-size:0.9rem; color:#666; margin-top:-1rem;">Last updated: July 31, 2025 (Asia/Manila)</p>
+</div>
+<h1 style="color:#005c84;">📖 TXDataTable V3 API Documentation</h1>
+<!-- DataTable Props -->
+<section id="DataTable Props" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">DataTableProps</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">dataSource</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Array of objects (any shape); required to render the data table correctly.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">Required</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">
+<a href="#ColumnSettings" style="color:#005c84; cursor:pointer; text-decoration:none; font-weight:bold;">columnSettings ↗</a>
+</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Configuration for each column; required. See ColumnSettings interface for available properties, including mandatory <code style="color:#A31515;">column</code> and <code style="color:#A31515;">title</code> fields.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ColumnSettings[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">Required</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isDownloadDisabled</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable download button.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isUploadDisabled</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable upload button.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">minPageSize</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Minimum page size if user enters 0 or empty.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">10</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageSize</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Rows per page; defaults to fetchConfig.requestData.pageSize or minPageSize.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">props.fetchConfig?.requestData?.pageSize || minPageSize</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageIndex</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Current page number; defaults to fetchConfig.requestData.pageNumber or 0.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(props.fetchConfig?.requestData?.pageNumber !== undefined ? props.fetchConfig.requestData.pageNumber : undefined) || 0</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">selectable</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Show checkboxes for row selection; defaults to true if bulk delete enabled, otherwise false or as specified.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">!!props.isBulkDelete ? true : props.selectable || false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">multiSelect</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Allow multi-row selection; defaults to true if bulk delete enabled, otherwise based on prop.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">!!props.isBulkDelete ? true : props.multiSelect</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">rowKey</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Key for uniquely identifying each row.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">tableHeight</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Table height as a CSS value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">tableMaxHeight</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max table height as a CSS value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerSearchSettings</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Main search box settings.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">HeaderSearchSettings | boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">hideFooter</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Hide the table footer.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">collapsibleRowHeight</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Height of collapsible rows as a CSS value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">
+<a href="#FetchConfig" style="color:#005c84; cursor:pointer; text-decoration:none; font-weight:bold;">fetchConfig ↗</a>
+</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Configuration for data fetching.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">FetchConfig</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">downloadXLS</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable downloading data as XLSX.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">maxRowDownload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max rows allowed to download.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">maxRowUpload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max rows allowed to upload.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">downloadFileName</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Filename to use for downloads.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">downloadHiddenColumn</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Include hidden columns in download.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">true</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">uploadXLS</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable uploading data as XLSX.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onServerSideUpload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Bypass client-side upload if defined.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(file: any) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">activeRow</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Key of the currently active row.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">null</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">selectedRows</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Keys of currently selected rows.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">[]</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">
+<a href="#CustomRowSettings" style="color:#005c84; cursor:pointer; text-decoration:none; font-weight:bold;">customRowSettings ↗</a>
+</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Per-row custom styling settings.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">CustomRowSettings[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">actions</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Built-in actions (ADD, EDIT, DELETE, etc.).</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">Actions | Actions[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">
+<a href="#IActionsDropdownItems" style="color:#005c84; cursor:pointer; text-decoration:none; font-weight:bold;">
+                actionsDropdownItems ↗
+              </a>
+</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Extra dropdown items in the action column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">IActionsDropdownItems[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">disableDefaultDownload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable built-in download.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onDownloadAllClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Function triggers when download all menu is clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(data: any[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onDownloadSelectedClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Function triggers when download selected items menu is clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(data: any[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">disableDefaultDownloadSelected</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable built-in download selected items.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">maxRowDownload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max rows allowed to download.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">maxRowUpload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max rows allowed to upload.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">downloadFileName</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Filename to use for downloads.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">downloadHiddenColumn</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Include hidden columns in download.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">true</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">uploadXLS</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable uploading data as XLSX.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onServerSideUpload</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Bypass client-side upload if defined.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(file: any) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">disabledSelectedRows</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Keys of selected rows in the table that are disabled.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">actionsDropdownContainerWidth</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Set dropdown container width for actions.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isAddDisabled</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable the add button action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">actionColumnSetting</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Action column settings.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">IActionColumnSetting</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">{}</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isPermanentDelete</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">If true, delete action permanently removes data.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isBulkDelete</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable bulk delete by checking checkboxes.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onBulkDelete</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when bulk delete occurs, returns deleted rows.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(deletedRwos: any[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">selectionRange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable cell selection for copy or paste data.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerRightControls</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Show or hide header right controls.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">showPreviousValue</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Show previous value in tooltip.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerMainContent</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Element to render before search textbox.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ReactNode</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerLeftContent</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Element to render after search textbox.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ReactNode</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerRightContent</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Element to render before right controls.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ReactNode</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">headerRightIcons</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Icons that appear in header right controls after default icons.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">{ icon: string; onIconClick?: () =&gt; void; title?: string }[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isLoading</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Show loading component.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">disabledPagination</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Force disable pagination.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">false</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isDisablePageSizeChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable page size change.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">overrideUpdateStyle</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Override default update style.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">totalItems</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Total number of items when using custom pagination or SSR.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ssrConfig</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Configuration for server-side rendering and data fetching.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">{ fetchPageData?: (values: { pageIndex: number; pageSize: number; searchQuery?: string; filterValues?: { [key: string]: any }; }) =&gt; void; onDownloadAllClick?: () =&gt; any[] | Promise<any[]> | boolean; allData?: () =&gt; any[] | Promise<any[]> | any[] }</any[]></any[]></code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">isSelectableDisabled</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable selection checkboxes when selectable is true.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">localStorageSettingsKey</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Key to save column settings in sessionStorage.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">setActiveRowOnClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable setting active row on single click.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">true</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">setActiveRowOnDoubleClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable setting active row on double click.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">true</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">withDownloadUploadAction</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable additional column (Row Key, Intent Action) when downloading or uploading.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">undoRedoCellEditing</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable undo/redo when cell editing.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">undoRedoCellEditingLimit</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Max undo/redo history entries. Default is 5.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">5</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when table data is updated.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(updatedData: any[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onRowClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when a row is clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(rowData: any, index?: number) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onRowDoubleClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when a row is double-clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(rowData: any, index?: number) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onColumnSettingsChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when column settings change.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(newColumnSettings: ColumnSettings[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onResetClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when reset icon clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(columnSettings: ColumnSettings[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">collapsibleRowRender</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Function to render collapsible row content.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(rowData: any) =&gt; ReactNode</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onPageSizeChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when page size changes.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(newPageSize: number) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onPageIndexChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when page index changes.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(newPageIndex: number) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onSelectedRowsChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when selected rows change.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(selectedRows: any[]) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onDataChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when data is changed.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(values?: IDataChange) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onSelectionChange</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when selection of cells is triggered.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(cells?: any) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onRefreshIconClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when refresh icon in footer is clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">() =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onResetIconClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Callback when reset icon is clicked.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">() =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">showReset</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Enable or disable reset button.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">—</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- ColumnSettings -->
+<section id="ColumnSettings" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">ColumnSettings</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">filterConfig</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Configuration for column filtering.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">IFilterConfig</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">column</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Name of the column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">title</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Display title of the column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">align</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Text alignment in the column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">'left' | 'right' | 'center' | string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pinned</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Pin column to a side.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean | string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">hidden</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Hide the column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">width</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Width as CSS value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string | number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">minWidth</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Minimum width as CSS value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string | number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">groupTitle</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Title for a group of columns.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">order</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Order of the column in the table.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">sorted</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Sorting direction.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">'asc' | 'desc' | string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">draggable</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Allow column to be dragged.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">resizable</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Allow column to be resized.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">actionConfig</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Actions specific to this column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any | boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">class</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">CSS class for styling.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">selectable</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable selecting this column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">type</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Convert cell based on type.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">columnCustomRenderer</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Custom renderer for cell content.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(value: any, rowData: any) =&gt; ReactNode</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- FetchConfig -->
+<section id="FetchConfig" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">FetchConfig</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">endpoint</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">URL of the API endpoint.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">requestData</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Pagination, sorting, filtering info.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">RequestData</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">responseDataPath</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Path to items array in response JSON.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">responseTotalDataPath</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Path to total count in response JSON.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">filterSettings</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Custom filter settings.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">callApi</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Custom fetching function.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- RequestData -->
+<section id="RequestData" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">RequestData</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageNumber</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Page number for fetching.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageSize</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Page size for fetching.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">sortColumn</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Column name for sorting.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">sortDirection</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Sorting direction: asc or desc.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">method</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">HTTP method for request.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">filter</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Filter criteria object.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">{ [key: string]: any }</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- CustomRowSettings -->
+<section id="CustomRowSettings" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">CustomRowSettings</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd; min-width: 150px;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">column</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">The column name to target.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">value</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">The cell value that triggers styling.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">showColumn</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Show or hide the column for this row.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">width</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">CSS width for this row.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">styles</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">CSS styles to apply.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">{ backgroundColor?: string; textDecoration?: string; color?: string; fontWeight?: string; fontStyle?: string }</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- HeaderSearchSettings -->
+<section id="HeaderSearchSettings" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">HeaderSearchSettings</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">column</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Column to filter by when searching.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">placeholder</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Placeholder text for the search box.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">width</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Width of the search box.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IActionsDropdownItems -->
+<section id="IActionsDropdownItems" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IActionsDropdownItems</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">text</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Label for the dropdown item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">icon</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Icon identifier to display.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">disabled</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable this dropdown item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">onClick</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Click handler for this item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(data?: any) =&gt; void</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IActionColumnSetting -->
+<section id="IActionColumnSetting" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IActionColumnSetting</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">width</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Width of the action column header.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">title</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Title text for the action column.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IDataChange -->
+<section id="IDataChange" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IDataChange</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">data</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Updated table data array.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">filteredData</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Filtered data array.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">totalData</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Total count of data items.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageIndex</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Footer page index.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">internalPageIndex</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Internal page index.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">pageSize</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Footer page size.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">number</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">selectedRows</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Keys of selected rows.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IFilterConfig -->
+<section id="IFilterConfig" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IFilterConfig</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">type</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Type of filter (e.g., text, date).</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">value</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Current filter value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">multiSelect</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Allow multi-select values.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">options</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Dropdown options list.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">IOptions[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">codeId</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Field used as option value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">placeholder</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Placeholder for filter input.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- Actions Enum -->
+<section id="Actions" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">Actions</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Enum Value</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Underlying Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">ADD</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Add a new row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"ADD"</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">EDIT</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Edit an existing row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"EDIT"</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">DELETE</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Delete a row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"DELETE"</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">DUPLICATE</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Duplicate a row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"DUPLICATE"</code></td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">COPY</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Copy a row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"COPY"</code></td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">PASTE</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Paste a copied row or item.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">"PASTE"</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IActionConfig -->
+<section id="IActionConfig" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IActionConfig</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">type</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Type of action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">value</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Value for action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">options</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Dropdown options for action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">IOptions[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">codeId</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Field used as option value.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">placeholder</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Placeholder for action input.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">isUnique</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Flag indicating whether the action is unique.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">disabled</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Disable action based on row state.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean | ((rowData: any, isSelected: boolean) =&gt; boolean | undefined)</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">schema</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Validation schema for action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">verticalAlign</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Vertically align action cell.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">boolean</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">validation</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Custom validation function for action.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">(rowData: any, isSelected: boolean) =&gt; string | undefined</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- IGlobalState -->
+<section id="IGlobalState" style="margin:2rem 0; padding:0 1rem;">
+<h2 style="font-size:1.5rem; margin-bottom:1rem; color:#005c84;">IGlobalState</h2>
+<table style="width:100%; border-collapse:collapse; margin-bottom:1rem;">
+<thead>
+<tr>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Prop Name</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Description</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Type</th>
+<th style="text-align:left; padding:12px; font-weight:600; border-bottom:2px solid #ddd;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">localData</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Local data stored in the application.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">any[] | null</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr>
+<td style="padding:12px; border-bottom:1px solid #ddd;">columns</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Configuration for all columns in the table.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">ColumnSettings[]</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<tr style="background-color:#fafafa;">
+<td style="padding:12px; border-bottom:1px solid #ddd;">search</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">Search query applied to filter data.</td>
+<td style="padding:12px; border-bottom:1px solid #ddd;"><code style="color:#A31515;">string | undefined</code></td>
+<td style="padding:12px; border-bottom:1px solid #ddd;">—</td>
+</tr>
+<!-- Continue listing all IGlobalState properties similarly -->
+</tbody>
+</table>
+</section>
+</div>
+</body>
+</html>
