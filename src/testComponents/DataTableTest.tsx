@@ -551,16 +551,16 @@ export default () => {
       {/* <TanstackTableWorkerExample/> */}
       {/* <TableUpdateTest/> */}
       {/* <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/> */}
-      <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black',}}>
-        <div style={{width: 1000, height: 1000, padding: 500, background: '#e1e1e1'}}>
+      <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black', margin: '0 auto'}}>
+        <div style={{width: 2000, height: 1000, padding: 1000, background: '#e1e1e1'}}>
           <TXPopOver title='test' content={(
             <div style={{width: 300, height: 300, padding: 20}}>test</div>
           )} trigger='click'>
             <button>test</button>
           </TXPopOver>
 
-          <PopupTooltip trigger='click' title='test' content={(
-            <div style={{width: 300, height: 300}}>test</div>
+          <PopupTooltip trigger='click' title='test'  content={(
+            <div style={{ height: 300, width: 800}}>test</div>
           )}>
             <button>test</button>
           </PopupTooltip>

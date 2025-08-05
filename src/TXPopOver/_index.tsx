@@ -6,6 +6,7 @@ import 'tippy.js/dist/tippy.css';
 const StyledTippy = styled(Tippy)<{ variation?: string}>`
   &.tippy-box {
     width: auto;
+    max-width: initial !important;;
     background: white;
     border: 1px solid var(--color-${({ variation }) => variation});
     border-radius: 2px;
@@ -138,6 +139,7 @@ export interface ITXPopOverInterface {
   children?: ReactNode; // Property to set children on which click/hover event trigger
   trigger?: 'click' | 'hover'; // Property to set event type on which pop up to be displayed 'hover' | 'click'
   variation?: string;
+  width?: number
 }
 
 export const PopupTooltip: React.FC<ITXPopOverInterface> = ({
@@ -146,7 +148,8 @@ export const PopupTooltip: React.FC<ITXPopOverInterface> = ({
   placement = 'bottom',
   trigger = 'hover',
   children,
-  variation = 'primary'
+  variation = 'primary',
+  width = 150
 }) => {
   const [visible, setVisible] = useState(false);
   const show = () => setVisible(true);
@@ -163,7 +166,7 @@ export const PopupTooltip: React.FC<ITXPopOverInterface> = ({
       variation={variation}
       className='tx-popover'
       content={
-        <div className='tx-popover-content-wrapper'>
+        <div className='tx-popover-content-wrapper' style={{minWidth: width}}>
           <div className='tx-popover-title'>
             {title}
             <CloseButton onClick={hide}>×</CloseButton>

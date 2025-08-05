@@ -1,0 +1,68 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { PopupTooltip } from './PopupTooltip';
+
+describe('PopupTooltip', () => {
+  const TITLE = 'Test Title';
+  const CONTENT = 'Test Content';
+
+  it('renders its children', () => {
+    render(
+      <PopupTooltip title={TITLE} content={CONTENT}>
+        <button>Trigger</button>
+      </PopupTooltip>
+    );
+    expect(screen.getByText('Trigger')).toBeInTheDocument();
+  });
+
+  it('shows on hover and hides on mouse leave, and can be closed via the × button', async () => {
+    render(
+      <PopupTooltip title={TITLE} content={CONTENT}>
+        <span>Hover me</span>
+      </PopupTooltip>
+    );
+    const trigger = screen.getByText('Hover me');
+
+    // Tooltip should start hidden
+    expect(screen.queryByText(TITLE)).not.toBeInTheDocument();
+
+    // Hover over the trigger
+    fireEvent.mouseEnter(trigger);
+
+    // Wait for it to appear
+    expect(await screen.findByText(TITLE)).toBeInTheDocument();
+    expect(screen.getByText(CONTENT)).toBeInTheDocument();
+
+    // Click the close button
+    const closeBtn = screen.getByText('×');
+    fireEvent.click(closeBtn);
+
+    // Wait for it to disappear
+    await waitFor(() => {
+      expect(screen.queryByText(TITLE)).not.toBeInTheDocument();
+    });
+  });
+
+  it('toggles visibility on click when trigger="click"', async () => {
+    render(
+      <PopupTooltip title="Click Title" content="Click Content" trigger="click">
+        <div>Click me</div>
+      </PopupTooltip>
+    );
+    const trigger = screen.getByText('Click me');
+
+    // Initially hidden
+    expect(screen.queryByText('Click Title')).not.toBeInTheDocument();
+
+    // First click shows
+    fireEvent.click(trigger);
+    expect(await screen.findByText('Click Title')).toBeInTheDocument();
+
+    // Second click hides
+    fireEvent.click(trigger);
+    await waitFor(() => {
+      expect(screen.queryByText('Click Title')).not.toBeInTheDocument();
+    });
+  });
+});
