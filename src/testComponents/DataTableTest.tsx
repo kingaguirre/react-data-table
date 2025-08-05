@@ -21,13 +21,14 @@ import { ParentComponent } from './ReRenderComponent'
 import { DataTableEnhancement } from './DataTableEnhancement'
 import Popover from './Popover'
 import { TXPopOver } from '../TXPopOver'
-import { PopupTooltip } from '../TXPopOver/index_'
+import { PopupTooltip } from '../TXPopOver/_index'
 // import { VirtualList } from '../Virtualizer'
 import TableUpdateTest from './TableUpdateTest'
 import TanstackTableWorkerExample from './TanstackTableWorkerExample'
 import TableTest from '../ReactDataTable/TableTest'
 import {DocumentationPage} from './DocumentationPage'
 import { TXModal } from '../TXModal'
+import { GlobalStyle } from './globalStyle'
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -523,6 +524,7 @@ export default () => {
 
   return (
     <div style={{padding: 16}}>
+      <GlobalStyle/>
       {/* <div>
         <button onClick={() => setShow(true)}>Show Modal</button>
         <TXModal
@@ -544,26 +546,26 @@ export default () => {
           </TXModal.Footer>
         </TXModal>
       </div> */}
-      <DocumentationPage/>
+      {/* <DocumentationPage/> */}
       {/* <TableTest/> */}
       {/* <TanstackTableWorkerExample/> */}
       {/* <TableUpdateTest/> */}
       {/* <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/> */}
-      {/* <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black'}}>
-        <div style={{width: 1000, height: 1000, padding: 200}}>
-          <TXPopOver content={(
+      <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black',}}>
+        <div style={{width: 1000, height: 1000, padding: 500, background: '#e1e1e1'}}>
+          <TXPopOver title='test' content={(
             <div style={{width: 300, height: 300, padding: 20}}>test</div>
           )} trigger='click'>
             <button>test</button>
           </TXPopOver>
 
-          <PopupTooltip title='test' content={(
-            <div style={{width: 300, height: 300, padding: 20}}>test</div>
-          )} trigger='click'>
+          <PopupTooltip trigger='click' title='test' content={(
+            <div style={{width: 300, height: 300}}>test</div>
+          )}>
             <button>test</button>
           </PopupTooltip>
         </div>
-      </div> */}
+      </div>
       {/* <div style={{margin: 400}}>
         <Popover
           trigger="click"

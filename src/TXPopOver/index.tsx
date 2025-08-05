@@ -5,6 +5,7 @@ import { PopoverContainer, PopoverTitle, PopoverContent, CloseButton } from './s
 import { ITXPopOverInterface } from './interface';
 
 export const TXPopOver: FC<ITXPopOverInterface> = (props) => {
+
   const {
     trigger = 'hover',
     content,
@@ -16,175 +17,169 @@ export const TXPopOver: FC<ITXPopOverInterface> = (props) => {
     popoverBorderColor,
     popoverWidth,
     childrenCss = {},
-    popoverTitleColor,
+    popoverTitleColor
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0, placement, right: 0 });
   const [popoverKnobPosition, setPopoverKnobPosition] = useState('');
 
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const targetRef = useRef<HTMLElement | null>(null);
+  const popoverRef: any = useRef(null);
+  const targetRef: any = useRef(null);
   const devicePixelRatio = window.devicePixelRatio;
 
-  // Toggle popover open/closed
   const handleToggle = () => {
-    setIsOpen((prev) => !prev);
+    setIsOpen(prev => !prev);
   };
 
-  /* Helper to get scrollable parent elements */
-  const getScrollableParents = (element: HTMLElement): HTMLElement[] => {
-    const scrollableParents: HTMLElement[] = [];
-    let parent = element.parentElement;
-    while (parent) {
-      const { overflowY } = getComputedStyle(parent);
-      if (overflowY === 'auto' || overflowY === 'scroll') {
-        scrollableParents.push(parent);
-      }
-      parent = parent.parentElement;
-    }
-    return scrollableParents;
-  };
-
-  /* Calculate knob position when there’s not enough space on the left */
-  const calculatePopOverLeftPosition = (popoverRect: DOMRect, targetRect: DOMRect) => {
+  /* Not enough space to the left, switch to right */
+  const calculatePopOverLeftPosition = (popoverRect, targetRect) => {
     let knobPosition, left;
-    if (targetRect.width < 20) {
-      knobPosition = targetRect.left - 37 + "px";
+    if (targetRect?.width < 20) {
+      knobPosition = targetRect?.left - 37 + "px";
       left = 44;
-    } else {
-      const arrowPosition = Math.abs(popoverRect.width - targetRect.right + (targetRect.width / 10) - popoverRect.left) / 10;
-      left = 10;
-      knobPosition = arrowPosition < 5 ? arrowPosition + 4 + "px" : arrowPosition + "px";
-    }
-    return { knobPosition, left };
-  };
 
-  /* Calculate knob position when there’s not enough space on the right */
-  const calculatePopOverRightPosition = (popoverRect: DOMRect, targetRect: DOMRect) => {
-    let knobPosition, right = popoverRect.width / 20;
-    if (targetRect.width < 20) {
-      if (popoverRect.width > 800) {
-        knobPosition = devicePixelRatio < 1.5
-          ? Math.abs(targetRect.left / 100 + popoverRect.width - popoverRect.left + 168) + "px"
-          : Math.abs(targetRect.left / 100 + popoverRect.width - popoverRect.left + 68) + "px";
-      } else if (popoverRect.width > 500) {
-        right = popoverRect.width / 10;
+    } else {
+      const arrowPosition = Math.abs(popoverRect?.width - targetRect?.right + (targetRect?.width / 10) - popoverRect?.x) / 10;
+      left = 10;
+      if (arrowPosition < 5) knobPosition = arrowPosition + 4 + "px";
+      else knobPosition = arrowPosition + "px";
+    }
+
+    return {
+      knobPosition,
+      left
+    }
+  }
+
+  /* Not enough space to the right, switch to left */
+  const calculatePopOverRightPosition = (popoverRect, targetRect) => {
+    let knobPosition, right = (popoverRect?.width / 2) / 10;
+    if (targetRect?.width < 20) {
+      if (popoverRect?.width > 800) {
+        knobPosition = devicePixelRatio < 1.5 ?
+          Math.abs(targetRect?.left / 100 + popoverRect?.width - popoverRect?.left + 168) + "px" :
+          Math.abs(targetRect?.left / 100 + popoverRect?.width - popoverRect?.left + 68) + "px"
+      } else if (popoverRect?.width > 500) {
+        right = (popoverRect?.width / 2) / 5;
         if (devicePixelRatio < 1.5) {
-          knobPosition = devicePixelRatio > 1.1 && devicePixelRatio < 1.3
-            ? Math.abs(targetRect.left / 10 + popoverRect.width / 2 - popoverRect.left / 18 - 67) + "px"
-            : Math.abs(targetRect.left / 10 + popoverRect.width / 2 - popoverRect.left / 18 - 22) + "px";
+          if (devicePixelRatio > 1.1 && devicePixelRatio < 1.3) {
+            knobPosition = Math.abs(targetRect?.left / 10 + popoverRect?.width / 2 - popoverRect?.left / 18 - 67) + "px";
+          } else {
+            knobPosition = Math.abs(targetRect?.left / 10 + popoverRect?.width / 2 - popoverRect?.left / 18 - 22) + "px";
+          }
         } else {
-          knobPosition = Math.abs(targetRect.left / 10 + popoverRect.width / 2 - popoverRect.left / 18 + 6) + "px";
+          knobPosition = Math.abs(targetRect?.left / 10 + popoverRect?.width / 2 - popoverRect?.left / 18 + 6) + "px";
         }
-      } else if (popoverRect.width > 300) {
-        knobPosition = Math.abs(targetRect.left / 100 + popoverRect.width - popoverRect.left / 18) + "px";
+      } else if (popoverRect?.width > 300) {
+        knobPosition = Math.abs(targetRect?.left / 100 + popoverRect?.width - popoverRect?.left / 18) + "px"
       } else {
-        right = devicePixelRatio < 1.2 ? popoverRect.width / 6 + 10 : popoverRect.width / 4;
+        right = devicePixelRatio < 1.2 ? (popoverRect?.width / 2) / 3 + 10 : (popoverRect?.width / 2) / 2;
         knobPosition = '96%';
       }
     } else {
-      const arrowPosition = Math.abs(popoverRect.width - targetRect.right + (targetRect.width / 10) - popoverRect.left) / 10;
-      knobPosition = arrowPosition < 5 ? arrowPosition + 4 + "px" : arrowPosition + "px";
+      const arrowPosition = Math.abs(popoverRect?.width - targetRect?.right + (targetRect?.width / 10) - popoverRect?.x) / 10;
+      if (arrowPosition < 5) knobPosition = arrowPosition + 4 + "px";
+      else knobPosition = arrowPosition + "px";
     }
-    return { knobPosition, left: 0, right };
-  };
+
+    return {
+      knobPosition,
+      left: 0,
+      right
+    }
+  }
 
   const calculatePosition = () => {
-    if (targetRef.current && popoverRef.current) {
-      const targetRect = targetRef.current.getBoundingClientRect();
-      const popoverRect = popoverRef.current.getBoundingClientRect();
-
-      // Compute absolute coordinates based on the viewport plus the window’s scroll offsets.
-      const absoluteLeft = targetRect.left + window.pageXOffset;
-      const absoluteTop = targetRect.top + window.pageYOffset;
-
+    if (targetRef?.current && popoverRef?.current) {
+      const targetRect = targetRef?.current?.getBoundingClientRect();
+      const popoverRect = popoverRef?.current?.getBoundingClientRect();
       let knobPosition = '50%';
-      // Initially center the popover horizontally relative to the target.
-      let left = absoluteLeft + targetRect.width / 2 - popoverRect.width / 2;
-      let top: number, right = 0;
-      let finalPlacement = placement;
-      let isEnoughLeftSpace: boolean;
 
-      // Available space relative to the viewport
-      const spaceAbove = targetRect.top;
-      const spaceBelow = window.innerHeight - targetRect.bottom;
-      const spaceLeft = targetRect.left;
-      const spaceRight = window.innerWidth - targetRect.right;
+      let left = targetRect?.left + (targetRect?.width / 2) - (popoverRect?.width / 2);
+      let top, right = 0;
+      let finalPlacement = placement; // Use a new variable to hold the placement
+      let isEnoughLeftSpace;
 
-      if (devicePixelRatio === 1.125 && popoverRect.width < 800) {
-        isEnoughLeftSpace = targetRect.left < popoverRect.width;
+      // Check available space
+      const spaceAbove = targetRect?.top;
+      const spaceBelow = window?.innerHeight - targetRect?.bottom;
+      const spaceLeft = targetRect?.left;
+      const spaceRight = window?.innerWidth - targetRect?.right;
+      if (devicePixelRatio === 1.125 && popoverRect?.width < 800) {
+        isEnoughLeftSpace = targetRect?.left < popoverRect?.width
       } else {
-        isEnoughLeftSpace = targetRect.left * 2 < popoverRect.width;
+        isEnoughLeftSpace = targetRect?.left * 2 < popoverRect?.width
       }
       const isEnoughRightSpace = spaceRight < 390;
 
-      // Adjust placement based on available space and adjust knob position accordingly.
+      // Adjust placement based on available space
       if (finalPlacement === 'bottom') {
-        if (spaceBelow < popoverRect.height + 5) {
-          finalPlacement = 'top';
+        if (spaceBelow < popoverRect?.height + 5) {
+          finalPlacement = 'top'; // Not enough space below, switch to top
         }
         if (isEnoughLeftSpace) {
-          const { knobPosition: knobLeft, left: newLeft } = calculatePopOverLeftPosition(popoverRect, targetRect);
-          knobPosition = knobLeft;
-          left = newLeft + window.pageXOffset;
+          const knobLeftPosition = calculatePopOverLeftPosition(popoverRect, targetRect);
+          knobPosition = knobLeftPosition?.knobPosition;
+          left = knobLeftPosition?.left;
         } else if (isEnoughRightSpace) {
-          const { knobPosition: knobRight, left: newLeft, right: newRight } = calculatePopOverRightPosition(popoverRect, targetRect);
-          knobPosition = knobRight;
-          left = newLeft + window.pageXOffset;
-          right = newRight;
+          const knobRightPosition = calculatePopOverRightPosition(popoverRect, targetRect);
+          knobPosition = knobRightPosition?.knobPosition;
+          left = knobRightPosition?.left;
+          right = knobRightPosition?.right;
         }
       } else if (finalPlacement === 'top') {
-        if (spaceAbove < popoverRect.height + 5) {
-          finalPlacement = 'bottom';
+        if (spaceAbove < popoverRect?.height + 5) {
+          finalPlacement = 'bottom'; // Not enough space above, switch to bottom
         }
         if (isEnoughLeftSpace) {
-          const { knobPosition: knobLeft, left: newLeft } = calculatePopOverLeftPosition(popoverRect, targetRect);
-          knobPosition = knobLeft;
-          left = newLeft + window.pageXOffset;
+          const knobLeftPosition = calculatePopOverLeftPosition(popoverRect, targetRect);
+          knobPosition = knobLeftPosition?.knobPosition;
+          left = knobLeftPosition?.left;
         } else if (isEnoughRightSpace) {
-          const { knobPosition: knobRight, left: newLeft, right: newRight } = calculatePopOverRightPosition(popoverRect, targetRect);
-          knobPosition = knobRight;
-          left = newLeft + window.pageXOffset;
-          right = newRight;
+          const knobRightPosition = calculatePopOverRightPosition(popoverRect, targetRect);
+          knobPosition = knobRightPosition?.knobPosition;
+          left = knobRightPosition?.left;
+          right = knobRightPosition?.right;
         }
       } else if (finalPlacement === 'right') {
-        if (spaceRight < popoverRect.width + 5) {
-          finalPlacement = 'left';
+        if (spaceRight < popoverRect?.width + 5) {
+          finalPlacement = 'left'; // Not enough space to the right, switch to left
         }
       } else if (finalPlacement === 'left') {
-        if (spaceLeft < popoverRect.width + 5) {
-          finalPlacement = 'right';
+        if (spaceLeft < popoverRect?.width + 5) {
+          finalPlacement = 'right'; // Not enough space to the left, switch to right
         }
       }
 
-      // Compute final top and left based on the resolved placement.
+      // Calculate position based on the final placement
       switch (finalPlacement) {
         case 'top':
-          top = absoluteTop - popoverRect.height - 5;
+          top = targetRect?.top + window?.scrollY - popoverRect?.height - 5;
           break;
         case 'bottom':
-          top = absoluteTop + targetRect.height + 15;
+          top = targetRect?.bottom + window?.scrollY + 15;
           break;
         case 'left':
-          left = absoluteLeft - popoverRect.width - 5;
-          top = absoluteTop + targetRect.height / 2 - popoverRect.height / 2;
+          left = targetRect?.left + window?.scrollX - popoverRect?.width - 5;
+          top = targetRect?.top + (targetRect?.height / 2) - (popoverRect?.height / 2) + window?.scrollY;
           break;
         case 'right':
-          left = absoluteLeft + targetRect.width + 5;
-          top = absoluteTop + targetRect.height / 2 - popoverRect.height / 2;
+          left = targetRect?.right + window?.scrollX + 5;
+          top = targetRect?.top + (targetRect?.height / 2) - (popoverRect?.height / 2) + window?.scrollY;
           break;
         default:
-          top = absoluteTop + targetRect.height + 5;
+          top = targetRect?.bottom + window?.scrollY + 5;
       }
 
-      setPopoverPosition({ left, top, placement: finalPlacement, right });
+      setPopoverPosition({ left, top, placement: finalPlacement, right }); // Use finalPlacement here
       setPopoverKnobPosition(knobPosition);
     }
   };
 
-  const handleOutsideClick = (event: MouseEvent) => {
-    if (isOpen && popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+
+  const handleOutsideClick = (event) => {
+    if (isOpen && popoverRef?.current && !popoverRef?.current?.contains(event?.target)) {
       setIsOpen(false);
     }
   };
@@ -198,28 +193,44 @@ export const TXPopOver: FC<ITXPopOverInterface> = (props) => {
     }
   }, [target, children]);
 
+  const getScrollParent = (element: HTMLTimeElement | null): HTMLElement | Window => {
+    if (!element) return window
+    const overflowRegex = /(auto|scroll)/
+    let parent: HTMLElement | null = element
+    while (parent) {
+      const { overflow, overflowY, overflowX } = getComputedStyle(parent)
+      if (overflowRegex.test(overflow + overflowY + overflowX)) {
+        if (parent.scrollHeight > parent.clientHeight || parent.scrollWidth > parent.clientWidth) {
+          return parent
+        }
+      }
+      parent = parent.parentElement
+    }
+    return window
+  }
+
   useEffect(() => {
+    const scrollParent = getScrollParent(targetRef.current)
     if (isOpen) {
       calculatePosition();
       document.addEventListener('mousedown', handleOutsideClick);
-      window.addEventListener('resize', calculatePosition);
-      window.addEventListener('scroll', calculatePosition, true);
-
-      // Add scroll listener for each scrollable parent of the target
-      const scrollableParents = targetRef.current ? getScrollableParents(targetRef.current) : [];
-      scrollableParents.forEach((parent) =>
-        parent.addEventListener('scroll', calculatePosition)
-      );
+      window.addEventListener('resize', calculatePosition); // Recalculate position on resize
+      scrollParent.addEventListener('scroll', calculatePosition, true);
+ 
+      const resizeObserver = new ResizeObserver(calculatePosition)
+      let ancestor = targetRef.current
+      while (ancestor) {
+        resizeObserver.observe(ancestor)
+        ancestor = ancestor.parentElement
     }
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
-      window.removeEventListener('resize', calculatePosition);
-      window.removeEventListener('scroll', calculatePosition, true);
-      const scrollableParents = targetRef.current ? getScrollableParents(targetRef.current) : [];
-      scrollableParents.forEach((parent) =>
-        parent.removeEventListener('scroll', calculatePosition)
-      );
+      window.removeEventListener('resize', calculatePosition); // Clean up resize listener
+      scrollParent.removeEventListener('scroll', calculatePosition, true);
+      resizeObserver.disconnect()
     };
+
+  }
   }, [isOpen]);
 
   useEffect(() => {
@@ -240,7 +251,7 @@ export const TXPopOver: FC<ITXPopOverInterface> = (props) => {
         }
       };
     }
-  }, [trigger]);
+  }, [trigger, targetRef]);
 
   return (
     <>
@@ -252,31 +263,31 @@ export const TXPopOver: FC<ITXPopOverInterface> = (props) => {
         {children}
       </div>
 
-      {isOpen &&
-        ReactDOM.createPortal(
-          <PopoverContainer
-            ref={popoverRef}
-            isOpen={isOpen}
-            left={popoverPosition.left}
-            top={popoverPosition.top}
-            right={popoverPosition.right}
-            placement={popoverPosition.placement}
-            popoverPointerColor={popoverPointerColor}
+      {ReactDOM.createPortal(
+        <PopoverContainer
+          ref={popoverRef}
+          isOpen={isOpen}
+          left={popoverPosition.left}
+          top={popoverPosition.top}
+          right={popoverPosition.right}
+          placement={popoverPosition.placement}
+          popoverPointerColor={popoverPointerColor}
+          popoverBorderColor={popoverBorderColor}
+          popoverWidth={popoverWidth}
+          popoverKnobPosition={popoverKnobPosition}
+        >
+          <PopoverTitle
             popoverBorderColor={popoverBorderColor}
-            popoverWidth={popoverWidth}
-            popoverKnobPosition={popoverKnobPosition}
+            popoverTitleColor={popoverTitleColor}
           >
-            <PopoverTitle
-              popoverBorderColor={popoverBorderColor}
-              popoverTitleColor={popoverTitleColor}
-            >
-              {title}
-            </PopoverTitle>
-            <CloseButton onClick={handleToggle}>×</CloseButton>
-            <PopoverContent>{content}</PopoverContent>
-          </PopoverContainer>,
-          document.body
-        )}
+            {title}
+          </PopoverTitle>
+          <CloseButton onClick={handleToggle}>×</CloseButton>
+          <PopoverContent>{content}</PopoverContent>
+        </PopoverContainer>,
+        document.body
+      )}
     </>
   );
 };
+
