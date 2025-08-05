@@ -1,102 +1,61 @@
-// __tests__/TestWrapperForTXDataTable.js
-import React, { useState, useEffect, useCallback } from 'react';
-import TXDataTableComponent from '../TXDataTableComponent';
-
-const TestWrapperForTXDataTable = () => {
-  const [dataSource, setDataSource] = useState([]);
-  const [totalRecords, setTotalRecords] = useState(0);
-
-  // Simulate the fetchPageData function without calling an external API.
-  // This function returns a promise that resolves to fake data.
-  const fetchPageData = useCallback(async (values) => {
-    const { pageIndex, pageSize } = values;
-    // Simulate asynchronous delay if needed:
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    
-    const fakeResponse = {
-      // Simulate 10 records
-      data: Array.from({ length: pageSize }, (_, i) => ({
-        id: pageIndex * pageSize + i + 1,
-        name: `Name ${pageIndex * pageSize + i + 1}`,
-        username: `username${pageIndex * pageSize + i + 1}`,
-        email: `email${pageIndex * pageSize + i + 1}@dummy.com`,
-        address: { city: `City ${pageIndex * pageSize + i + 1}` },
-        company: { name: `Company ${pageIndex * pageSize + i + 1}` },
-      })),
-      totalData: 100, // For example, total records is 100
-    };
-
-    // Update parent state with the fake data.
-    setDataSource(fakeResponse.data);
-    setTotalRecords(fakeResponse.totalData);
-    return { data: fakeResponse.data, totalData: fakeResponse.totalData };
-  }, []);
-
-  // Simulate an initial data fetch when the component mounts.
-  useEffect(() => {
-    fetchPageData({ pageIndex: 0, pageSize: 10 });
-  }, [fetchPageData]);
-
-  return (
-    <TXDataTableComponent
-      columnSettings={[{ title: 'Name', column: 'name' }]}
-      dataSource={dataSource}
-      totalItems={totalRecords}
-      ssrConfig={{
-        fetchPageData,
-        // Optionally, add other callbacks like allData or onDownloadAllClick.
-      }}
-    />
-  );
-};
-
-export default TestWrapperForTXDataTable;
-
-
-
-// __tests__/TXDataTable.test.js
 import React from 'react';
-import { render, waitFor, screen } from '@testing-library/react';
-import TestWrapperForTXDataTable from './TestWrapperForTXDataTable';
+import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { PopupTooltip } from './PopupTooltip';
 
-// Cast global.fetch as a jest.Mock so TypeScript recognizes mock methods
-const fetchMock = global.fetch as jest.Mock;
+describe('PopupTooltip', () => {
+  const TITLE = 'Test Title';
+  const CONTENT = 'Test Content';
 
-describe('TXDataTableComponent with parent state management (using DummyJSON)', () => {
-  beforeEach(() => {
-    fetchMock.mockClear();
+  it('renders its children', () => {
+    render(
+      <PopupTooltip title={TITLE} content={CONTENT}>
+        <button>Trigger</button>
+      </PopupTooltip>
+    );
+    expect(screen.getByText('Trigger')).toBeInTheDocument();
   });
 
-  test('should fetch page data and update parent state to render records with total count', async () => {
-    // Create a fake API response mimicking DummyJSON's structure
-    const fakePageDataResponse = {
-      users: Array.from({ length: 10 }, (_, i) => ({
-        id: i + 1,
-        firstName: `Name ${i + 1}`,
-        lastName: `Last ${i + 1}`,
-        username: `username${i + 1}`,
-        email: `email${i + 1}@dummy.com`,
-      })),
-      total: 100,
-    };
+  it('shows on hover and hides on mouse leave', async () => {
+    render(
+      <PopupTooltip title={TITLE} content={CONTENT}>
+        <span>Hover me</span>
+      </PopupTooltip>
+    );
+    const trigger = screen.getByText('Hover me');
 
-    // Setup the fetch mock to resolve with fakePageDataResponse.
-    // Even though we call DummyJSON in our fetchPageData, this mock intercepts it.
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => fakePageDataResponse,
+    // Tooltip should start hidden
+    expect(screen.queryByText(TITLE)).not.toBeInTheDocument();
+
+    // Hover over the trigger
+    fireEvent.mouseEnter(trigger);
+    expect(await screen.findByText(TITLE)).toBeInTheDocument();
+    expect(screen.getByText(CONTENT)).toBeInTheDocument();
+
+    // Hover out hides it
+    fireEvent.mouseLeave(trigger);
+    await waitFor(() => {
+      expect(screen.queryByText(TITLE)).not.toBeInTheDocument();
     });
+  });
 
-    // Render the wrapper component that manages state.
-    render(<TestWrapperForTXDataTable />);
+  it('toggles visibility on click when trigger="click"', async () => {
+    render(
+      <PopupTooltip title="Click Title" content="Click Content" trigger="click">
+        <div>Click me</div>
+      </PopupTooltip>
+    );
+    const trigger = screen.getByText('Click me');
 
-    // Wait for the fetch to be called and for state to update.
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    // Initially hidden
+    expect(screen.queryByText('Click Title')).not.toBeInTheDocument();
 
-    // Validate that a record is rendered. For example, "Name 1" should be visible.
-    expect(screen.getByText('Name 1')).toBeInTheDocument();
+    // First click shows
+    fireEvent.click(trigger);
+    expect(await screen.findByText('Click Title')).toBeInTheDocument();
 
-    // Validate that the total count (100) is rendered somewhere in the component.
-    expect(screen.getByText(/100/)).toBeInTheDocument();
+    // Second click hides (Tippy may take a moment to remove)
+    fireEvent.click(trigger);
+    await waitForElementToBeRemoved(() => screen.queryByText('Click Title'));
   });
 });
