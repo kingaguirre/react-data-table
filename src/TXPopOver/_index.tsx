@@ -1,14 +1,20 @@
 import React, { useState, ReactNode } from 'react';
 import styled from 'styled-components';
-import Tippy from '@tippyjs/react';
+import Tippy, { TippyProps } from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 
-const StyledTippy = styled(Tippy)<{ variation?: string}>`
+interface StyledTippyProps extends TippyProps {
+  $variation?: string;
+}
+
+const StyledTippy = styled(({ $variation, ...tippyProps }: StyledTippyProps) => (
+  <Tippy {...tippyProps} />
+))<StyledTippyProps>`
   &.tippy-box {
     width: auto;
     max-width: initial !important;;
     background: white;
-    border: 1px solid var(--color-${({ variation }) => variation});
+    border: 1px solid var(--color-${({ $variation }) => $variation});
     border-radius: 2px;
     box-shadow: rgba(173, 173, 173, 0.5) 0px 3px 5px 0px;
     text-align: left;
@@ -24,7 +30,7 @@ const StyledTippy = styled(Tippy)<{ variation?: string}>`
         top: -8px;
         left: 0;
         border-width: 0 8px 8px;
-        border-bottom-color: var(--color-${({ variation }) => variation});
+        border-bottom-color: var(--color-${({ $variation }) => $variation});
         transform-origin: center bottom;
       }
       &:before {
@@ -37,7 +43,7 @@ const StyledTippy = styled(Tippy)<{ variation?: string}>`
         bottom: -8px;
         left: 0;
         border-width: 8px 8px 0;
-        border-top-color: var(--color-${({ variation }) => variation});
+        border-top-color: var(--color-${({ $variation }) => $variation});
         transform-origin: center top;
       }
       &:before {
@@ -48,7 +54,7 @@ const StyledTippy = styled(Tippy)<{ variation?: string}>`
     &[data-placement^=left]>.tippy-arrow {
       &:after {
         border-width: 8px 0 8px 8px;
-        border-left-color: var(--color-${({ variation }) => variation});
+        border-left-color: var(--color-${({ $variation }) => $variation});
         right: -8px;
         transform-origin: center left;
       }
@@ -61,7 +67,7 @@ const StyledTippy = styled(Tippy)<{ variation?: string}>`
       &:after {
         left: -8px;
         border-width: 8px 8px 8px 0;
-        border-right-color: var(--color-${({ variation }) => variation});
+        border-right-color: var(--color-${({ $variation }) => $variation});
         transform-origin: center right;
       }
       &:before {
@@ -96,8 +102,8 @@ const StyledTippy = styled(Tippy)<{ variation?: string}>`
           line-height: 16px;
           text-align: left;
           padding: 4px 12px 4px 10px;
-          border-left: 2px solid var(--color-${({ variation }) => variation});
-          color: var(--color-${({ variation }) => variation}-darker);
+          border-left: 2px solid var(--color-${({ $variation }) => $variation});
+          color: var(--color-${({ $variation }) => $variation}-darker);
           background-color: var(--color-light-a);
           font-weight: 700;
           text-transform: uppercase;
@@ -163,7 +169,7 @@ export const PopupTooltip: React.FC<ITXPopOverInterface> = ({
       placement={placement}
       onClickOutside={hide}
       appendTo={document.body}
-      variation={variation}
+      $variation={variation}
       className='tx-popover'
       content={
         <div className='tx-popover-content-wrapper' style={{minWidth: width}}>
@@ -174,7 +180,6 @@ export const PopupTooltip: React.FC<ITXPopOverInterface> = ({
           <div className='tx-popover-content'>{content}</div>
         </div>
       }
-      trigger="manual"
     >
       <span
         onMouseEnter={trigger === 'hover' ? show : undefined}

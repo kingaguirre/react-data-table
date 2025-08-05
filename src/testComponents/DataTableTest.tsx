@@ -559,7 +559,7 @@ export default () => {
             <button>test</button>
           </TXPopOver>
 
-          <PopupTooltip trigger='click' title='test'  content={(
+          <PopupTooltip title='test'  content={(
             <div style={{ height: 300, width: 800}}>test</div>
           )}>
             <button>test</button>

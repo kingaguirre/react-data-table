@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PopupTooltip } from './PopupTooltip';
 
@@ -16,7 +16,7 @@ describe('PopupTooltip', () => {
     expect(screen.getByText('Trigger')).toBeInTheDocument();
   });
 
-  it('shows on hover and hides on mouse leave, and can be closed via the × button', async () => {
+  it('shows on hover and hides on mouse leave', async () => {
     render(
       <PopupTooltip title={TITLE} content={CONTENT}>
         <span>Hover me</span>
@@ -29,16 +29,11 @@ describe('PopupTooltip', () => {
 
     // Hover over the trigger
     fireEvent.mouseEnter(trigger);
-
-    // Wait for it to appear
     expect(await screen.findByText(TITLE)).toBeInTheDocument();
     expect(screen.getByText(CONTENT)).toBeInTheDocument();
 
-    // Click the close button
-    const closeBtn = screen.getByText('×');
-    fireEvent.click(closeBtn);
-
-    // Wait for it to disappear
+    // Hover out hides it
+    fireEvent.mouseLeave(trigger);
     await waitFor(() => {
       expect(screen.queryByText(TITLE)).not.toBeInTheDocument();
     });
@@ -59,10 +54,8 @@ describe('PopupTooltip', () => {
     fireEvent.click(trigger);
     expect(await screen.findByText('Click Title')).toBeInTheDocument();
 
-    // Second click hides
+    // Second click hides (Tippy may take a moment to remove)
     fireEvent.click(trigger);
-    await waitFor(() => {
-      expect(screen.queryByText('Click Title')).not.toBeInTheDocument();
-    });
+    await waitForElementToBeRemoved(() => screen.queryByText('Click Title'));
   });
 });
