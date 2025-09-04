@@ -44,17 +44,22 @@ export interface IProps {
    Sample data (replace with yours)
    =========================== */
 const SEGMENTS: ISegments[] = [
-  { title: "A", value: 10000, currency: "USD", arrowColor: "red" },
-  { title: "B", value: 1300, currency: "USD", arrowColor: "#4B5563" },
-  { title: "C", value: 125, currency: "USD", arrowColor: "#4B5563" },
-  { title: "D", value: 120, currency: "USD", arrowColor: "#000" },
+  { title: "A", value: 1000000, currency: "USD", arrowColor: "red" },
+  { title: "B", value: 99000, currency: "USD", arrowColor: "#4B5563" },
+  { title: "C", value: 30000, currency: "USD", arrowColor: "#4B5563" },
 ];
 
 const DATA: IData[] = [
-  { title: "Sales", value: 2000, currency: "USD", color: "#60A5FA" },
-  { title: "Refunds", value: 2000, currency: "USD", color: "#FCA5A5" },
+  // { title: "Sales", value: 99000, currency: "USD", color: "#60A5FA" },
+  // { title: "Fees", value: 1000, currency: "USD", color: "#FDE68A" },
+
+  // { title: "Sales", value: 90, currency: "USD", color: "#60A5FA" },
   // { title: "Fees", value: 20, currency: "USD", color: "#FDE68A" },
+  // { title: "Refunds", value: 1000000, currency: "USD", color: "#FCA5A5" },
   // { title: "Other", value: 9950, currency: "USD", color: "#86EFAC" },
+
+  { title: "Sales", value: 30, currency: "USD", color: "#60A5FA" },
+  { title: "Refunds", value: 20, currency: "USD", color: "#FCA5A5" },
 ];
 
 /* ===========================
@@ -412,7 +417,14 @@ const DataBar = styled.div<{ height: string; color: string; orientation: Orienta
     animation: ${grow(height, orientation)} 0.6s ease-out forwards;
 
     /* Data labels shouldn't animate Y by default */
-    > div { --seg-anim-y: 0; ${orientation === "vertical" ? `top: 50%;` : `bottom: 0;`} outline: none; }
+    > div {
+      --seg-anim-y: 0;
+      ${orientation === "vertical" ? `top: 50%;` : `bottom: 0;`}
+      outline: none;
+      /* 🔥 add this to animate vertical label shifts */
+      transition: top .25s ease;
+      will-change: top;
+    }
     > div > b { color: ${color}; }
 
     ${orientation === "vertical"
@@ -511,96 +523,103 @@ export const TXBarChart: React.FC<IProps> = (props) => {
     return () => ro.disconnect();
   }, []);
 
-  // DATA vertical collision-free center → bottom-up pass with top-bound clamp
   useEffect(() => {
-    if (orientation !== "vertical" || calculatedDatasets.length === 0) return;
+  if (orientation !== "vertical" || calculatedDatasets.length === 0) return;
 
-    const raf = requestAnimationFrame(() => {
-      const chartPx = toPixels(chartHeight);
-      const THRESH = 28; // px: only "small" bars can get offsets
-      const GAP = 4;     // px: minimal gap between adjacent small labels
+  const raf = requestAnimationFrame(() => {
+    const chartPx = toPixels(chartHeight);
+    const GAP = 4; // px between label boxes
 
-      // Geometry per dataset in CHART space (stack-aware via accumulatedHeight)
-      const rows = calculatedDatasets.map((d, i) => {
-        const hPct = parseFloat(d.height || "0");
-        const hPx  = chartPx * (hPct / 100);
-        const accPct = Number((d as any).accumulatedHeight) || 0; // cumulative % to TOP of this bar
-        const bottomPx = chartPx * ((accPct - hPct) / 100);
-        const centerAbs = bottomPx + hPx / 2; // absolute center from chart bottom
+    type Row = {
+      i: number;
+      centerAbs: number; // center if delta=0 (px from bottom)
+      boxH: number;      // label box height
+      delta: number;     // +up, -down (px)
+    };
 
-        const el = valueRefs.current[i]?.querySelector(".data-details") as HTMLElement | null;
-        const boxH = el?.clientHeight ?? 0;
+    // Build rows in top->bottom order. Bottom is last index.
+    const rows: Row[] = calculatedDatasets.map((d, i) => {
+      const hPct = parseFloat(d.height || "0");
+      const hPx  = chartPx * (hPct / 100);
+      const accPct = Number((d as any).accumulatedHeight) || 0;
+      const bottomPx = chartPx * ((accPct - hPct) / 100);
+      const centerAbs = bottomPx + hPx / 2;
 
-        return { i, hPx, centerAbs, boxH, small: hPx < THRESH, deltaUp: 0 };
-      });
+      const el = valueRefs.current[i]?.querySelector(".data-details") as HTMLElement | null;
+      const boxH = Math.max(el?.clientHeight ?? 0, 14); // guard a sane min
 
-      // 1) Reverse pass (bottom → top) to avoid overlaps between adjacent "small" bars
-      for (let i = rows.length - 2; i >= 0; i--) {
-        const cur  = rows[i];       // above
-        const next = rows[i + 1];   // below (already possibly offset)
-
-        if (!cur.small || !next.small) {
-          cur.deltaUp = 0;
-          continue;
-        }
-
-        const nextCenterFinal = next.centerAbs + next.deltaUp;
-        const curCenterFinal  = cur.centerAbs + cur.deltaUp; // 0 initially
-        const minSpacing = (next.boxH + cur.boxH) / 2 + GAP;
-        const requiredMinCenter = nextCenterFinal + minSpacing;
-
-        if (curCenterFinal < requiredMinCenter) {
-          cur.deltaUp = requiredMinCenter - cur.centerAbs; // push UP
-        } else {
-          cur.deltaUp = 0;
-        }
-      }
-
-      // 2) Top-bound correction:
-      //    If the topmost contiguous cluster of "small" labels breaches the top,
-      //    shift that cluster DOWN by the minimum amount that keeps everything in-bounds,
-      //    preserving their relative spacing (subtract a constant from their deltas).
-      const lastSmallIdxFromEnd = rows.slice().reverse().findIndex(r => r.small);
-      const lastSmallIdx = lastSmallIdxFromEnd === -1 ? -1 : rows.length - 1 - lastSmallIdxFromEnd;
-
-      if (lastSmallIdx >= 0 && rows[lastSmallIdx].small) {
-        // Walk backwards to get the contiguous "small" cluster at the top
-        let clusterStart = lastSmallIdx;
-        while (clusterStart - 1 >= 0 && rows[clusterStart - 1].small) clusterStart--;
-
-        const cluster = rows.slice(clusterStart, lastSmallIdx + 1);
-
-        // Compute overshoot above top and the available bottom margin for this cluster
-        let maxTopOverflow = 0;
-        let minBottomMargin = Infinity;
-
-        for (const r of cluster) {
-          const finalCenter = r.centerAbs + r.deltaUp;
-          const topOverflow = finalCenter + r.boxH / 2 - chartPx;   // >0 means past the top
-          maxTopOverflow = Math.max(maxTopOverflow, topOverflow);
-
-          const bottomMargin = finalCenter - r.boxH / 2;            // >=0 to stay above bottom
-          minBottomMargin = Math.min(minBottomMargin, bottomMargin);
-        }
-
-        if (maxTopOverflow > 0) {
-          // Shift the whole cluster downward, but not past the bottom.
-          const allowableDown = Math.max(minBottomMargin, 0);
-          const shiftDown = Math.min(maxTopOverflow, allowableDown);
-
-          if (shiftDown > 0) {
-            for (const r of cluster) {
-              r.deltaUp -= shiftDown; // negative delta moves label DOWN
-            }
-          }
-        }
-      }
-
-      setDataLabelDeltaPx(rows.map(r => r.deltaUp));
+      return { i, centerAbs, boxH, delta: 0 };
     });
 
-    return () => cancelAnimationFrame(raf);
-  }, [dataSig, labelsSig, orientation, chartHeight]);
+    if (!rows.length) { setDataLabelDeltaPx([]); return; }
+    const last = rows.length - 1;
+
+    // 0) Pin bottom label
+    rows[last].delta = 0;
+
+    // 1) Upward pass: enforce spacing vs label below (push UP only)
+    for (let i = last - 1; i >= 0; i--) {
+      const above = rows[i];
+      const below = rows[i + 1];
+
+      const belowFinal = below.centerAbs + below.delta;
+      const requiredMinCenter = belowFinal + (below.boxH + above.boxH) / 2 + GAP;
+
+      const curCenter = above.centerAbs + above.delta;
+      const need = requiredMinCenter - curCenter;
+      if (need > 0) above.delta += need;
+    }
+
+    // 2) Top cluster correction: if any labels overflow the top, push that contiguous
+    //    top cluster DOWN together (just enough), without violating spacing to the label below.
+    const overflow = (r: Row) => r.centerAbs + r.delta + r.boxH / 2 - chartPx;
+
+    // find first top index that overflows
+    let t = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (overflow(rows[i]) > 0) { t = i; break; }
+    }
+
+    if (t !== -1) {
+      // extend to the last overflowing index (contiguous top cluster)
+      let j = t;
+      while (j + 1 < rows.length && overflow(rows[j + 1]) > 0) j++;
+
+      // required shift to bring the whole cluster in-bounds
+      let maxOverflow = 0;
+      for (let k = t; k <= j; k++) maxOverflow = Math.max(maxOverflow, overflow(rows[k]));
+
+      // spacing limit vs the label just BELOW the cluster (if any)
+      let spacingLimit = Infinity;
+      if (j + 1 < rows.length) {
+        const clusterBottom = rows[j];
+        const below = rows[j + 1];
+        const belowFinal = below.centerAbs + below.delta;
+        const requiredAfter =
+          belowFinal + (below.boxH + clusterBottom.boxH) / 2 + GAP;
+        const currentBottomCenter = clusterBottom.centerAbs + clusterBottom.delta;
+        spacingLimit = Math.max(0, currentBottomCenter - requiredAfter);
+      }
+
+      // bottom-bound limit for labels in the cluster (don’t cross chart bottom)
+      let bottomMargin = Infinity;
+      for (let k = t; k <= j; k++) {
+        const r = rows[k];
+        bottomMargin = Math.min(bottomMargin, (r.centerAbs + r.delta) - r.boxH / 2);
+      }
+      bottomMargin = Math.max(0, bottomMargin);
+
+      const shiftDown = Math.min(maxOverflow, spacingLimit, bottomMargin);
+      if (shiftDown > 0) {
+        for (let k = t; k <= j; k++) rows[k].delta -= shiftDown;
+      }
+    }
+
+    setDataLabelDeltaPx(rows.map(r => r.delta));
+  });
+
+  return () => cancelAnimationFrame(raf);
+}, [dataSig, labelsSig, orientation, chartHeight]);
 
   // ✅ Add this memo (near other memos/effects)
   const segsReady = useMemo(() => {
