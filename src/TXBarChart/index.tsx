@@ -477,7 +477,6 @@ export const TXBarChart: React.FC<IProps> = (props) => {
 
   // Offsets (computed)
   const [labelBottomValues, setLabelBottomValues] = useState<number[]>([]);
-  const [valueBottomValues, setValueBottomValues] = useState<number[]>([]);
   const [horizontalLabelOffsetTop, setHorizontalLabelOffsetTop] = useState<number[]>([]);
 
   // Popover
@@ -735,33 +734,6 @@ export const TXBarChart: React.FC<IProps> = (props) => {
     }, 600);
     return () => clearTimeout(timeout);
   }, [labelsSig, orientation, containerWidth]); // recalc when labels, orientation or width changes
-
-  /* --------- Compute DATA offsets (match Segment logic) --------- */
-  useEffect(() => {
-    if (calculatedDatasets.length === 0) return;
-
-    const calc = () => {
-      const newBottoms = calculatedDatasets.map((_, i) => {
-        const curH = valueRefs.current[i]?.clientHeight || 0;
-        const curBoxH =
-          (valueRefs.current[i]?.querySelector(".data-details") as HTMLElement | null)
-            ?.clientHeight || 0;
-        const nextH = valueRefs.current[i + 1]?.clientHeight || 0;
-        const nextBoxH =
-          (valueRefs.current[i + 1]?.querySelector(".data-details") as HTMLElement | null)
-            ?.clientHeight || 0;
-        const diff = curH - nextH;
-        return diff < nextBoxH ? nextBoxH / 2 + curBoxH / 2 : 0;
-      });
-      setValueBottomValues(newBottoms);
-    };
-
-    const timeout = setTimeout(() => {
-      calc();
-    }, 600);
-
-    return () => clearTimeout(timeout);
-  }, [dataSig, orientation, containerWidth]);
 
   /* --------- Popover events (outside click, esc, resize) --------- */
   useEffect(() => {

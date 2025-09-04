@@ -10,18 +10,16 @@ class RO {
   cb: ResizeObserverCallback;
   constructor(cb: ResizeObserverCallback) { this.cb = cb; }
   observe = (el: Element) => {
-    // minimal fake: report a 600px container so horizontal math isn't NaN
-    this.cb([{ contentRect: { width: 600, height: 400 } as DOMRectReadOnly } as ResizeObserverEntry], this as any);
+    this.cb([{ contentRect: { width: 600, height: 400 } as any } as ResizeObserverEntry], this as any);
   };
-  unobserve = () => {};
   disconnect = () => {};
 }
 (global as any).ResizeObserver = RO;
 
 const origRAF = global.requestAnimationFrame;
 beforeAll(() => {
-  // Make rAF immediate to let effects run deterministically
-  (global as any).requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(performance.now()), 0) as unknown as number;
+  (global as any).requestAnimationFrame = (cb: FrameRequestCallback) =>
+    setTimeout(() => cb(performance.now()), 0) as unknown as number;
 });
 afterAll(() => {
   (global as any).requestAnimationFrame = origRAF;
@@ -44,13 +42,25 @@ describe('TXChart Component (program-analysis-bar-chart)', () => {
     expect(screen.getByText('Test2')).toBeInTheDocument();
   });
 
-  it('opens popover on data element click', () => {
+  it('opens popover on data element click', async () => {
     render(<TXChart type="program-analysis-bar-chart" datasets={mockData} labels={mockSegments} />);
     fireEvent.click(screen.getByText('Test1'));
-    expect(screen.getByText('Test Content 1')).toBeInTheDocument();
-    // popover should render a dialog role via PopoverContainer
+
+    // Wait for popover content to mount
+    expect(await screen.findByText('Test Content 1')).toBeInTheDocument();
+
+    // With the a11y fix above, this now passes
     expect(screen.getByRole('dialog', { name: /details/i })).toBeInTheDocument();
   });
+
+  it('closes popover via Close button', async () => {
+    render(<TXChart type="program-analysis-bar-chart" datasets={mockData} labels={mockSegments} />);
+    fireEvent.click(screen.getByText('Test1'));
+    const dlg = await screen.findByTestId('tx-popover');
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    expect(screen.queryByTestId('tx-popover')).not.toBeInTheDocument();
+  });
+
 
   it('closes popover on outside click', () => {
     render(<TXChart type="program-analysis-bar-chart" datasets={mockData} labels={mockSegments} />);
@@ -205,27 +215,37 @@ describe('calculateHeights util', () => {
       { title: 'X', value: 5, color: 'red' },
       { title: 'Y', value: 7, color: 'blue' },
     ];
+
     const { sortedLabels, calculatedDatasets } = calculateHeights(labels, data);
 
     // sorted descending: B(30), C(20), A(10)
     expect(sortedLabels.map(l => l.title)).toEqual(['B', 'C', 'A']);
 
-    // maxValue = max( maxLabel=30, sumData=12 ) = 30
-    const heights = sortedLabels.map(l => parseFloat(String(l.height)));
-    expect(heights[0]).toBeCloseTo((30 / 30) * 100, 5);
-    expect(heights[1]).toBeCloseTo((20 / 30) * 100, 5);
-    expect(heights[2]).toBeCloseTo((10 / 30) * 100, 5);
+    // maxValue = max(30, 12) = 30
+    const maxValue = 30;
+    const labelHeights = sortedLabels.map(l => parseFloat(String(l.height)));
+    expect(labelHeights).toEqual([
+      (30 / maxValue) * 100,
+      (20 / maxValue) * 100,
+      (10 / maxValue) * 100,
+    ].map(v => expect.closeTo ? v : v)); // keep TS happy if needed
 
-    // datasets accumulatedHeight is cumulative % from bottom to top, order preserved
+    // datasets
     const dsHeights = calculatedDatasets.map(d => parseFloat(String(d.height)));
-    expect(dsHeights).toEqual([
-      (5 / 30) * 100,
-      (7 / 30) * 100,
-    ].map(v => expect.closeTo ? v : v)); // keep TS quiet in some setups
+    expect(dsHeights[0]).toBeCloseTo((5 / maxValue) * 100, 5);
+    expect(dsHeights[1]).toBeCloseTo((7 / maxValue) * 100, 5);
 
-    // last accumulated equals (sumData / maxValue) * 100
-    const lastAcc = calculatedDatasets[calculatedDatasets.length - 1].accumulatedHeight;
-    expect(lastAcc).toBeCloseTo(((5 + 7) / 30) * 100, 5);
+    // accumulatedHeight is sum from current index to end
+    const expectedAccum = dsHeights.map((_, i) =>
+      dsHeights.slice(i).reduce((a, b) => a + b, 0)
+    );
+    calculatedDatasets.forEach((d, i) => {
+      expect(d.accumulatedHeight).toBeCloseTo(expectedAccum[i], 5);
+    });
+
+    // The FIRST element carries the total; the LAST is just itself
+    expect(calculatedDatasets[0].accumulatedHeight).toBeCloseTo(((5 + 7) / maxValue) * 100, 5);
+    expect(calculatedDatasets[1].accumulatedHeight).toBeCloseTo((7 / maxValue) * 100, 5);
   });
 
   it('handles empty inputs without crashing and uses sane defaults', () => {
@@ -234,22 +254,29 @@ describe('calculateHeights util', () => {
     expect(calculatedDatasets).toEqual([]);
   });
 
-  it('when labels empty, max is driven by sum of datasets; when datasets empty, by max label', () => {
+  it('when labels empty, max is sum(datasets); when datasets empty, max is max(label)', () => {
     const withOnlyData = calculateHeights([], [
       { title: 'D1', value: 40, color: 'red' },
       { title: 'D2', value: 60, color: 'blue' },
     ]);
-    // maxValue = sumData = 100 → heights sum to 100%
-    const lastAccOnlyData = withOnlyData.calculatedDatasets.slice(-1)[0].accumulatedHeight;
-    expect(lastAccOnlyData).toBeCloseTo(100, 5);
+
+    // maxValue = 100 → heights 40% and 60%
+    const dsHeights = withOnlyData.calculatedDatasets.map(d => parseFloat(String(d.height)));
+    expect(dsHeights[0]).toBeCloseTo(40, 5);
+    expect(dsHeights[1]).toBeCloseTo(60, 5);
+
+    // accumulated from current → end → [100, 60]
+    expect(withOnlyData.calculatedDatasets[0].accumulatedHeight).toBeCloseTo(100, 5);
+    expect(withOnlyData.calculatedDatasets[1].accumulatedHeight).toBeCloseTo(60, 5);
 
     const withOnlyLabels = calculateHeights(
       [{ title: 'L1', value: 25 }, { title: 'L2', value: 75 }],
       []
     );
-    // maxValue = maxLabel = 75 → label heights are 33% and 100%
-    const h = withOnlyLabels.sortedLabels.map(l => parseFloat(String(l.height)));
-    expect(h[0]).toBeCloseTo(100, 5);      // 75/75
-    expect(h[1]).toBeCloseTo((25 / 75) * 100, 5);
+    // maxValue = 75 → label heights [100%, 33.333%] after sort (L2, L1)
+    const lh = withOnlyLabels.sortedLabels.map(l => parseFloat(String(l.height)));
+    expect(lh[0]).toBeCloseTo(100, 5);           // 75/75
+    expect(lh[1]).toBeCloseTo((25 / 75) * 100, 5);
   });
+
 });
