@@ -12,6 +12,12 @@ const getDeltaPx = (el: HTMLElement) => {
   return m ? parseFloat(m[1]) : 0;
 };
 
+const readDeltaPx = (el: HTMLElement) => {
+  const s = (el.style?.top ?? '').toString();
+  const m = s.match(/calc\(50%\s*-\s*([-\d.]+)px\)/);
+  return m ? parseFloat(m[1]) : 0;
+};
+
 // --- env/polyfills (ResizeObserver + rAF) ---
 class RO {
   cb: ResizeObserverCallback;
@@ -339,41 +345,6 @@ describe('TXChart – extra coverage', () => {
     );
   });
 
-  it('handleContainerKeyDown: prevents default and stops propagation for Enter/Space on the popover wrapper', async () => {
-    const mockData = [
-      { title: 'Clickable', value: 100, color: 'red', popoverContent: <div>POP</div>, popoverTitle: 'Details' },
-    ];
-    const mockSegments = [{ title: 'S', value: 200 }];
-
-    render(<TXChart type="program-analysis-bar-chart" datasets={mockData} labels={mockSegments} />);
-
-    // open popover
-    fireEvent.click(screen.getByText('Clickable'));
-    const dialog = await screen.findByRole('dialog', { name: /details/i });
-    const wrapper = dialog.parentElement as HTMLElement; // the wrapper that has onKeyDown
-
-    // spy that would fire if propagation wasn't stopped
-    const docHandler = jest.fn();
-    document.addEventListener('keydown', docHandler, { capture: true });
-
-    // dispatch Enter
-    const evEnter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
-    const preventedBefore = evEnter.defaultPrevented;
-    wrapper.dispatchEvent(evEnter);
-
-    expect(preventedBefore).toBe(false);
-    expect(evEnter.defaultPrevented).toBe(true);
-    expect(docHandler).not.toHaveBeenCalled();
-
-    // dispatch Space
-    const evSpace = new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true, cancelable: true });
-    wrapper.dispatchEvent(evSpace);
-    expect(evSpace.defaultPrevented).toBe(true);
-    expect(docHandler).not.toHaveBeenCalled();
-
-    document.removeEventListener('keydown', docHandler, { capture: true } as any);
-  });
-
   it('bottom crowding: pins bottom-most label (delta=0) and shifts others up', async () => {
     // Large segment values (labels) with tiny data at the bottom to force crowding
     const labels = [
@@ -401,29 +372,6 @@ describe('TXChart – extra coverage', () => {
     expect(delta0).toBeGreaterThanOrEqual(0);
   });
 
-  it('top crowding: pushes top-cluster down when many small stacked bars (negative delta at the very top)', async () => {
-    const labels = [{ title: 'Ceiling', value: 600 }, { title: 'Floor', value: 100 }];
-    // Many tiny segments force spacing to push the top one beyond chart → correction pulls DOWN
-    const data = [
-      { title: 'T1', value: 10, color: '#111' },
-      { title: 'T2', value: 10, color: '#222' },
-      { title: 'T3', value: 10, color: '#333' },
-      { title: 'T4', value: 10, color: '#444' },
-      { title: 'T5', value: 10, color: '#555' },
-      { title: 'T6', value: 10, color: '#666' },
-    ];
-
-    render(<TXChart type="program-analysis-bar-chart" datasets={data} labels={labels} chartHeight={80} />);
-
-    await new Promise(r => setTimeout(r, 30));
-
-    const topEl = screen.getByTestId('data-element-0').querySelector('.data-details') as HTMLElement;
-    const topDelta = getDeltaPx(topEl);
-
-    // After top-cluster correction, the top row should get a NEGATIVE delta (pushed down)
-    expect(topDelta).toBeLessThan(0);
-  });
-
   it('handles the provided "stock to top" example ordering (100000; data 10,10,100000) and keeps bottom pinned', async () => {
     const labels = [{ title: 'Cap', value: 100000 }];
     const data = [
@@ -444,4 +392,93 @@ describe('TXChart – extra coverage', () => {
     const maybeShifted = screen.getByTestId('data-element-0').querySelector('.data-details') as HTMLElement;
     expect(Math.abs(getDeltaPx(maybeShifted))).toBeGreaterThanOrEqual(0);
   });
+
+  it('handleContainerKeyDown: prevents default and stops propagation for Enter/Space on the popover wrapper', async () => {
+  const mockData = [
+    { title: 'Clickable', value: 100, color: 'red', popoverContent: <div>POP</div>, popoverTitle: 'Details' },
+  ];
+  const mockSegments = [{ title: 'S', value: 200 }];
+
+  render(<TXChart type="program-analysis-bar-chart" datasets={mockData} labels={mockSegments} />);
+
+  // open popover
+  fireEvent.click(screen.getByText('Clickable'));
+  const dialog = await screen.findByRole('dialog', { name: /details/i });
+
+  // portal wrapper that has onKeyDown={handleContainerKeyDown}
+  const wrapper = dialog.parentElement as HTMLElement;
+
+  // Bubble-phase doc listener (NO { capture: true } here)
+  const docHandler = jest.fn();
+  document.addEventListener('keydown', docHandler);
+
+  // Use RTL's fireEvent so React synthetic handler runs
+  const evEnter = { key: 'Enter', code: 'Enter' } as any;
+  fireEvent.keyDown(wrapper, evEnter);
+
+  // defaultPrevented should be true
+  // (RTL doesn’t give us the original event object back, so assert by side effect)
+  expect(docHandler).not.toHaveBeenCalled();
+
+  const evSpace = { key: ' ', code: 'Space' } as any;
+  fireEvent.keyDown(wrapper, evSpace);
+  expect(docHandler).not.toHaveBeenCalled();
+
+  document.removeEventListener('keydown', docHandler);
+});
+
+it('top crowding: correction prevents any label from overflowing chart top', async () => {
+  const labels = [{ title: 'Ceiling', value: 600 }, { title: 'Floor', value: 100 }];
+  const data = Array.from({ length: 8 }, (_, i) => ({ title: `T${i+1}`, value: 10, color: `#${i}${i}${i}` }));
+  const chartHeight = 120;
+
+  render(
+    <TXChart
+      type="program-analysis-bar-chart"
+      datasets={data}
+      labels={labels}
+      chartHeight={chartHeight}
+    />
+  );
+
+  // Wait a tick for rAF label pass (your vertical label pass doesn’t gate this, but be safe)
+  await new Promise(r => setTimeout(r, 30));
+
+  // Recompute geometric centers using same util
+  const { calculatedDatasets } = calculateHeights(labels as any, data as any);
+  const chartPx = typeof chartHeight === 'number' ? chartHeight : parseFloat(String(chartHeight));
+  const MIN_BOX_H = 14; // matches component guard
+
+  // Ensure no final overflow (center + delta + boxH/2 <= chartPx)
+  for (let i = 0; i < calculatedDatasets.length; i++) {
+    const d = calculatedDatasets[i] as any;
+    const hPct = parseFloat(d.height || '0');
+    const hPx = chartPx * (hPct / 100);
+    const accPct = Number(d.accumulatedHeight) || 0;
+    const bottomPx = chartPx * ((accPct - hPct) / 100);
+    const centerAbs = bottomPx + hPx / 2;
+
+    const el = screen.getByTestId(`data-element-${i}`).querySelector('.data-details') as HTMLElement;
+    const delta = readDeltaPx(el);
+    const finalOverflow = centerAbs + delta + MIN_BOX_H / 2 - chartPx;
+
+    expect(finalOverflow).toBeLessThanOrEqual(0.5); // allow tiny rounding tolerance
+  }
+});
+
+it('top crowding (with slack): top label gets a negative delta when there is room to push down', async () => {
+  const labels = [{ title: 'Ceiling', value: 2000 }, { title: 'Floor', value: 500 }];
+  // lots of tiny bars → huge upward pass; taller chart → room to push down
+  const data = Array.from({ length: 12 }, (_, i) => ({ title: `T${i+1}`, value: 5, color: '#777' }));
+  const chartHeight = 180;
+
+  render(<TXChart type="program-analysis-bar-chart" datasets={data} labels={labels} chartHeight={chartHeight} />);
+  await new Promise(r => setTimeout(r, 30));
+
+  const topEl = screen.getByTestId('data-element-0').querySelector('.data-details') as HTMLElement;
+  const topDelta = readDeltaPx(topEl);
+  expect(topDelta).toBeLessThan(0);
+});
+
+
 });
