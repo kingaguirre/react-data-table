@@ -79,6 +79,18 @@ Coming soon: FormRenderer Designer
 
 To improve usability even further, I’m also working on a FormRenderer Designer — a visual builder that lets you configure forms (fields, tabs, tables, etc.) through a UI. It will generate fieldSettings automatically, making form setup faster and more accessible.
 
+Takeaway & Examples
+
+For a quick look, here are some demo links you can explore:
+
+Comprehensive Example (10k rows + many inputs): View demo
+
+Tabs & Accordion showcase: View demo
+
+Validation rules & custom rendering showcase: View demo
+
+Nested DataTables showcase: View demo
+
 Short version: FormRenderer is now in beta. It delivers faster performance (virtualization, large tables, optimized validation), simpler maintenance (no more dependency on the organism repo), and eliminates the need for custom-built organisms.
 
 Thanks,
