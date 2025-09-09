@@ -1,0 +1,85 @@
+Subject: [Beta] New FormRenderer — faster forms, no more hand-built organisms
+
+Hi team,
+
+I’ve built a beta of a new dynamic form engine: FormRenderer (src/poc/Form/index.tsx).
+
+It’s an upgrade over the old approach of manually building “organism” components filled with FormControls and scattered validation logic. With FormRenderer, you only provide fieldSettings and a dataSource — the component takes care of layout, validation, data flow, and performance.
+
+Why this matters
+
+Stronger performance —
+
+Virtualization of fields: inputs outside the viewport are unmounted, keeping the DOM light and responsive even with hundreds of fields.
+
+Scalable DataTables: tested with 10,000+ rows, where the old implementation struggled at just 1,000.
+
+Debounced validation: only changed fields (and their dependencies) trigger validation, reducing unnecessary re-renders and improving typing responsiveness.
+
+Optimized row handling: draft vs active rows are validated and hydrated efficiently, so nested tables and complex layouts still perform smoothly.
+
+Simpler maintainability — previously, updating forms required editing the organism repository, publishing a new package version, waiting for release, and then upgrading and redeploying modules. With FormRenderer:
+
+Each module defines its form directly with FormRenderer.
+
+Updates are applied only inside the module — no repo sync, no package publish, no version upgrade.
+
+This shortens iteration cycles, reduces dependencies, and simplifies deployments.
+
+Cleaner codebase — less boilerplate, more predictable behavior, and easier to extend.
+
+What’s new
+
+Single component for complete forms — supports sections, tabs, accordions, and tables.
+
+Unified Zod validation — field-level rules (including conditional logic) with a widely adopted library.
+
+Virtualized rendering — offscreen inputs are removed from the DOM for maximum efficiency.
+
+High-scale DataTables — proven to handle 10,000 rows smoothly.
+
+Draft and row editing flows — add, update, delete, and cancel rows with built-in validation.
+
+Nested tables — child DataTables initialize automatically.
+
+Dynamic layouts — Tabs, Accordion, and Panels with error badges and optional multi-section support.
+
+Conditional visibility/state — fields can be shown/hidden or enabled/disabled based on current values.
+
+Custom rendering option — override any field with a custom UI while keeping validation and form state intact.
+
+Improved error handling — invalid fields auto-scroll and focus; error counts surface in tabs/sections.
+
+Debounced, selective validation — only changed fields and their dependents are re-validated.
+
+Responsive grid system — per-field sizing with xs/sm/md/lg.
+
+Global states — built-in disabled and loading support.
+
+Clear actions — text, number, date, and dropdown inputs include reset controls.
+
+Imperative API — access submit() and getValues() directly via ref.
+
+How to use
+<FormRenderer
+  dataSource={initialValues}
+  fieldSettings={settings}
+  onChange={(v) => {/* optional live updates */}}
+  onSubmit={({ valid, values, invalidFields }) => {/* handle submit */}}
+/>
+
+Beta status
+
+This is a beta and ready for testing.
+
+Please send any issues, performance findings, or feature requests to emmanuel.arguellesaguirre@sc.com
+.
+
+Coming soon: FormRenderer Designer
+
+To improve usability even further, I’m also working on a FormRenderer Designer — a visual builder that lets you configure forms (fields, tabs, tables, etc.) through a UI. It will generate fieldSettings automatically, making form setup faster and more accessible.
+
+Short version: FormRenderer is now in beta. It delivers faster performance (virtualization, large tables, optimized validation), simpler maintenance (no more dependency on the organism repo), and eliminates the need for custom-built organisms.
+
+Thanks,
+[Your Name]
