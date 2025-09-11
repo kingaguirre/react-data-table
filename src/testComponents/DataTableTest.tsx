@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DataTable, exportToCsv, UploadCell } from '../DataTable';
 import { DataTable as DataTable_ } from '../DataTable_';
 import { Actions } from "../DataTable/interfaces";
+import styled from 'styled-components';
 import { replaceLocalhostWithDomain } from "../DataTable/utils/index";
 import { App } from '../DataTable_/components/GlobalStateTest'
 import { MenuForm } from '../MenuForm';
@@ -26,9 +27,20 @@ import { PopupTooltip } from '../TXPopOver/_index'
 import TableUpdateTest from './TableUpdateTest'
 import TanstackTableWorkerExample from './TanstackTableWorkerExample'
 import TableTest from '../ReactDataTable/TableTest'
+import { DataTableDemo } from '../DataTable2/Demo'
 import {DocumentationPage} from './DocumentationPage'
 import { TXModal } from '../TXModal'
 import { GlobalStyle } from './globalStyle'
+import PathPickerDemo from '../PathPicker';
+import { TXBarChart } from '../TXBarChart';
+
+const Container = styled.div`
+  box-sizing: border-box;
+  padding: 12px;
+  * {
+    box-sizing: border-box;
+  }
+`
 
 const getRandomBirthdate = () => {
   const minAge = 18; // Minimum age for generated birthdate
@@ -523,8 +535,11 @@ export default () => {
   const [show, setShow] = useState(false);
 
   return (
-    <div style={{padding: 16}}>
-      <GlobalStyle/>
+    <Container>
+      {/* <TXBarChart/> */}
+      {/* <TXBarChart orientation='horizontal'/> */}
+      {/* <GlobalStyle/>
+      <PathPickerDemo/> */}
       {/* <div>
         <button onClick={() => setShow(true)}>Show Modal</button>
         <TXModal
@@ -548,10 +563,11 @@ export default () => {
       </div> */}
       {/* <DocumentationPage/> */}
       {/* <TableTest/> */}
+      <DataTableDemo/>
       {/* <TanstackTableWorkerExample/> */}
       {/* <TableUpdateTest/> */}
       {/* <VirtualList items={Array.from({ length: 1000 }, (_, i) => `Item #${i}`)}/> */}
-      <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black', margin: '0 auto'}}>
+      {/* <div style={{width: 300, height: 300, padding: 20, overflow: 'scroll', border: '1px solid black', margin: '0 auto'}}>
         <div style={{width: 2000, height: 1000, padding: 1000, background: '#e1e1e1'}}>
           <TXPopOver title='test' content={(
             <div style={{width: 300, height: 300, padding: 20}}>test</div>
@@ -565,7 +581,7 @@ export default () => {
             <button>test</button>
           </PopupTooltip>
         </div>
-      </div>
+      </div> */}
       {/* <div style={{margin: 400}}>
         <Popover
           trigger="click"
@@ -1029,7 +1045,7 @@ export default () => {
       {/* <DevelopersGuide/> */}
       {/*<UploadSummary/>
       <DownloadSummary/> */}
-    <div style={{height: 100}}/>
+    <div style={{height: 'auto'}}/>
       {/* <DataTable
         fetchConfig={{
           endpoint: "http://localhost:3001/custom-items/{{pageNumber}}/{{pageSize}}",
@@ -1130,7 +1146,7 @@ export default () => {
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
       /> */}
-      <div style={{height: 100}}/>
+      <div style={{height: 'auto'}}/>
       {/* <DataTable
         fetchConfig={{
           endpoint: "http://localhost:3001/custom-items",
@@ -1229,7 +1245,7 @@ export default () => {
         onPageSizeChange={e => console.log(`Page size: ${e}`)}
         onSelectedRowsChange={rows => setSselectedRow(rows)}
       /> */}
-      <div style={{height: 100}}/>
+      <div style={{height: 'auto'}}/>
 {/*       
     <SimpleDataTable
       dataSource={dataSource}
@@ -1256,7 +1272,7 @@ export default () => {
       )}
     /> */}
 
-    </div>
+    </Container>
   )
 }
 
