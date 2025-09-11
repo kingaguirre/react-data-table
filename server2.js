@@ -21,6 +21,36 @@ function makeRow(i, cols) {
       default: r[`c${c}`] = `C${c}-${(i * 7) % 9999}`;
     }
   }
+
+  // --- NEW: nested/deep data for dot-path columns
+  const city = ["KL","Penang","JB","Kuching","KK","Ipoh"][i % 6];
+  r.meta = {
+    info: {
+      score: (i * 13 + 7) % 1000,           // meta.info.score
+      rank:  (i % 500),                     // meta.info.rank
+      tags:  [`t${i % 5}`, `t${(i+2)%5}`],  // meta.info.tags[0], etc.
+    },
+    flags: {
+      valid: (i % 2) === 0,                 // meta.flags.valid
+      retired: (i % 13) === 0,              // meta.flags.retired
+    }
+  };
+
+  r.user = {
+    id: i,
+    name: `User ${i}`,
+    address: {
+      city,                                 // user.address.city
+      zip: 50000 + (i % 1000),              // user.address.zip
+    }
+  };
+
+  r.metrics = {
+    clicks: (i * 7) % 10000,                // metrics.clicks
+    views:  (i * 11) % 20000,               // metrics.views
+    ratio:  ((i % 97) + 1) / ((i % 53) + 2) // metrics.ratio
+  };
+
   return r;
 }
 

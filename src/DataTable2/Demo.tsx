@@ -15,6 +15,40 @@ function makeColumns(): ColumnSetting<Row>[] {
   }));
 }
 
+// --- NEW: build columns with `column` + `groupTitle` + deep path examples
+function makeColumnsV2(): ColumnSetting<Row>[] {
+  const cols: ColumnSetting<Row>[] = [];
+
+  // Example group "Group 1" for first two columns
+  cols.push(
+    { column: "c0", title: "Column 0", groupTitle: "Group 1", width: 160, minWidth: 80, maxWidth: 400 },
+    { column: "c1", title: "Column 1", groupTitle: "Group 1", width: 140, minWidth: 80, maxWidth: 400 },
+  );
+
+  // Ungrouped column (empty slot in group row)
+  cols.push({ column: "c2", title: "Column 2", /* groupTitle: undefined */ width: 120, minWidth: 80, maxWidth: 400 });
+
+  // Different group, single column
+  cols.push({ column: "c3", title: "Column 3", groupTitle: "Metrics", width: 140, minWidth: 80, maxWidth: 400 });
+
+  // Same "Metrics" group continues (merged span)
+  cols.push({ column: "c4", title: "Column 4", groupTitle: "Metrics", width: 120, minWidth: 80, maxWidth: 400 });
+
+  // Deep path examples — these will read nested values if your rows have them
+  cols.push(
+    { column: "meta.info.score", title: "Score", groupTitle: "Details", width: 140, minWidth: 80, maxWidth: 400 },
+    { column: "meta.flags.valid", title: "Valid", groupTitle: "Details", width: 120, minWidth: 80, maxWidth: 400 },
+  );
+
+  // Fill out the remainder up to COLS (fallback simple columns, alternating groups)
+  for (let c = cols.length; c < COLS; c++) {
+    const w = c % 5 === 0 ? 160 : c % 3 === 0 ? 140 : 120;
+    const gt = c % 7 === 0 ? "Extras" : c % 11 === 0 ? "More" : undefined;
+    cols.push({ column: `c${c}`, title: `Column ${c}`, groupTitle: gt, width: w, minWidth: 80, maxWidth: 400 });
+  }
+  return cols;
+}
+
 function sameRefArray(a: any[], b: any[]) {
   if (a === b) return true;
   if (a.length !== b.length) return false;
@@ -24,7 +58,7 @@ function sameRefArray(a: any[], b: any[]) {
 
 export function DataTableDemo() {
   const [rows, setRows] = useState<Row[]>([]);
-  const columns = useMemo(() => makeColumns(), []);
+  const columns = useMemo(() => makeColumnsV2(), []);
 
   // Pagination (external)
   const [enablePagination, setEnablePagination] = useState<boolean>(true);
