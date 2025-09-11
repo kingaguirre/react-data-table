@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { DataTableTanstackVirtual, ColumnSetting } from "./index";
+import { DataTableTanstackVirtual } from "./index";
+import { ColumnSetting } from './interface'
 
 type Row = Record<string, string | number>;
 const ROWS = 10_000;
@@ -7,7 +8,7 @@ const COLS = 100;
 
 function makeColumns(): ColumnSetting<Row>[] {
   return new Array(COLS).fill(null).map((_, c) => ({
-    id: `c${c}`,
+    column: `c${c}`,
     title: `Column ${c}`,
     width: c % 5 === 0 ? 160 : c % 3 === 0 ? 140 : 120,
     minWidth: 80,
@@ -19,33 +20,33 @@ function makeColumns(): ColumnSetting<Row>[] {
 function makeColumnsV2(): ColumnSetting<Row>[] {
   const cols: ColumnSetting<Row>[] = [];
 
-  // Example group "Group 1" for first two columns
-  cols.push(
-    { column: "c0", title: "Column 0", groupTitle: "Group 1", width: 160, minWidth: 80, maxWidth: 400 },
-    { column: "c1", title: "Column 1", groupTitle: "Group 1", width: 140, minWidth: 80, maxWidth: 400 },
-  );
+  for (let c = 0; c < COLS; c++) {
+    // Same width logic as makeColumns
+    const width = c % 5 === 0 ? 160 : c % 3 === 0 ? 140 : 120;
 
-  // Ungrouped column (empty slot in group row)
-  cols.push({ column: "c2", title: "Column 2", /* groupTitle: undefined */ width: 120, minWidth: 80, maxWidth: 400 });
+    // Grouping rules (contiguous where intended)
+    let groupTitle: string | undefined;
+    if (c === 0 || c === 1) {
+      groupTitle = "Group 1";          // first two columns grouped
+    } else if (c === 3 || c === 4) {
+      groupTitle = "Metrics";          // two-column group
+    } else if (c >= 5) {
+      // Light, non-contiguous tags to show group headers here and there
+      // (won't merge spans unless adjacent)
+      if (c % 7 === 0) groupTitle = "Extras";
+      else if (c % 11 === 0) groupTitle = "More";
+    }
 
-  // Different group, single column
-  cols.push({ column: "c3", title: "Column 3", groupTitle: "Metrics", width: 140, minWidth: 80, maxWidth: 400 });
-
-  // Same "Metrics" group continues (merged span)
-  cols.push({ column: "c4", title: "Column 4", groupTitle: "Metrics", width: 120, minWidth: 80, maxWidth: 400 });
-
-  // Deep path examples — these will read nested values if your rows have them
-  cols.push(
-    { column: "meta.info.score", title: "Score", groupTitle: "Details", width: 140, minWidth: 80, maxWidth: 400 },
-    { column: "meta.flags.valid", title: "Valid", groupTitle: "Details", width: 120, minWidth: 80, maxWidth: 400 },
-  );
-
-  // Fill out the remainder up to COLS (fallback simple columns, alternating groups)
-  for (let c = cols.length; c < COLS; c++) {
-    const w = c % 5 === 0 ? 160 : c % 3 === 0 ? 140 : 120;
-    const gt = c % 7 === 0 ? "Extras" : c % 11 === 0 ? "More" : undefined;
-    cols.push({ column: `c${c}`, title: `Column ${c}`, groupTitle: gt, width: w, minWidth: 80, maxWidth: 400 });
+    cols.push({
+      column: `c${c}`,
+      title: `Column ${c}`,
+      groupTitle,
+      width,
+      minWidth: 80,
+      maxWidth: 400,
+    });
   }
+
   return cols;
 }
 

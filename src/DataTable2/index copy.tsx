@@ -1,3 +1,4 @@
+// src/DataTable2/DataTableTanstackVirtual.tsx
 import React, {
   CSSProperties,
   useCallback,
@@ -8,25 +9,100 @@ import React, {
   useEffect,
 } from "react";
 import {
+  ColumnDef,
   ColumnSizingState,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { VariableSizeGrid as Grid } from "react-window";
+import {
+  VariableSizeGrid as Grid,
+  GridOnScrollProps,
+  GridChildComponentProps,
+  areEqual,
+} from "react-window";
 import { createDataWorker } from "./dataWorkerClient";
 import { useCellSelection } from "./hook/useCellSelection";
 
-import BodyCell from "./components/BodyCell";
-import { Footer } from "./components/Footer";
-import { Header as HeaderRows } from "./components/Header";
+export type ColumnSetting<T> = {
+  id: string;
+  title?: string;
+  width?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  accessor?: (row: T) => string | number | null | undefined;
+};
 
-import { useParentWidth } from "./hooks/useParentWidth";
-import { useTableColumns } from "./hooks/useTableColumns";
-import type { DataTableProps, GridChildProps, GridOnScroll, GridRef } from "./interface";
+export type DataTableProps<T> = {
+  dataSource: T[];
+  columnSettings: ColumnSetting<T>[];
+  onChange?: (nextRows: T[]) => void;
+  rowHeight?: number;
+  headerHeight?: number;
+  maxHeight?: number;
+  overscanRowCount?: number;
+  overscanColumnCount?: number;
+  className?: string;
+
+  /** Pagination */
+  enablePagination?: boolean;
+  pagination?: { pageIndex: number; pageSize: number };
+  onPaginationChange?: (
+    updater:
+      | { pageIndex: number; pageSize: number }
+      | ((
+          old: { pageIndex: number; pageSize: number }
+        ) => { pageIndex: number; pageSize: number })
+  ) => void;
+  onPageIndexChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+
+  /** Row selection */
+  enableRowSelection?: boolean;
+  enableMultiRowSelection?: boolean;
+  onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void;
+  onSelectedRowsChange?: (selectedRows: T[]) => void;
+  selectedRows?: Array<number | T>;
+  disabledRows?: Array<number | T>;
+
+  /** Active row */
+  enableActiveRow?: boolean;
+  activeRow?: number | T;
+
+  /** Cell selection (Excel-like) */
+  enableSelection?: boolean;
+  selectedCell?: [number | T, number];
+  selectedCells?: { start: [number | T, number]; end: [number | T, number] };
+  onCellSelectionChange?: (r: {
+    startRow: number;
+    startCol: number;
+    endRow: number;
+    endCol: number;
+  }) => void;
+
+  /** History (undo/redo) */
+  undoLimit?: number; // default 5
+  redoLimit?: number; // default 5
+};
 
 const DEFAULT_COL_WIDTH = 120;
 const SELECT_COL_W = 44;
-const GROUP_H = 28;
+
+function useParentWidth<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [w, setW] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const next = el.clientWidth;
+      if (next !== w) setW(next);
+    });
+    ro.observe(el);
+    setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []); // eslint-disable-line
+  return { ref, width: w };
+}
 
 const HiddenScrollOuter = React.forwardRef<
   HTMLDivElement,
@@ -38,6 +114,59 @@ const HiddenScrollOuter = React.forwardRef<
     style={{ ...(props.style as CSSProperties), overflow: "hidden" }}
   />
 ));
+
+function equalCellStyle(a: CSSProperties, b: CSSProperties) {
+  if (a === b) return true;
+  return (
+    a.top === b.top &&
+    a.left === b.left &&
+    a.width === b.width &&
+    a.height === b.height &&
+    a.transform === b.transform
+  );
+}
+
+type BodyCellProps = {
+  value: any;
+  style: CSSProperties;
+  zebra: boolean;
+  bg?: string;
+  v: number;
+};
+
+const BodyCell = React.memo(function BodyCell({
+  value,
+  style,
+  zebra,
+  bg,
+}: BodyCellProps) {
+  return (
+    <div
+      style={{
+        ...style,
+        padding: "0 8px",
+        display: "flex",
+        alignItems: "center",
+        borderBottom: "1px solid #eee",
+        borderRight: "1px solid #f3f3f3",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        boxSizing: "border-box",
+        background: bg ?? (zebra ? "#fafafa" : "#fff"),
+      }}
+      title={value != null ? String(value) : ""}
+    >
+      {value as any}
+    </div>
+  );
+},
+(prev, next) =>
+  prev.value === next.value &&
+  prev.zebra === next.zebra &&
+  prev.bg === next.bg &&
+  prev.v === next.v &&
+  equalCellStyle(prev.style, next.style));
 
 export function DataTableTanstackVirtual<T extends Record<string, any>>({
   dataSource,
@@ -93,8 +222,27 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   const selectionEnabled = !!enableRowSelection;
   const multiSelect = selectionEnabled ? enableMultiRowSelection ?? true : false;
 
-  /** ---------- columns + accessors ---------- */
-  const { columns, accessorById } = useTableColumns<T>(columnSettings);
+  // columns
+  const columns = useMemo<ColumnDef<T>[]>(() => {
+    return columnSettings.map((c) => {
+      const accessor = c.accessor ?? ((row: T) => row[c.id]);
+      return {
+        id: c.id,
+        header: c.title ?? c.id,
+        accessorFn: accessor,
+        size: c.width ?? DEFAULT_COL_WIDTH,
+        minSize: c.minWidth ?? 40,
+        maxSize: c.maxWidth ?? 10000,
+      } as ColumnDef<T>;
+    });
+  }, [columnSettings]);
+
+  const accessorById = useMemo(() => {
+    const m = new Map<string, (row: T, i: number) => any>();
+    for (const c of columnSettings)
+      m.set(c.id, (c.accessor ?? ((r: T) => (r as any)[c.id])) as any);
+    return m;
+  }, [columnSettings]);
 
   // sizing
   const initialSizing = useMemo(() => {
@@ -104,7 +252,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         c.minWidth ?? 40,
         Math.min(c.width ?? DEFAULT_COL_WIDTH, c.maxWidth ?? 10000)
       );
-      s[c.column] = w;
+      s[c.id] = w;
     }
     return s;
   }, [columnSettings]);
@@ -142,6 +290,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       if (next.length > undoLimit) next.shift();
       return next;
     });
+    // any new edit clears redo
     setRedoStack([]);
   }, [undoLimit]);
 
@@ -150,6 +299,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     setUndoStack((prev) => {
       const next = prev.slice();
       const prevState = next.pop()!;
+      // push current to redo
       setRedoStack((rprev) => {
         const snap = (isControlled ? dataSource : internalRows).map((r) => ({ ...r }));
         const rnext = [snap, ...rprev];
@@ -158,11 +308,12 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       });
       if (isControlled && onChange) onChange(prevState);
       else setInternalRows(prevState);
+      // reingest worker for correctness
       (async () => {
         try {
           const api = workerRef.current!.api;
           await api.reset();
-          await api.ingestRows(prevState as any[], columnSettings.map((c) => c.column));
+          await api.ingestRows(prevState as any[], columnSettings.map((c) => c.id));
         } catch {}
       })();
       return next;
@@ -174,6 +325,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     setRedoStack((prev) => {
       const next = prev.slice();
       const redoState = next.shift()!;
+      // push current to undo
       setUndoStack((uprev) => {
         const snap = (isControlled ? dataSource : internalRows).map((r) => ({ ...r }));
         const unext = [...uprev, snap];
@@ -182,11 +334,12 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       });
       if (isControlled && onChange) onChange(redoState);
       else setInternalRows(redoState);
+      // reingest worker
       (async () => {
         try {
           const api = workerRef.current!.api;
           await api.reset();
-          await api.ingestRows(redoState as any[], columnSettings.map((c) => c.column));
+          await api.ingestRows(redoState as any[], columnSettings.map((c) => c.id));
         } catch {}
       })();
       return next;
@@ -229,7 +382,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   );
 
   // ingest
-  const colIdSig = useMemo(() => columnSettings.map((c) => c.column).join("|"), [columnSettings]);
+  const colIdSig = useMemo(() => columnSettings.map((c) => c.id).join("|"), [columnSettings]);
   const lastIngestSigRef = useRef<string>("");
 
   const ingestTimerRef = useRef<number | null>(null);
@@ -242,7 +395,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       if (sig === lastIngestSigRef.current) return;
       lastIngestSigRef.current = sig;
 
-      const safeIds = columnSettings.map((c) => c.column);
+      const safeIds = columnSettings.map((c) => c.id);
       const token = ++ingestTokenRef.current;
 
       try {
@@ -250,6 +403,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         await api.ingestRows(rows as any[], safeIds);
         if (token !== ingestTokenRef.current || !mountedRef.current) return;
 
+        // base sort
         let base: Int32Array | null = null;
         const currSort = sortStateRef.current;
         if (currSort.id) {
@@ -259,6 +413,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
           try { base = await api.sortByVector(vec, currSort.desc); } catch { base = null; }
         }
 
+        // compose with global filter
         let finalOrder = base;
         const q = queryRef.current;
         if (q) {
@@ -269,15 +424,10 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
           setSortOrder(base);
           setViewOrder(finalOrder ?? base);
         }
-      } catch {}
+      } catch { /* swallow */ }
     }, 0);
 
-    return () => {
-      if (ingestTimerRef.current) {
-        clearTimeout(ingestTimerRef.current);
-        ingestTimerRef.current = null;
-      }
-    };
+  return () => { if (ingestTimerRef.current) { clearTimeout(ingestTimerRef.current); ingestTimerRef.current = null; } };
   }, [rows.length, colIdSig, columnSettings, accessorById, rows]);
 
   // sorting
@@ -293,8 +443,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
 
     let baseOrder: Int32Array | null = null;
     if (next.id) {
-      const accessor =
-        accessorById.get(next.id) ?? ((r: T) => (r as any)[next.id!]);
+      const accessor = accessorById.get(next.id) ?? ((r: T) => (r as any)[next.id!]);
       const vec = new Array<any>(rowCount);
       for (let i = 0; i < rowCount; i++) vec[i] = rows[i] ? accessor(rows[i], i) : undefined;
       try { baseOrder = await api.sortByVector(vec, next.desc); } catch { baseOrder = null; }
@@ -352,16 +501,14 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   }, [startFilter]);
 
   // refs & scroll sync
-  const headerRef = useRef<GridRef | null>(null);
-  const groupHeaderRef = useRef<GridRef | null>(null);
-  const bodyRef = useRef<GridRef | null>(null);
-  const selHeaderRef = useRef<GridRef | null>(null);
-  const selBodyRef = useRef<GridRef | null>(null);
+  const headerRef = useRef<Grid>(null);
+  const bodyRef = useRef<Grid>(null);
+  const selHeaderRef = useRef<Grid>(null);
+  const selBodyRef = useRef<Grid>(null);
   const bodyOuterRef = useRef<HTMLDivElement | null>(null);
   const bodyWrapRef = useRef<HTMLDivElement | null>(null);
   const bodyScrollTopRef = useRef(0);
   const bodyScrollLeftRef = useRef(0);
-  const gridOuterProxyRef = useRef<HTMLDivElement | null>(null);
 
   const rafScrollRef = useRef<number | null>(null);
   const recomputeActiveOverlayRef = useRef<() => void>(() => {});
@@ -376,19 +523,36 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     });
   }, []);
 
-  // stable function props for react-window
-  const getRowHeight = useCallback(() => rowHeight, [rowHeight]);
-  const getHeaderHeight = useCallback(() => headerHeight, [headerHeight]);
-  const getSelectColWidth = useCallback(() => SELECT_COL_W, []);
-
-  const onBodyScroll = useCallback(({ scrollLeft, scrollTop }: GridOnScroll) => {
+  const onBodyScroll = useCallback(({ scrollLeft, scrollTop }: GridOnScrollProps) => {
     headerRef.current?.scrollTo({ scrollLeft, scrollTop: 0 });
-    groupHeaderRef.current?.scrollTo({ scrollLeft, scrollTop: 0 });
     selBodyRef.current?.scrollTo({ scrollLeft: 0, scrollTop: scrollTop ?? 0 });
     if (typeof scrollTop === "number") bodyScrollTopRef.current = scrollTop;
     if (typeof scrollLeft === "number") bodyScrollLeftRef.current = scrollLeft;
     scheduleOverlayRepaint();
   }, [scheduleOverlayRepaint]);
+
+  const HeaderCell = useCallback(({ columnIndex, style }: GridChildComponentProps) => {
+    const col = leafCols[columnIndex];
+    if (!col) return <div style={{ ...style }} />;
+    const caret = sortState.id !== col.id ? "" : sortState.desc ? " 🔽" : " 🔼";
+    const s: CSSProperties = {
+      ...style,
+      padding: "0 8px",
+      display: "flex",
+      alignItems: "center",
+      borderBottom: "1px solid #ddd",
+      borderRight: "1px solid #eee",
+      fontWeight: 600,
+      background: "#f7f7f7",
+      boxSizing: "border-box",
+      cursor: "pointer",
+    };
+    return (
+      <div style={s} onClick={() => requestSort(col.id)} title="Sort: none → asc → desc">
+        {typeof col.columnDef.header === "string" ? col.columnDef.header : col.id}{caret}
+      </div>
+    );
+  }, [leafCols, sortState, requestSort]);
 
   // pagination
   const [internalPagination, setInternalPagination] = useState<{ pageIndex: number; pageSize: number }>({ pageIndex: 0, pageSize: 50 });
@@ -419,7 +583,8 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
 
   useEffect(() => {
     if (enablePagination) applyPagination(p => ({ ...p, pageIndex: 0 }));
-  }, [viewOrder?.length, sortState.id, sortState.desc, enablePagination]); // eslint-disable-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewOrder?.length, sortState.id, sortState.desc, enablePagination]);
 
   const totalCount = viewOrder ? viewOrder.length : rowCount;
   const pageCount = enablePagination ? Math.max(1, Math.ceil(totalCount / Math.max(1, pag.pageSize))) : 1;
@@ -626,7 +791,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     return ri >= 0 && ri < rows.length ? rows[ri] : null;
   }, [rows, viewOrder, enablePagination, pageStart]);
 
-  // row visuals (bg) + version counter
+  // row visuals (bg) to minimize rerenders
   type Visual = { bg?: string; v: number };
   const rowVisualRef = useRef<Map<number, Visual>>(new Map());
   const getVisual = (bi: number): Visual => rowVisualRef.current.get(bi) ?? { bg: undefined, v: 0 };
@@ -663,31 +828,53 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     scheduleOverlayRepaint();
   }, [disabledSet, scheduleOverlayRepaint]);
 
-  // stable child renderer
-  const BodyCellRenderer = useCallback(
-    ({ rowIndex, columnIndex, style }: GridChildProps) => {
-      const col = leafCols[columnIndex];
-      if (!col) return <BodyCell value={null} style={style} zebra={rowIndex % 2 === 0} v={0} />;
+  const BodyCellRenderer = useCallback(({ rowIndex, columnIndex, style }: GridChildComponentProps) => {
+    const col = leafCols[columnIndex];
+    if (!col) return <BodyCell value={null} style={style} zebra={rowIndex % 2 === 0} bg={undefined} v={0} />;
+    const rowObj = rowAt(rowIndex);
+    const value = rowObj ? (col.columnDef.accessorFn as any)(rowObj, rowIndex) : null;
+    const baseIndex = baseIndexForVisual(rowIndex);
+    const vis = getVisual(baseIndex);
+    return <BodyCell value={value} style={style} zebra={rowIndex % 2 === 0} bg={vis.bg} v={vis.v} />;
+  }, [leafCols, rowAt, baseIndexForVisual]);
 
-      const rowObj = rowAt(rowIndex);
-      const value = rowObj ? (col.columnDef.accessorFn as any)(rowObj, rowIndex) : null;
-      const baseIndex = baseIndexForVisual(rowIndex);
-      const vis = getVisual(baseIndex);
+  const SelectionHeaderCell = useCallback(({ style }: { style: CSSProperties }) => {
+    if (!selectionEnabled) return null;
+    const s: CSSProperties = {
+      ...style,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottom: "1px solid #ddd",
+      background: "#f7f7f7",
+      boxSizing: "border-box",
+      fontWeight: 600,
+    };
+    if (!multiSelect) return <div style={s} />;
 
-      return (
-        <BodyCell
-          value={value}
-          style={style}
-          zebra={rowIndex % 2 === 0}
-          bg={vis.bg}
-          v={vis.v}
+    const disabledHdr = !hasEligibleFiltered;
+    return (
+      <div style={s}>
+        <input
+          type="checkbox"
+          disabled={disabledHdr}
+          checked={!disabledHdr && allFiltered}
+          ref={(el) => { if (el) el.indeterminate = !disabledHdr && !allFiltered && anyFiltered; }}
+          aria-label="Select all (filtered)"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!disabledHdr) toggleFilteredAll();
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => {}}
         />
-      );
-    },
-    [leafCols, rowAt, baseIndexForVisual]
-  );
+      </div>
+    );
+  }, [selectionEnabled, multiSelect, allFiltered, anyFiltered, hasEligibleFiltered, toggleFilteredAll]);
 
-  function SelectionBodyCell({ rowIndex, style }: { rowIndex: number; style: CSSProperties }) {
+  const SelectionBodyCell = useCallback(({ rowIndex, style }: { rowIndex: number; style: CSSProperties }) => {
     if (!selectionEnabled) return null;
     const bi = baseIndexForVisual(rowIndex);
     const disabled = bi < 0 || isDisabledBase(bi);
@@ -728,7 +915,8 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         />
       </div>
     );
-  }
+
+  }, [selectionEnabled, multiSelect, sel, baseIndexForVisual, isDisabledBase, toggleOne]);
 
   // edit batching + history
   const flushOverlayToState = useCallback(() => {
@@ -742,8 +930,9 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     }
     lastFlushTsRef.current = now;
 
+    // snapshot BEFORE applying (for undo)
     const snapshot = rows.map((r) => ({ ...r }));
-    pushUndo(snapshot);
+    pushUndo(snapshot); // also clears redo
 
     const editedIdxs = Array.from(m.keys());
 
@@ -757,6 +946,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     if (isControlled && onChange) onChange(next);
     else setInternalRows(next);
 
+    // keep worker text vector in sync for changed rows only
     (async () => {
       try {
         const api = workerRef.current!.api;
@@ -792,7 +982,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
             setViewOrder(refreshed ?? sortOrder);
           }
         }
-      } catch {}
+      } catch { /* ignore */ }
     })();
 
     if (editRafRef.current == null) {
@@ -807,14 +997,14 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   const viewportWidth = Math.max(0, width);
   const frozenWidth = selectionEnabled ? SELECT_COL_W : 0;
   const headerMainWidth = Math.max(0, viewportWidth - frozenWidth);
-  const hasGroups = useMemo(() => columnSettings.some(c => c.groupTitle != null), [columnSettings]);
-  const bodyHeight = Math.max(0, maxHeight - headerHeight - (hasGroups ? GROUP_H : 0));
+  const bodyHeight = Math.max(0, maxHeight - headerHeight);
 
   // Active row overlay
   const activeOverlayRef = useRef<HTMLDivElement | null>(null);
   const [internalActiveIndex, setInternalActiveIndex] = useState<number | null>(null);
   const [activeMounted, setActiveMounted] = useState(false);
 
+  // internal wins over prop (mouse clicks set this; arrows/keyboard do NOT alter it now)
   const activeBaseIndex = useMemo(() => {
     if (typeof internalActiveIndex === "number") return internalActiveIndex;
     const controlled = activeRow != null ? normalizeToSingleIndex(activeRow) : null;
@@ -849,6 +1039,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     const el = activeOverlayRef.current;
     if (!el) return;
 
+    // left=0 to overlap frozen column as well
     const leftPx  = 0;
     const widthPx = frozenWidth + headerMainWidth;
 
@@ -871,26 +1062,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     activeMounted,
   ]);
 
-  // Proxy: align overlay math with wrapper, delegate scrolling to outer
-  useEffect(() => {
-    const outer = bodyOuterRef.current;
-    const wrap  = bodyWrapRef.current;
-    if (!outer || !wrap) { (gridOuterProxyRef as any).current = null; return; }
-
-    const proxy = {
-      getBoundingClientRect: () => wrap.getBoundingClientRect(),
-      get clientWidth() { return headerMainWidth || wrap.clientWidth || outer.clientWidth; },
-      scrollTo: (opts: ScrollToOptions) => outer.scrollTo(opts),
-      get scrollTop()  { return outer.scrollTop;  },
-      set scrollTop(v: number) { outer.scrollTop = v; },
-      get scrollLeft() { return outer.scrollLeft; },
-      set scrollLeft(v: number) { outer.scrollLeft = v; },
-    } as unknown as HTMLDivElement;
-
-    (gridOuterProxyRef as any).current = proxy;
-  }, [headerMainWidth]);
-
-  // global focus handling
+  // global 'click anywhere in table' activation (safe for inputs)
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -904,16 +1076,25 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       const ti = node.getAttribute?.("tabindex");
       if (ti != null && !Number.isNaN(parseInt(ti, 10)) && parseInt(ti!, 10) >= 0) return true;
       if ((node as any).isContentEditable) return true;
+
+      // NEW: anything inside the select column cell
       if (node.closest?.('[data-select-cell="1"]')) return true;
+
       return false;
     };
 
     const onPointerDownCapture = (e: PointerEvent) => {
       if (!root.contains(e.target as Node)) return;
+
+      // IMPORTANT: don’t set state or shift focus for focusable targets;
+      // let the browser deliver the first click untouched.
       if (isFocusable(e.target)) return;
+
+      // Non-focusable: we can activate immediately and focus the body for arrows.
       if (document.activeElement !== bodyWrapRef.current) {
         requestAnimationFrame(() => bodyWrapRef.current?.focus());
       }
+      // No need to call setIsActive here because onFocusCapture will set it (deferred).
     };
 
     document.addEventListener("pointerdown", onPointerDownCapture, true);
@@ -931,14 +1112,14 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     colWidthAt,
     baseIndexForVisual,
     getVisualIndexForBase,
-    gridOuterRef: gridOuterProxyRef,
+    gridOuterRef: bodyOuterRef,
     gridWrapperRef: bodyWrapRef,
     bodyScrollTopRef,
     bodyScrollLeftRef,
     rowHeight,
     bodyHeight,
     headerMainWidth,
-    frozenLeftPx: selectionEnabled ? SELECT_COL_W : 0,
+    frozenLeftPx: frozenWidth,
     pageStart,
     pageEnd,
     totalCount,
@@ -953,6 +1134,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     flushOverlayToState,
     onActiveRowChange: (bi) => {
       if (!enableActiveRow) return;
+      // NOTE: Mouse click still updates active row; keyboard arrows do NOT (handled in hook)
       setInternalActiveIndex(bi);
       scheduleOverlayRepaint();
     },
@@ -972,7 +1154,11 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       ref={ref}
       className={className}
       style={{ width: "100%", maxHeight, position: "relative" }}
-      onFocusCapture={() => { setTimeout(() => { setIsActive(true); }, 0); }}
+      // Defer isActive so the first click on inputs/checkboxes isn't eaten by a re-render
+      onFocusCapture={() => {
+        // If we're already active, no-op; otherwise defer to next tick
+        setTimeout(() => { setIsActive(true); }, 0);
+      }}
       onBlurCapture={(e) => {
         const next = e.relatedTarget as Node | null;
         const root = ref.current;
@@ -989,6 +1175,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         />
         <button onClick={handleRandomizeFirstCell}>Edit row 0 • col 0</button>
 
+        {/* Undo/Redo */}
         <button onClick={doUndo} disabled={!canUndo} title={`Undo (${undoStack.length}/${undoLimit})`}>
           ⟲ Undo
         </button>
@@ -1005,29 +1192,39 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         </div>
       </div>
 
-      {/* Headers */}
-      <HeaderRows
-        selectionEnabled={selectionEnabled}
-        multiSelect={!!multiSelect}
-        hasEligibleFiltered={hasEligibleFiltered}
-        allFiltered={allFiltered}
-        anyFiltered={anyFiltered}
-        toggleFilteredAll={toggleFilteredAll}
-        headerHeight={headerHeight}
-        hasGroups={hasGroups}
-        groupRowHeight={GROUP_H}
-        viewportWidth={viewportWidth}
-        SELECT_COL_W={SELECT_COL_W}
-        overscanColumnCount={overscanColumnCount}
-        leafCols={leafCols as any}
-        colWidthAt={colWidthAt}
-        columnSettings={columnSettings}
-        headerRef={headerRef}
-        groupHeaderRef={groupHeaderRef}
-        selHeaderRef={selHeaderRef}
-        sortState={sortState}
-        requestSort={requestSort}
-      />
+      {/* Header */}
+      <div style={{ display: "flex" }}>
+        {selectionEnabled && (
+          <Grid
+            ref={selHeaderRef}
+            columnCount={1}
+            columnWidth={() => SELECT_COL_W}
+            height={headerHeight}
+            rowCount={1}
+            rowHeight={() => headerHeight}
+            width={SELECT_COL_W}
+            outerElementType={HiddenScrollOuter as any}
+          >
+            {({ style }) => <SelectionHeaderCell style={style} />}
+          </Grid>
+        )}
+
+        <Grid
+          ref={headerRef}
+          outerElementType={HiddenScrollOuter as any}
+          columnCount={leafCols.length}
+          columnWidth={colWidthAt}
+          height={headerHeight}
+          rowCount={1}
+          rowHeight={() => headerHeight}
+          width={Math.max(0, viewportWidth - (selectionEnabled ? SELECT_COL_W : 0))}
+          overscanColumnCount={overscanColumnCount}
+          overscanRowCount={1}
+          itemKey={({ columnIndex }) => `h-${leafCols[columnIndex]?.id ?? columnIndex}`}
+        >
+          {HeaderCell}
+        </Grid>
+      </div>
 
       {/* Body + overlays */}
       <div
@@ -1048,40 +1245,33 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       >
         {selectionEnabled && (
           <Grid
-            ref={selBodyRef as any}
+            ref={selBodyRef}
             columnCount={1}
-            columnWidth={getSelectColWidth}
+            columnWidth={() => SELECT_COL_W}
             height={bodyHeight}
             rowCount={visibleRowCount}
-            rowHeight={getRowHeight}
+            rowHeight={() => rowHeight}
             width={SELECT_COL_W}
             outerElementType={HiddenScrollOuter as any}
-            itemKey={({ rowIndex }: any) => {
-              const baseVisualIndex = (enablePagination ? pageStart : 0) + rowIndex;
-              const ord = viewOrder;
-              const bi = ord && baseVisualIndex >= 0 && baseVisualIndex < ord.length ? ord[baseVisualIndex] : baseVisualIndex;
-              return `sel-${bi}-v${getVisual(bi).v}`;
-            }}
+            itemKey={({ rowIndex }) => `sel-${(enablePagination ? pageStart : 0) + rowIndex}`}
           >
-            {function SelBodyRenderer({ rowIndex, style }: GridChildProps) {
-              return <SelectionBodyCell rowIndex={rowIndex} style={style} />;
-            } as any}
+            {({ rowIndex, style }) => <SelectionBodyCell rowIndex={rowIndex} style={style} />}
           </Grid>
         )}
 
         <Grid
-          ref={bodyRef as any}
-          outerRef={bodyOuterRef as any}
+          ref={bodyRef}
+          outerRef={bodyOuterRef}
           columnCount={leafCols.length}
           columnWidth={colWidthAt}
           height={bodyHeight}
           rowCount={visibleRowCount}
-          rowHeight={getRowHeight}
+          rowHeight={() => rowHeight}
           width={Math.max(0, viewportWidth - (selectionEnabled ? SELECT_COL_W : 0))}
           overscanColumnCount={overscanColumnCount}
           overscanRowCount={overscanRowCount}
-          onScroll={onBodyScroll as any}
-          itemKey={({ rowIndex, columnIndex }: any) => {
+          onScroll={onBodyScroll}
+          itemKey={({ rowIndex, columnIndex }) => {
             const baseVisualIndex = (enablePagination ? pageStart : 0) + rowIndex;
             const ord = viewOrder;
             const bi = ord && baseVisualIndex >= 0 && baseVisualIndex < ord.length ? ord[baseVisualIndex] : baseVisualIndex;
@@ -1090,10 +1280,10 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
             return `${bi ?? -1}-${colId}-v${v}`;
           }}
         >
-          {BodyCellRenderer as any}
+          {BodyCellRenderer}
         </Grid>
 
-        {/* Active row overlay */}
+        {/* Active row overlay (1px) — mounted only when visible; spans from left:0 */}
         {enableActiveRow && activeMounted && (
           <div
             ref={activeOverlayRef}
@@ -1111,7 +1301,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
           />
         )}
 
-        {/* Cell selection overlay */}
+        {/* Cell selection overlay — mounted only when visible */}
         {enableSelection && cellSel.overlayMounted && (
           <div
             ref={cellSel.overlayRef}
@@ -1123,10 +1313,11 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
               height: 0,
               border: isActive ? "2px solid #2b6fff" : "2px dashed #2b6fff",
               boxSizing: "border-box",
-              pointerEvents: "none",
+              pointerEvents: "none",     // parent never intercepts
               zIndex: 3,
             }}
           >
+            {/* NEW: only let resize handles take pointer events when active */}
             <div style={{ pointerEvents: isActive ? "auto" : "none" }}>
               {cellSel.overlayHandles}
             </div>
@@ -1136,26 +1327,107 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
 
       {/* Footer */}
       {enablePagination && (
-        <Footer
-          selectionEnabled={selectionEnabled}
-          multiSelect={!!multiSelect}
-          pageEligibleCount={pageEligibleCount}
-          pageAllSelected={pageAllSelected}
-          pageSomeSelected={pageSomeSelected}
-          onTogglePageAll={togglePageAll}
-          selectedCount={sel.size}
-          summaryFrom={summaryFrom}
-          summaryTo={summaryTo}
-          totalCount={totalCount}
-          pageIndexClamped={pageIndexClamped}
-          pageCount={pageCount}
-          pag={pag}
-          setPageIndex={setPageIndex}
-          setPageSize={setPageSize}
-          canPrev={canPrev}
-          canNext={canNext}
-        />
+        <div style={{ border: "1px solid #ddd", borderTop: "none", background: "#fafafa", fontSize: 13 }}>
+          {selectionEnabled && multiSelect && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 10px", borderBottom: "1px solid #e9e9e9" }}>
+              <div>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <input
+                    type="checkbox"
+                    disabled={pageEligibleCount === 0}
+                    checked={pageEligibleCount > 0 && pageAllSelected}
+                    ref={(el) => { if (el) el.indeterminate = pageEligibleCount > 0 && pageSomeSelected; }}
+                    onChange={togglePageAll}
+                    aria-label="Select current page"
+                    title={pageEligibleCount === 0 ? "No selectable rows on this page" : "Select all rows on this page"}
+                  />
+                  Select all rows on this page
+                </label>
+              </div>
+              <div><strong>{sel.size.toLocaleString()}</strong> Total Selected Rows</div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 10px" }}>
+            <div style={{ whiteSpace: "nowrap" }}>
+              Displaying <strong>{summaryFrom.toLocaleString()}</strong> to <strong>{summaryTo.toLocaleString()}</strong> of <strong>{totalCount.toLocaleString()}</strong> Records
+            </div>
+            <PaginationControls
+              pageIndexClamped={pageIndexClamped}
+              pageCount={pageCount}
+              setPageIndex={setPageIndex}
+              pag={pag}
+              setPageSize={setPageSize}
+              canPrev={canPrev}
+              canNext={canNext}
+            />
+          </div>
+        </div>
       )}
+    </div>
+  );
+}
+
+function PaginationControls({
+  pageIndexClamped,
+  pageCount,
+  setPageIndex,
+  pag,
+  setPageSize,
+  canPrev,
+  canNext,
+}: {
+  pageIndexClamped: number;
+  pageCount: number;
+  setPageIndex: (idx: number) => void;
+  pag: { pageIndex: number; pageSize: number };
+  setPageSize: (n: number) => void;
+  canPrev: boolean;
+  canNext: boolean;
+}) {
+  const [input, setInput] = useState<string>(String(pageIndexClamped + 1));
+  useEffect(() => { setInput(String(pageIndexClamped + 1)); }, [pageIndexClamped]);
+
+  const commit = (raw: string) => {
+    const n = Math.max(1, Math.min((Number(raw) | 0) || 1, Math.max(1, pageCount)));
+    setInput(String(n));
+    setPageIndex(n - 1);
+  };
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <button onClick={() => setPageIndex(0)} disabled={!canPrev}>« First</button>
+      <button onClick={() => setPageIndex(pageIndexClamped - 1)} disabled={!canPrev}>‹ Prev</button>
+
+      <span style={{ opacity: 0.8 }}>
+        Page {pageIndexClamped + 1} / {pageCount}
+      </span>
+
+      <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        Go to:&nbsp;
+        <input
+          type="number"
+          min={1}
+          max={Math.max(1, pageCount)}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") commit(e.currentTarget.value); }}
+          onBlur={(e) => commit(e.currentTarget.value)}
+          style={{ width: 72, padding: "4px 6px" }}
+        />
+      </label>
+
+      <button onClick={() => setPageIndex(pageIndexClamped + 1)} disabled={!canNext}>Next ›</button>
+      <button onClick={() => setPageIndex(pageCount - 1)} disabled={!canNext}>Last »</button>
+
+      <label style={{ marginLeft: 6 }}>
+        Page size:&nbsp;
+        <select value={pag.pageSize} onChange={(e) => setPageSize(parseInt(e.target.value, 10))}>
+          {[25, 50, 100, 250, 500, 1000].map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }
