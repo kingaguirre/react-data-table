@@ -21,6 +21,7 @@ import {
 } from "react-window";
 import { createDataWorker } from "./workers/client";
 import { useCellSelection } from "./hooks/useCellSelection";
+import { useStableEvent } from "./hooks/useStableEvent";
 
 export type ColumnSetting<T> = {
   id: string;
@@ -1755,157 +1756,197 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       {/* Footer */}
       <FooterBar
         enablePagination={!!enablePagination}
-        selectionEnabled={!!selectionEnabled}
-        multiSelect={!!multiSelect}
-        // selection summary (top strip)
+        pageIndex={pageIndexClamped}
+        pageSize={pag.pageSize}
+        totalCount={totalCount}
+        onPageIndex={setPageIndex}
+        onPageSize={setPageSize}
+
+        showSelectionPanel={selectionEnabled && !!multiSelect}
         pageEligibleCount={pageEligibleCount}
         pageAllSelected={pageAllSelected}
         pageSomeSelected={pageSomeSelected}
-        selSize={sel.size}
-        togglePageAll={togglePageAll}
-        // text summary (bottom strip)
-        summaryFrom={summaryFrom}
-        summaryTo={summaryTo}
-        totalCount={totalCount}
-        // pagination controls
-        pageIndex={pageIndexClamped}
-        pageCount={pageCount}
-        pageSize={pag.pageSize}
-        canPrev={canPrev}
-        canNext={canNext}
-        onChangePageIndex={setPageIndex}
-        onChangePageSize={setPageSize}
+        totalSelectedCount={sel.size}
+        onTogglePageAll={togglePageAll}
       />
-
     </div>
   );
 }
 
 const FooterBar = React.memo(function FooterBar({
   enablePagination,
-  selectionEnabled,
-  multiSelect,
+  pageIndex,
+  pageSize,
+  totalCount,
+  onPageIndex,
+  onPageSize,
 
+  showSelectionPanel,
   pageEligibleCount,
   pageAllSelected,
   pageSomeSelected,
-  selSize,
-  togglePageAll,
-
-  summaryFrom,
-  summaryTo,
-  totalCount,
-
-  pageIndex,
-  pageCount,
-  pageSize,
-  canPrev,
-  canNext,
-  onChangePageIndex,
-  onChangePageSize,
+  totalSelectedCount,
+  onTogglePageAll,
 }: {
   enablePagination: boolean;
-  selectionEnabled: boolean;
-  multiSelect: boolean;
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  onPageIndex: (idx: number) => void;
+  onPageSize: (n: number) => void;
 
+  showSelectionPanel: boolean;
   pageEligibleCount: number;
   pageAllSelected: boolean;
   pageSomeSelected: boolean;
-  selSize: number;
-  togglePageAll: () => void;
-
-  summaryFrom: number;
-  summaryTo: number;
-  totalCount: number;
-
-  pageIndex: number;
-  pageCount: number;
-  pageSize: number;
-  canPrev: boolean;
-  canNext: boolean;
-  onChangePageIndex: (idx: number) => void;
-  onChangePageSize: (n: number) => void;
+  totalSelectedCount: number;
+  onTogglePageAll: () => void;
 }) {
-  if (!enablePagination) return null;
+  // Make the pagination callbacks identity-stable for children.
+  // This ensures PagerArea/PaginationControls do NOT re-render when the parent re-renders for selection.
+  const onPageIndexStable = useStableEvent(onPageIndex);
+  const onPageSizeStable  = useStableEvent(onPageSize);
+
+  if (!enablePagination && !showSelectionPanel) return null;
 
   return (
     <div style={{ border: "1px solid #ddd", borderTop: "none", background: "#fafafa", fontSize: 13 }}>
-      {selectionEnabled && multiSelect && (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 10px", borderBottom: "1px solid #e9e9e9" }}>
-          <div>
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                disabled={pageEligibleCount === 0}
-                checked={pageEligibleCount > 0 && pageAllSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = pageEligibleCount > 0 && pageSomeSelected;
-                }}
-                onChange={togglePageAll}
-                aria-label="Select current page"
-                title={pageEligibleCount === 0 ? "No selectable rows on this page" : "Select all rows on this page"}
-              />
-              Select all rows on this page
-            </label>
-          </div>
-          <div><strong>{selSize.toLocaleString()}</strong> Total Selected Rows</div>
-        </div>
+      {showSelectionPanel && (
+        <PageSelectionBar
+          pageEligibleCount={pageEligibleCount}
+          pageAllSelected={pageAllSelected}
+          pageSomeSelected={pageSomeSelected}
+          totalSelectedCount={totalSelectedCount}
+          onTogglePageAll={onTogglePageAll}
+        />
       )}
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 10px" }}>
-        <div style={{ whiteSpace: "nowrap" }}>
-          Displaying <strong>{summaryFrom.toLocaleString()}</strong> to <strong>{summaryTo.toLocaleString()}</strong> of <strong>{totalCount.toLocaleString()}</strong> Records
-        </div>
-
-        <PaginationControls
+      {enablePagination && (
+        <PagerArea
           pageIndex={pageIndex}
-          pageCount={pageCount}
           pageSize={pageSize}
-          canPrev={canPrev}
-          canNext={canNext}
-          onChangePageIndex={onChangePageIndex}
-          onChangePageSize={onChangePageSize}
+          totalCount={totalCount}
+          onPageIndex={onPageIndexStable}
+          onPageSize={onPageSizeStable}
         />
-      </div>
+      )}
     </div>
   );
-}, (a, b) => {
-  // ignore function identity; compare only primitives so scroll-induced parent renders won't repaint this
+}, (a, b) =>
+  // NOTE: do NOT compare function props; they change identity easily.
+  a.enablePagination     === b.enablePagination &&
+  a.pageIndex           === b.pageIndex &&
+  a.pageSize            === b.pageSize &&
+  a.totalCount          === b.totalCount &&
+  a.showSelectionPanel  === b.showSelectionPanel &&
+  a.pageEligibleCount   === b.pageEligibleCount &&
+  a.pageAllSelected     === b.pageAllSelected &&
+  a.pageSomeSelected    === b.pageSomeSelected &&
+  a.totalSelectedCount  === b.totalSelectedCount
+);
+
+const PageSelectionBar = React.memo(function PageSelectionBar({
+  pageEligibleCount,
+  pageAllSelected,
+  pageSomeSelected,
+  totalSelectedCount,
+  onTogglePageAll,
+}: {
+  pageEligibleCount: number;
+  pageAllSelected: boolean;
+  pageSomeSelected: boolean;
+  totalSelectedCount: number;
+  onTogglePageAll: () => void;
+}) {
   return (
-    a.enablePagination === b.enablePagination &&
-    a.selectionEnabled === b.selectionEnabled &&
-    a.multiSelect === b.multiSelect &&
-    a.pageEligibleCount === b.pageEligibleCount &&
-    a.pageAllSelected === b.pageAllSelected &&
-    a.pageSomeSelected === b.pageSomeSelected &&
-    a.selSize === b.selSize &&
-    a.summaryFrom === b.summaryFrom &&
-    a.summaryTo === b.summaryTo &&
-    a.totalCount === b.totalCount &&
-    a.pageIndex === b.pageIndex &&
-    a.pageCount === b.pageCount &&
-    a.pageSize === b.pageSize &&
-    a.canPrev === b.canPrev &&
-    a.canNext === b.canNext
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 10px", borderBottom: "1px solid #e9e9e9" }}>
+      <div>
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <input
+            type="checkbox"
+            disabled={pageEligibleCount === 0}
+            checked={pageEligibleCount > 0 && pageAllSelected}
+            ref={(el) => { if (el) el.indeterminate = pageEligibleCount > 0 && pageSomeSelected; }}
+            onChange={onTogglePageAll}
+            aria-label="Select current page"
+            title={pageEligibleCount === 0 ? "No selectable rows on this page" : "Select all rows on this page"}
+          />
+          Select all rows on this page
+        </label>
+      </div>
+      <div><strong>{totalSelectedCount.toLocaleString()}</strong> Total Selected Rows</div>
+    </div>
   );
-});
+}, (a, b) =>
+  a.pageEligibleCount   === b.pageEligibleCount &&
+  a.pageAllSelected     === b.pageAllSelected &&
+  a.pageSomeSelected    === b.pageSomeSelected &&
+  a.totalSelectedCount  === b.totalSelectedCount &&
+  a.onTogglePageAll     === b.onTogglePageAll
+);
+
+const PagerArea = React.memo(function PagerArea({
+  pageIndex,
+  pageSize,
+  totalCount,
+  onPageIndex,
+  onPageSize,
+}: {
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  onPageIndex: (idx: number) => void;
+  onPageSize: (n: number) => void;
+}) {
+  const safeSize  = Math.max(1, pageSize);
+  const pageCount = Math.max(1, Math.ceil(totalCount / safeSize));
+  const canPrev   = pageIndex > 0;
+  const canNext   = pageIndex < pageCount - 1;
+
+  const summaryFrom = totalCount > 0 ? pageIndex * safeSize + 1 : 0;
+  const summaryTo   = totalCount > 0 ? Math.min(pageIndex * safeSize + safeSize, totalCount) : 0;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 10px" }}>
+      <div style={{ whiteSpace: "nowrap" }}>
+        {/* Only rendered when pagination is enabled (FooterBar gates it) */}
+        Displaying <strong>{summaryFrom.toLocaleString()}</strong> to <strong>{summaryTo.toLocaleString()}</strong> of <strong>{totalCount.toLocaleString()}</strong> Records
+      </div>
+
+      <PaginationControls
+        pageIndex={pageIndex}
+        pageSize={safeSize}
+        pageCount={pageCount}
+        canPrev={canPrev}
+        canNext={canNext}
+        onPageIndex={onPageIndex}
+        onPageSize={onPageSize}
+      />
+    </div>
+  );
+}, (a, b) =>
+  // NOTE: ignore function props here too; only primitive pagination state matters for re-rendering.
+  a.pageIndex   === b.pageIndex &&
+  a.pageSize    === b.pageSize &&
+  a.totalCount  === b.totalCount
+);
 
 const PaginationControls = React.memo(function PaginationControls({
   pageIndex,
-  pageCount,
   pageSize,
+  pageCount,
   canPrev,
   canNext,
-  onChangePageIndex,
-  onChangePageSize,
+  onPageIndex,
+  onPageSize,
 }: {
   pageIndex: number;
-  pageCount: number;
   pageSize: number;
+  pageCount: number;
   canPrev: boolean;
   canNext: boolean;
-  onChangePageIndex: (idx: number) => void;
-  onChangePageSize: (n: number) => void;
+  onPageIndex: (idx: number) => void;
+  onPageSize: (n: number) => void;
 }) {
   const [input, setInput] = React.useState<string>(String(pageIndex + 1));
   React.useEffect(() => { setInput(String(pageIndex + 1)); }, [pageIndex]);
@@ -1913,13 +1954,13 @@ const PaginationControls = React.memo(function PaginationControls({
   const commit = React.useCallback((raw: string) => {
     const n = Math.max(1, Math.min((Number(raw) | 0) || 1, Math.max(1, pageCount)));
     setInput(String(n));
-    onChangePageIndex(n - 1);
-  }, [pageCount, onChangePageIndex]);
+    onPageIndex(n - 1);
+  }, [pageCount, onPageIndex]);
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      <button onClick={() => onChangePageIndex(0)} disabled={!canPrev}>« First</button>
-      <button onClick={() => onChangePageIndex(pageIndex - 1)} disabled={!canPrev}>‹ Prev</button>
+      <button onClick={() => onPageIndex(0)}             disabled={!canPrev}>« First</button>
+      <button onClick={() => onPageIndex(pageIndex - 1)} disabled={!canPrev}>‹ Prev</button>
 
       <span style={{ opacity: 0.8 }}>
         Page {pageIndex + 1} / {pageCount}
@@ -1939,15 +1980,12 @@ const PaginationControls = React.memo(function PaginationControls({
         />
       </label>
 
-      <button onClick={() => onChangePageIndex(pageIndex + 1)} disabled={!canNext}>Next ›</button>
-      <button onClick={() => onChangePageIndex(pageCount - 1)} disabled={!canNext}>Last »</button>
+      <button onClick={() => onPageIndex(pageIndex + 1)} disabled={!canNext}>Next ›</button>
+      <button onClick={() => onPageIndex(pageCount - 1)} disabled={!canNext}>Last »</button>
 
       <label style={{ marginLeft: 6 }}>
         Page size:&nbsp;
-        <select
-          value={pageSize}
-          onChange={(e) => onChangePageSize(parseInt(e.target.value, 10))}
-        >
+        <select value={pageSize} onChange={(e) => onPageSize(parseInt(e.target.value, 10))}>
           {[25, 50, 100, 250, 500, 1000].map((n) => (
             <option key={n} value={n}>{n}</option>
           ))}
@@ -1955,13 +1993,13 @@ const PaginationControls = React.memo(function PaginationControls({
       </label>
     </div>
   );
-}, (a, b) => {
-  // only rerender when pagination numbers change
-  return (
-    a.pageIndex === b.pageIndex &&
-    a.pageCount === b.pageCount &&
-    a.pageSize === b.pageSize &&
-    a.canPrev === b.canPrev &&
-    a.canNext === b.canNext
-  );
-});
+}, (a, b) =>
+  a.pageIndex   === b.pageIndex &&
+  a.pageSize    === b.pageSize &&
+  a.pageCount   === b.pageCount &&
+  a.canPrev     === b.canPrev &&
+  a.canNext     === b.canNext &&
+  a.onPageIndex === b.onPageIndex &&
+  a.onPageSize  === b.onPageSize
+);
+
