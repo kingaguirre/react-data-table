@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { DataTableTanstackVirtual } from "./index";
-import { ColumnSetting } from './interface'
+import { DataTableTanstackVirtual, ColumnSetting } from "./index";
 
 type Row = Record<string, string | number>;
-const ROWS = 10_000;
+const ROWS = 100_000;
 const COLS = 100;
 
 function makeColumns(): ColumnSetting<Row>[] {
   return new Array(COLS).fill(null).map((_, c) => ({
-    column: `c${c}`,
+    id: `c${c}`,
     title: `Column ${c}`,
     width: c % 5 === 0 ? 160 : c % 3 === 0 ? 140 : 120,
     minWidth: 80,
@@ -39,6 +38,7 @@ function makeColumnsV2(): ColumnSetting<Row>[] {
 
     cols.push({
       column: `c${c}`,
+      id: `c${c}`,
       title: `Column ${c}`,
       groupTitle,
       width,

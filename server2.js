@@ -54,6 +54,7 @@ function makeRow(i, cols) {
   return r;
 }
 
+
 // ✅ Windowed endpoint (use this in the app)
 app.get('/rows/window', (req, res) => {
   const start = Math.max(0, parseInt(req.query.start ?? '0', 10));
