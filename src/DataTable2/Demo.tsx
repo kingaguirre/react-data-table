@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { DataTableTanstackVirtual, ColumnSetting } from "./index";
 
 type Row = Record<string, string | number>;
-const ROWS = 100_000;
+const ROWS = 10_000;
 const COLS = 100;
 
 function makeColumns(): ColumnSetting<Row>[] {

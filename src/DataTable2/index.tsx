@@ -1006,9 +1006,26 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   }, [applyPagination, onPageSizeChange, scheduleOverlayRepaint]);
 
   useEffect(() => {
-    if (enablePagination) applyPagination(p => ({ ...p, pageIndex: 0 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewOrder?.length, sortState.id, sortState.desc, enablePagination]);
+    if (!enablePagination) return;
+
+    // compute totalCount without creating new state:
+    const total = viewOrder ? viewOrder.length : rowCount;
+    const size  = Math.max(1, pag.pageSize);
+    const count = Math.max(1, Math.ceil(total / size));
+
+    // Only clamp if current page index is out of range.
+    if (pag.pageIndex >= count) {
+      applyPagination(p => ({ ...p, pageIndex: Math.max(0, count - 1) }));
+    }
+    // If pageIndex is already valid, do nothing (no re-render).
+  }, [
+    enablePagination,
+    viewOrder,
+    rowCount,
+    pag.pageIndex,
+    pag.pageSize,
+    applyPagination
+  ]);
 
   const totalCount = viewOrder ? viewOrder.length : rowCount;
   const pageCount = enablePagination ? Math.max(1, Math.ceil(totalCount / Math.max(1, pag.pageSize))) : 1;
@@ -1736,83 +1753,176 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
       </div>
 
       {/* Footer */}
-      {(enablePagination || (selectionEnabled && multiSelect)) && (
-        <div style={{ border: "1px solid #ddd", borderTop: "none", background: "#fafafa", fontSize: 13 }}>
-          {selectionEnabled && multiSelect && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 10px", borderBottom: "1px solid #e9e9e9" }}>
-              <div>
-                <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <input
-                    type="checkbox"
-                    disabled={pageEligibleCount === 0}
-                    checked={pageEligibleCount > 0 && pageAllSelected}
-                    ref={(el) => { if (el) el.indeterminate = pageEligibleCount > 0 && pageSomeSelected; }}
-                    onChange={togglePageAll}
-                    aria-label="Select current page"
-                    title={pageEligibleCount === 0 ? "No selectable rows on this page" : "Select all rows on this page"}
-                  />
-                  Select all rows on this page
-                </label>
-              </div>
-              <div><strong>{sel.size.toLocaleString()}</strong> Total Selected Rows</div>
-            </div>
-          )}
+      <FooterBar
+        enablePagination={!!enablePagination}
+        selectionEnabled={!!selectionEnabled}
+        multiSelect={!!multiSelect}
+        // selection summary (top strip)
+        pageEligibleCount={pageEligibleCount}
+        pageAllSelected={pageAllSelected}
+        pageSomeSelected={pageSomeSelected}
+        selSize={sel.size}
+        togglePageAll={togglePageAll}
+        // text summary (bottom strip)
+        summaryFrom={summaryFrom}
+        summaryTo={summaryTo}
+        totalCount={totalCount}
+        // pagination controls
+        pageIndex={pageIndexClamped}
+        pageCount={pageCount}
+        pageSize={pag.pageSize}
+        canPrev={canPrev}
+        canNext={canNext}
+        onChangePageIndex={setPageIndex}
+        onChangePageSize={setPageSize}
+      />
 
-          {enablePagination && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 10px" }}>
-              <div style={{ whiteSpace: "nowrap" }}>
-                Displaying <strong>{summaryFrom.toLocaleString()}</strong> to <strong>{summaryTo.toLocaleString()}</strong> of <strong>{totalCount.toLocaleString()}</strong> Records
-              </div>
-              <PaginationControls
-                pageIndexClamped={pageIndexClamped}
-                pageCount={pageCount}
-                setPageIndex={setPageIndex}
-                pag={pag}
-                setPageSize={setPageSize}
-                canPrev={canPrev}
-                canNext={canNext}
-              />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
-function PaginationControls({
-  pageIndexClamped,
+const FooterBar = React.memo(function FooterBar({
+  enablePagination,
+  selectionEnabled,
+  multiSelect,
+
+  pageEligibleCount,
+  pageAllSelected,
+  pageSomeSelected,
+  selSize,
+  togglePageAll,
+
+  summaryFrom,
+  summaryTo,
+  totalCount,
+
+  pageIndex,
   pageCount,
-  setPageIndex,
-  pag,
-  setPageSize,
+  pageSize,
   canPrev,
   canNext,
+  onChangePageIndex,
+  onChangePageSize,
 }: {
-  pageIndexClamped: number;
+  enablePagination: boolean;
+  selectionEnabled: boolean;
+  multiSelect: boolean;
+
+  pageEligibleCount: number;
+  pageAllSelected: boolean;
+  pageSomeSelected: boolean;
+  selSize: number;
+  togglePageAll: () => void;
+
+  summaryFrom: number;
+  summaryTo: number;
+  totalCount: number;
+
+  pageIndex: number;
   pageCount: number;
-  setPageIndex: (idx: number) => void;
-  pag: { pageIndex: number; pageSize: number };
-  setPageSize: (n: number) => void;
+  pageSize: number;
   canPrev: boolean;
   canNext: boolean;
+  onChangePageIndex: (idx: number) => void;
+  onChangePageSize: (n: number) => void;
 }) {
-  const [input, setInput] = useState<string>(String(pageIndexClamped + 1));
-  useEffect(() => { setInput(String(pageIndexClamped + 1)); }, [pageIndexClamped]);
+  if (!enablePagination) return null;
 
-  const commit = (raw: string) => {
+  return (
+    <div style={{ border: "1px solid #ddd", borderTop: "none", background: "#fafafa", fontSize: 13 }}>
+      {selectionEnabled && multiSelect && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 10px", borderBottom: "1px solid #e9e9e9" }}>
+          <div>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                disabled={pageEligibleCount === 0}
+                checked={pageEligibleCount > 0 && pageAllSelected}
+                ref={(el) => {
+                  if (el) el.indeterminate = pageEligibleCount > 0 && pageSomeSelected;
+                }}
+                onChange={togglePageAll}
+                aria-label="Select current page"
+                title={pageEligibleCount === 0 ? "No selectable rows on this page" : "Select all rows on this page"}
+              />
+              Select all rows on this page
+            </label>
+          </div>
+          <div><strong>{selSize.toLocaleString()}</strong> Total Selected Rows</div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "8px 10px" }}>
+        <div style={{ whiteSpace: "nowrap" }}>
+          Displaying <strong>{summaryFrom.toLocaleString()}</strong> to <strong>{summaryTo.toLocaleString()}</strong> of <strong>{totalCount.toLocaleString()}</strong> Records
+        </div>
+
+        <PaginationControls
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          canPrev={canPrev}
+          canNext={canNext}
+          onChangePageIndex={onChangePageIndex}
+          onChangePageSize={onChangePageSize}
+        />
+      </div>
+    </div>
+  );
+}, (a, b) => {
+  // ignore function identity; compare only primitives so scroll-induced parent renders won't repaint this
+  return (
+    a.enablePagination === b.enablePagination &&
+    a.selectionEnabled === b.selectionEnabled &&
+    a.multiSelect === b.multiSelect &&
+    a.pageEligibleCount === b.pageEligibleCount &&
+    a.pageAllSelected === b.pageAllSelected &&
+    a.pageSomeSelected === b.pageSomeSelected &&
+    a.selSize === b.selSize &&
+    a.summaryFrom === b.summaryFrom &&
+    a.summaryTo === b.summaryTo &&
+    a.totalCount === b.totalCount &&
+    a.pageIndex === b.pageIndex &&
+    a.pageCount === b.pageCount &&
+    a.pageSize === b.pageSize &&
+    a.canPrev === b.canPrev &&
+    a.canNext === b.canNext
+  );
+});
+
+const PaginationControls = React.memo(function PaginationControls({
+  pageIndex,
+  pageCount,
+  pageSize,
+  canPrev,
+  canNext,
+  onChangePageIndex,
+  onChangePageSize,
+}: {
+  pageIndex: number;
+  pageCount: number;
+  pageSize: number;
+  canPrev: boolean;
+  canNext: boolean;
+  onChangePageIndex: (idx: number) => void;
+  onChangePageSize: (n: number) => void;
+}) {
+  const [input, setInput] = React.useState<string>(String(pageIndex + 1));
+  React.useEffect(() => { setInput(String(pageIndex + 1)); }, [pageIndex]);
+
+  const commit = React.useCallback((raw: string) => {
     const n = Math.max(1, Math.min((Number(raw) | 0) || 1, Math.max(1, pageCount)));
     setInput(String(n));
-    setPageIndex(n - 1);
-  };
+    onChangePageIndex(n - 1);
+  }, [pageCount, onChangePageIndex]);
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      <button onClick={() => setPageIndex(0)} disabled={!canPrev}>« First</button>
-      <button onClick={() => setPageIndex(pageIndexClamped - 1)} disabled={!canPrev}>‹ Prev</button>
+      <button onClick={() => onChangePageIndex(0)} disabled={!canPrev}>« First</button>
+      <button onClick={() => onChangePageIndex(pageIndex - 1)} disabled={!canPrev}>‹ Prev</button>
 
       <span style={{ opacity: 0.8 }}>
-        Page {pageIndexClamped + 1} / {pageCount}
+        Page {pageIndex + 1} / {pageCount}
       </span>
 
       <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1829,12 +1939,15 @@ function PaginationControls({
         />
       </label>
 
-      <button onClick={() => setPageIndex(pageIndexClamped + 1)} disabled={!canNext}>Next ›</button>
-      <button onClick={() => setPageIndex(pageCount - 1)} disabled={!canNext}>Last »</button>
+      <button onClick={() => onChangePageIndex(pageIndex + 1)} disabled={!canNext}>Next ›</button>
+      <button onClick={() => onChangePageIndex(pageCount - 1)} disabled={!canNext}>Last »</button>
 
       <label style={{ marginLeft: 6 }}>
         Page size:&nbsp;
-        <select value={pag.pageSize} onChange={(e) => setPageSize(parseInt(e.target.value, 10))}>
+        <select
+          value={pageSize}
+          onChange={(e) => onChangePageSize(parseInt(e.target.value, 10))}
+        >
           {[25, 50, 100, 250, 500, 1000].map((n) => (
             <option key={n} value={n}>{n}</option>
           ))}
@@ -1842,4 +1955,13 @@ function PaginationControls({
       </label>
     </div>
   );
-}
+}, (a, b) => {
+  // only rerender when pagination numbers change
+  return (
+    a.pageIndex === b.pageIndex &&
+    a.pageCount === b.pageCount &&
+    a.pageSize === b.pageSize &&
+    a.canPrev === b.canPrev &&
+    a.canNext === b.canNext
+  );
+});
