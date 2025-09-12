@@ -514,6 +514,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   undoLimit = 5,
   redoLimit = 5,
 }: DataTableProps<T>) {
+  const blurTimerRef = useRef<number | null>(null);
   // rows
   const [isActive, setIsActive] = useState(false);
   const isControlled = typeof onChange === "function";
@@ -600,6 +601,35 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   }, [columnSettings]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(initialSizing);
 
+  // --- Per-cell versioning: bump only the (row,col) that changed ---
+  const cellVersionRef = useRef<Map<string, number>>(new Map());
+
+  const getCellVersion = useCallback((bi: number, colId: string): number => {
+    const k = `${bi}:${colId}`;
+    return cellVersionRef.current.get(k) ?? 0;
+  }, []);
+
+  const bumpCellVersion = useCallback((bi: number, colId: string) => {
+    const k = `${bi}:${colId}`;
+    cellVersionRef.current.set(k, (cellVersionRef.current.get(k) ?? 0) + 1);
+  }, []);
+
+  const bumpCellVersionsDiff = useCallback((oldArr: T[], newArr: T[]) => {
+    // Only look at configured columns
+    const ids = columnSettings.map(c => c.id);
+    const n = Math.min(oldArr.length, newArr.length);
+    for (let i = 0; i < n; i++) {
+      const a = oldArr[i], b = newArr[i];
+      if (a === b) continue;           // identical object → skip
+      for (let k = 0; k < ids.length; k++) {
+        const id = ids[k];
+        if ((a as any)?.[id] !== (b as any)?.[id]) {
+          bumpCellVersion(i, id);      // (row i, col id) changed
+        }
+      }
+    }
+  }, [columnSettings, bumpCellVersion]);
+
   // worker
   const workerRef = useRef<ReturnType<typeof createDataWorker> | null>(null);
   if (!workerRef.current) workerRef.current = createDataWorker();
@@ -641,6 +671,11 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     setUndoStack((prev) => {
       const next = prev.slice();
       const prevState = next.pop()!;
+
+      // bump versions for cells that change due to undo
+      const oldRowsArr = (isControlled ? dataSource : internalRows);
+      bumpCellVersionsDiff(oldRowsArr, prevState);
+
       // push current to redo
       setRedoStack((rprev) => {
         const snap = (isControlled ? dataSource : internalRows).map((r) => ({ ...r }));
@@ -648,6 +683,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         if (rnext.length > redoLimit) rnext.pop();
         return rnext;
       });
+
       if (isControlled && onChange) onChange(prevState);
       else setInternalRows(prevState);
       // reingest worker for correctness
@@ -667,6 +703,11 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     setRedoStack((prev) => {
       const next = prev.slice();
       const redoState = next.shift()!;
+
+      // bump versions for cells that change due to redo
+      const oldRowsArr = (isControlled ? dataSource : internalRows);
+      bumpCellVersionsDiff(oldRowsArr, redoState);
+
       // push current to undo
       setUndoStack((uprev) => {
         const snap = (isControlled ? dataSource : internalRows).map((r) => ({ ...r }));
@@ -1303,7 +1344,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
   }, [disabledSet, scheduleOverlayRepaint]);
 
   const BodyCellRenderer = useCallback(({ rowIndex, columnIndex, style }: GridChildComponentProps) => {
-    const col = leafCols[columnIndex];
+    const col: any = leafCols[columnIndex];
     if (!col) return <BodyCell value={null} style={style} zebra={rowIndex % 2 === 0} bg={undefined} v={0} />;
     const rowObj = rowAt(rowIndex);
     const value = rowObj ? (col.columnDef.accessorFn as any)(rowObj, rowIndex) : null;
@@ -1346,6 +1387,11 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
     m.forEach((patch, idx) => {
       const old = next[idx] ?? ({} as T);
       next[idx] = { ...old, ...patch };
+
+      // NEW: bump per-cell versions for edited keys on this row
+      for (const key of Object.keys(patch as any)) {
+        bumpCellVersion(idx, key);
+      }
     });
     m.clear();
 
@@ -1362,7 +1408,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         }
       } catch {}
     })();
-  }, [rows, isControlled, onChange, pushUndo]);
+  }, [rows, isControlled, onChange, pushUndo, bumpCellVersion]);
 
   const handleRandomizeFirstCell = useCallback(() => {
     if (rows.length === 0 || leafCols.length === 0) return;
@@ -1370,7 +1416,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
 
     const newVal = `Random ${Math.random().toString(36).slice(2, 7)}`;
     const overlay = editOverlayRef.current;
-    overlay.set(0, { ...(overlay.get(0) || {}), [firstColId]: newVal });
+    overlay.set(0, { ...(overlay.get(0) || {}), [firstColId]: newVal } as any);
 
     const myTok = ++pendingEditTokenRef.current;
     (async () => {
@@ -1553,27 +1599,72 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
 
   useEffect(() => { cellSelRecomputeRef.current = cellSel.recomputeOverlay; }, [cellSel.recomputeOverlay]);
 
-  const canPrev = enablePagination && pageIndexClamped > 0;
-  const canNext = enablePagination && pageIndexClamped < pageCount - 1;
-  const summaryFrom = totalCount === 0 ? 0 : pageStart + 1;
-  const summaryTo = totalCount === 0 ? 0 : pageEnd;
-
   useEffect(() => { scheduleOverlayRepaint(); }, [visibleRowCount, leafCols.length, scheduleOverlayRepaint]);
+
+  const onKeyDownTable = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Don’t hijack shortcuts while typing in inputs / textareas / contenteditable
+    const tgt = e.target as HTMLElement | null;
+    const tag = tgt?.tagName?.toLowerCase();
+    const editing =
+      tag === "input" ||
+      tag === "textarea" ||
+      (tgt as any)?.isContentEditable === true;
+
+    if (!isActive || editing) {
+      // Let the selection hook handle it (or native input behavior)
+      cellSel.onKeyDownBody(e);
+      return;
+    }
+
+    // Excel-like Undo/Redo
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && !e.altKey) {
+      const k = e.key.toLowerCase();
+      if (k === "z") {
+        e.preventDefault();
+        // Shift+Z = redo (Mac), plain Z = undo
+        if (e.shiftKey) doRedo();
+        else doUndo();
+        return;
+      }
+      if (k === "y") {
+        e.preventDefault();
+        doRedo();
+        return;
+      }
+    }
+
+    // pass-through to the selection handler for everything else
+    cellSel.onKeyDownBody(e);
+  }, [isActive, doUndo, doRedo, cellSel]);
 
   return (
     <div
       ref={ref}
       className={className}
       style={{ width: "100%", maxHeight, position: "relative" }}
-      // Defer isActive so the first click on inputs/checkboxes isn't eaten by a re-render
+      // Keep table "active" when focusing anywhere inside (including child inputs).
       onFocusCapture={() => {
-        // If we're already active, no-op; otherwise defer to next tick
-        setTimeout(() => { setIsActive(true); }, 0);
+        if (blurTimerRef.current != null) {
+          clearTimeout(blurTimerRef.current);
+          blurTimerRef.current = null;
+        }
+        // immediate is fine; focus landed inside our root
+        setIsActive(true);
       }}
-      onBlurCapture={(e) => {
-        const next = e.relatedTarget as Node | null;
-        const root = ref.current;
-        if (!root || !next || !root.contains(next)) setIsActive(false);
+      // Only deactivate if focus truly left the table after the event settles.
+      onBlurCapture={() => {
+        if (blurTimerRef.current != null) {
+          clearTimeout(blurTimerRef.current);
+        }
+        blurTimerRef.current = window.setTimeout(() => {
+          blurTimerRef.current = null;
+          const rootEl = ref.current;
+          const next = document.activeElement as Node | null;
+          if (!rootEl || !next || !rootEl.contains(next)) {
+            setIsActive(false);
+          }
+        }, 0);
       }}
     >
       {/* Toolbar */}
@@ -1663,7 +1754,7 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
         }}
         onMouseDown={cellSel.onMouseDownBody}
         onPaste={cellSel.onPasteBody}
-        onKeyDown={cellSel.onKeyDownBody}
+        onKeyDown={onKeyDownTable}
         tabIndex={0}
       >
         {selectionEnabled && (
@@ -1702,10 +1793,17 @@ export function DataTableTanstackVirtual<T extends Record<string, any>>({
           itemKey={({ rowIndex, columnIndex }) => {
             const baseVisualIndex = (enablePagination ? pageStart : 0) + rowIndex;
             const ord = viewOrder;
-            const bi = ord && baseVisualIndex >= 0 && baseVisualIndex < ord.length ? ord[baseVisualIndex] : baseVisualIndex;
-            const v = getVisual(bi).v;
+            const bi = ord && baseVisualIndex >= 0 && baseVisualIndex < ord.length
+              ? ord[baseVisualIndex]
+              : baseVisualIndex;
+
+            const v = getVisual(bi).v; // row visual version (selection/disabled)
             const colId = leafCols[columnIndex]?.id ?? columnIndex;
-            return `${bi ?? -1}-${colId}-v${v}`;
+
+            // per-cell version — only the changed cell gets a new key
+            const cv = typeof colId === "string" ? getCellVersion(bi, String(colId)) : 0;
+
+            return `${bi ?? -1}-${colId}-v${v}-c${cv}`;
           }}
         >
           {BodyCellRenderer}

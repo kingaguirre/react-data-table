@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { DataTableTanstackVirtual, ColumnSetting } from "./index";
 
 type Row = Record<string, string | number>;
-const ROWS = 10_000;
-const COLS = 100;
+const ROWS = 10;
+const COLS = 5;
 
 function makeColumns(): ColumnSetting<Row>[] {
   return new Array(COLS).fill(null).map((_, c) => ({
