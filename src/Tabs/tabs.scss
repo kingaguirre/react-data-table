@@ -1,0 +1,195 @@
+// tabs.scss
+@import "src/constant/tags.scss";
+@import "src/globals/mixins.scss";
+
+$transition: all 0.3s ease;
+:host {
+  display: block;
+  outline: none;
+  * {
+    box-sizing: border-box;
+  }
+  .tab-header-wrap {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    position: relative;
+    &:after {
+      content: "";
+      height: 0;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 0;
+      border-top: 2px solid var(--color-primary-light);
+    }
+
+    .tab-controls {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-start;
+      .tab-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        text-align: center;
+        outline: none;
+        white-space: nowrap;
+        position: relative;
+        cursor: pointer;
+        color: var(--color-primary-darker);
+        &:hover {
+          color: var(--color-primary);
+        }
+        &.disabled,
+        &.disabled:hover {
+          cursor: not-allowed;
+          color: var(--color-neutral-light);
+        }
+        #{$ICON} {
+          z-index: 0;
+        }
+      }
+    }
+  }
+  .tab-header-container {
+    display: block;
+    overflow-y: hidden;
+    overflow-x: auto;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-headers {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      .tab-header {
+        background-color: var(--color-light);
+        border: 2px solid transparent;
+        border-bottom-color: var(--color-primary-light);
+        display: inline-flex;
+        -webkit-box-pack: start;
+        justify-content: flex-start;
+        align-items: stretch;
+        position: relative;
+        outline: none;
+        white-space: nowrap;
+        line-height: 26px;
+        transition: all .3s ease;
+        min-width: 140px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+
+        &:hover:not(.disabled) {
+          > span {
+            color: var(--color-primary-dark);
+          }
+        }
+        &:first-child {
+          margin-left: 0;
+        }
+        &:last-child {
+          margin-right: 0;
+        }
+        &:not(.active) {
+          cursor: pointer;
+        }
+        &.disabled {
+          cursor: not-allowed;
+          > span {
+            color: var(--color-neutral);
+          }
+        }
+        &:not(:last-child) > span {
+          &:after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 1px;
+            height: 100%;
+            background-color: var(--color-neutral-light);
+          }
+        }
+
+        &.active {
+          border-color: var(--color-primary-light);
+          border-bottom-color: transparent;
+          background-color: #E8F9FF;
+          z-index: 2;
+          > span {
+            color: var(--color-primary-dark);
+          }
+        }
+        &:focus:not(.disabled) {
+          border-color: var(--color-primary-dark);
+        }
+      }
+      span {
+        position: relative;
+        width: 100%;
+        padding: 8px 12px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        pointer-events: none;
+        transition: $transition;
+        font-family: var(--font-family);
+        font-weight: var(--font-bold);
+        color: var(--color-primary-darker);
+        z-index: 0;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px;
+        color: var(--color-primary);
+        > i {
+          margin: -50% 0;
+        }
+        #{$BADGE} {
+          font-style: normal;
+          font-size: 16px;
+          font-weight: 300;
+          font-stretch: normal;
+          line-height: 1.38;
+          letter-spacing: 0.25px;
+          color: var(--color-neutral-darker);
+        }
+      }
+    }
+  }
+
+  .tab-content-wrap {
+    display: block;
+    overflow-y: auto;
+    @include custom-scroll();
+  }
+}
+
+/**
+ * This style applies when the "separator" property is false
+ **/
+:host(.no-separator) {
+  .tab-header-container {
+    .tab-header {
+      span {
+        &:after {
+          display: none;
+        }
+      }
+    }
+    &.is-full-header {
+      width: 100%;
+      .tab-headers {
+        display: flex;
+        .tab-header {
+          flex: 1;
+        }
+      }
+    }
+  }
+}

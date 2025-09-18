@@ -1,0 +1,18 @@
+// tab-item.scss
+@import "src/constant/tags.scss";
+:host {
+  display: none;
+  > div {
+    padding: 8px 10px;
+    p:last-child {
+      margin-bottom: 0;
+    }
+    ::slotted(#{$GRID}) {
+      padding: 0!important;
+    }
+  }
+}
+
+:host(.active) {
+  display: block;
+}
