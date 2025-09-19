@@ -8,9 +8,9 @@ import { randomString } from '../../../utils';
   shadow: true
 })
 export class TabItem {
-  TAB_TITLE: string = `${TAB_ITEM}-content`;
+  TAB_TITLE: string = TAB_ITEM + '-content';
   TAB_TITLE_PLACEHOLDER: string = 'Tab Header Title';
-  TAB_CONTENT: string = `${TAB_ITEM}-content`;
+  TAB_CONTENT: string = TAB_ITEM + '-content';
   ACTIVE: string = 'active';
   TAB_ID: string = 'tab-id';
 
@@ -49,8 +49,12 @@ export class TabItem {
         disabled={this.disabled}
         header-title={this.headerTitle}
         badge-radius={this.badgeRadius}
-        active={this.active ? this.ACTIVE : ''} // keep existing behavior
-        class={`${TAB_ITEM} ${this.active ? this.ACTIVE : ''} ${this.disabled ? 'disabled' : ''}`}
+        active={this.active ? this.ACTIVE : ''}
+        class={
+          TAB_ITEM +
+          (this.active ? ' ' + this.ACTIVE : '') +
+          (this.disabled ? ' disabled' : '')
+        }
       >
         <div class={this.TAB_CONTENT}>
           <slot />

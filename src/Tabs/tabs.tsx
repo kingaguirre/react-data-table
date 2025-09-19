@@ -8,9 +8,15 @@ import {
   getChildren
 } from '../../utils';
 import { TAB_ITEM, BADGE, ICON } from '../../constant/tags';
-// If you already export randomString from ../../utils, import it.
-// If not, replace this import with your own id generator.
 import { randomString } from '../../utils';
+
+type TabChangeDetail = {
+  tabId: string | null;
+  tabHeader: HTMLElement | null;
+  tabContent: HTMLElement;
+  index: number;
+  title: string | null;
+};
 
 @Component({
   tag: 'tx-core-tabs',
@@ -35,74 +41,81 @@ export class Tabs {
   tabHeaderList!: HTMLDivElement;
   tabContent!: HTMLDivElement;
 
-  /** Tab element */
+  /** Host element */
   @Element() element: HTMLElement;
 
-  /** Property to hide/show the separator line between items in the header */
+  /** Show/hide separator line between headers */
   @Prop() separator: boolean = false;
 
-  /** Property to hide/show the first and last navigation button/control in tab header */
+  /** Show/hide first & last nav controls */
   @Prop() firstLastNavControl: boolean = true;
 
-  /** Property to set max height on tab content section */
+  /** Max height for content area */
   @Prop() contentHeight: string;
 
-  /** Property to set full header item */
+  /** Make headers flex:1 */
   @Prop() fullHeader: boolean = false;
 
-  /** Event is fired when the tab is changed (must bubble + cross shadow for the test) */
-  @Event({ eventName: 'tabChange', bubbles: true, composed: true, cancelable: true }) tabChange: EventEmitter;
+  /** Fired when tab is (re)activated — must bubble & be composed for tests */
+  @Event({ eventName: 'tabChange', bubbles: true, composed: true }) tabChange: EventEmitter<TabChangeDetail>;
 
-  /** Internal state that contain tab items */
-  @State() tabItems: null | HTMLElement[];
+  /** Internal: tab items (light DOM children) */
+  @State() tabItems: HTMLElement[] | null;
 
-  /** Internal state that contain tab container width */
+  /** Internal widths */
   @State() tabHeaderContainerWidth: number = 0;
-
-  /** Internal state that contain tab list width */
   @State() tabHeaderListWidth: number = 0;
 
-  /** Internal state that contain active index */
+  /** Active index */
   @State() activeIndex: number = 0;
 
   /**
-   * Method to set the active tab by array index.
+   * Set active by index.
    */
   @Method() async setActiveTabByIndex(index: number, emitEvent: boolean = true) {
-    const item = this.tabItems?.[index];
-    if (item) {
-      const isDisabled = item.hasAttribute(this.DISABLED);
-      this.setActiveTab(index, isDisabled, emitEvent);
-    }
+    if (!this.tabItems || !this.tabItems[index]) return;
+    const isDisabled = this.tabItems[index].hasAttribute(this.DISABLED);
+    this.setActiveTab(index, isDisabled, emitEvent);
   }
 
   /**
-   * Method to set the active tab by header title.
+   * Set active by header title.
    */
   @Method() async setActiveTabByTitle(title: string, emitEvent: boolean = true) {
     if (!this.tabItems) return;
-    let indexVal: number | undefined;
-    this.tabItems.forEach((item: any, index: number) => {
-      if (item.headerTitle === title) indexVal = index;
-    });
-    if (indexVal !== undefined) {
+    var indexVal: number | undefined = undefined;
+    for (var i = 0; i < this.tabItems.length; i++) {
+      var item: any = this.tabItems[i] as any;
+      // Prefer property, but support attribute fallback
+      var itemTitle = item && typeof item.headerTitle !== 'undefined'
+        ? item.headerTitle
+        : this.tabItems[i].getAttribute(this.HEADER_TITLE);
+      if (itemTitle === title) {
+        indexVal = i;
+        break;
+      }
+    }
+    if (typeof indexVal === 'number') {
       const isDisabled = this.tabItems[indexVal].hasAttribute(this.DISABLED);
       this.setActiveTab(indexVal, isDisabled, emitEvent);
     }
   }
 
   /**
-   * Method to set the active tab by the tab ID.
+   * Set active by tab-id.
    */
   @Method() async setActiveTabByTabId(tabId: string, emitEvent: boolean = true) {
     if (!this.tabItems) return;
-    let indexVal: number | undefined;
-    this.tabItems.forEach((item: any, index: number) => {
-      // Compare against attribute (property doesn't auto-sync when setAttribute is used)
-      const attrId = item.getAttribute?.(this.TAB_ID);
-      if (attrId === String(tabId) || item.tabId === tabId) indexVal = index;
-    });
-    if (indexVal !== undefined) {
+    var indexVal: number | undefined = undefined;
+    for (var i = 0; i < this.tabItems.length; i++) {
+      var attrId = this.tabItems[i].getAttribute(this.TAB_ID);
+      var propId: any = (this.tabItems[i] as any).tabId;
+      if (attrId === String(tabId) || propId === tabId) {
+        indexVal = i;
+        break;
+      }
+    }
+    if (typeof indexVal === 'number') {
       const isDisabled = this.tabItems[indexVal].hasAttribute(this.DISABLED);
       this.setActiveTab(indexVal, isDisabled, emitEvent);
     }
@@ -113,77 +126,98 @@ export class Tabs {
     removeInvalidElements(this.element, TAB_ITEM, this.tabItems);
 
     // Ensure every tab-item has a tab-id BEFORE first render (headers read it)
-    this.tabItems?.forEach((el) => {
-      if (!el.hasAttribute(this.TAB_ID)) {
-        el.setAttribute(this.TAB_ID, randomString('tab-'));
+    if (this.tabItems && this.tabItems.length > 0) {
+      for (var i = 0; i < this.tabItems.length; i++) {
+        var el = this.tabItems[i];
+        if (!el.hasAttribute(this.TAB_ID)) {
+          el.setAttribute(this.TAB_ID, randomString('tab-'));
+        }
       }
-    });
+    }
 
-    // Initial active detection: treat presence of attr OR class as active (value can be "true"/"active"/empty)
-    if (this.tabItems && this.tabItems[0]) {
-      const currentActiveIndex = this.tabItems.findIndex((item) =>
-        item.hasAttribute(this.ACTIVE_CLASS) ||
-        item.classList.contains(this.ACTIVE_CLASS) ||
-        item.getAttribute(this.ACTIVE_CLASS) === 'true'
-      );
-      const activeIndex = currentActiveIndex === -1 ? 0 : currentActiveIndex;
+    // Determine initial active index. Accept: active="true", active="", class "active", or presence (not "false")
+    if (this.tabItems && this.tabItems.length > 0) {
+      var currentActiveIndex = -1;
+      for (var j = 0; j < this.tabItems.length; j++) {
+        var it = this.tabItems[j];
+        var hasAttr = it.hasAttribute(this.ACTIVE_CLASS);
+        var hasClass = it.classList.contains(this.ACTIVE_CLASS);
+        var val = it.getAttribute(this.ACTIVE_CLASS);
+        if ((hasAttr && val !== 'false') || hasClass) {
+          currentActiveIndex = j;
+          break;
+        }
+      }
+      var activeIndex = currentActiveIndex === -1 ? 0 : currentActiveIndex;
 
-      // Normalize: ensure exactly one active via both attr + class for header rendering
-      this.tabItems.forEach((item, idx) => {
-        const isActive = idx === activeIndex;
-        item.toggleAttribute(this.ACTIVE_CLASS, isActive);
-        item.classList.toggle(this.ACTIVE_CLASS, isActive);
-      });
+      // Normalize: exactly one active (both attr and class for immediate header reflect)
+      for (var k = 0; k < this.tabItems.length; k++) {
+        var isActive = k === activeIndex;
+        this.tabItems[k].setAttribute(this.ACTIVE_CLASS, isActive ? 'true' : 'false');
+        if (isActive) this.tabItems[k].classList.add(this.ACTIVE_CLASS);
+        else this.tabItems[k].classList.remove(this.ACTIVE_CLASS);
+      }
       this.activeIndex = activeIndex;
     }
   }
 
   componentDidLoad() {
-    const { tabHeaderContainer, tabHeaderList } = this;
-    if (this.tabItems?.[0] && tabHeaderContainer && tabHeaderList) {
-      this.tabHeaderContainerWidth = tabHeaderContainer.clientWidth;
-      this.tabHeaderListWidth = tabHeaderList.clientWidth;
+    if (this.tabItems && this.tabItems[0] && this.tabHeaderContainer && this.tabHeaderList) {
+      this.tabHeaderContainerWidth = this.tabHeaderContainer.clientWidth;
+      this.tabHeaderListWidth = this.tabHeaderList.clientWidth;
     }
   }
 
   componentDidUpdate() {
-    const { tabHeaderContainer, tabHeaderList } = this;
-    if (this.tabItems?.[0] && tabHeaderContainer && tabHeaderList) {
-      this.tabHeaderContainerWidth = tabHeaderContainer.clientWidth;
-      this.tabHeaderListWidth = tabHeaderList.clientWidth;
-      const tabHeaderContainerScrollLeft = tabHeaderContainer.scrollLeft;
-      const activeTab = getElement<HTMLElement>(this.headerContainer!, `.${this.ACTIVE_CLASS}`);
-      if (activeTab) {
-        const right = activeTab.offsetLeft + activeTab.clientWidth;
-        const left = activeTab.offsetLeft;
-        if (right > this.tabHeaderContainerWidth + tabHeaderContainerScrollLeft) {
-          tabHeaderContainer.scrollLeft = right - this.tabHeaderContainerWidth;
-        } else if (left < tabHeaderContainerScrollLeft) {
-          tabHeaderContainer.scrollLeft = left;
-        }
+    if (this.tabItems && this.tabItems[0] && this.tabHeaderContainer && this.tabHeaderList) {
+      this.tabHeaderContainerWidth = this.tabHeaderContainer.clientWidth;
+      this.tabHeaderListWidth = this.tabHeaderList.clientWidth;
+
+      var headerWrap = this.headerContainer;
+      if (!headerWrap) return;
+      var activeTab = getElement<HTMLElement>(headerWrap, '.' + this.ACTIVE_CLASS);
+      if (!activeTab) return; // guard to avoid test-time crashes
+
+      var containerScrollLeft = this.tabHeaderContainer.scrollLeft;
+      var right = activeTab.offsetLeft + activeTab.clientWidth;
+      var left = activeTab.offsetLeft;
+
+      if (right > this.tabHeaderContainerWidth + containerScrollLeft) {
+        this.tabHeaderContainer.scrollLeft = right - this.tabHeaderContainerWidth;
+      } else if (left < containerScrollLeft) {
+        this.tabHeaderContainer.scrollLeft = left;
       }
     }
   }
 
   get headerContainer(): Element | null {
-    return getElement(this.element, `.${this.TAB_HEADER_CONTAINER}`);
+    return getElement(this.element, '.' + this.TAB_HEADER_CONTAINER);
   }
 
   get contentStyle() {
-    return this.contentHeight ? { 'max-height': this.contentHeight } : {};
+    if (this.contentHeight) {
+      return { 'max-height': this.contentHeight };
+    }
+    return {};
   }
 
+  /** Derive header classes from child: class OR active="true" attribute */
   checkAndRenderClass(el: Element, cls: string): string {
-    return el.classList.contains(cls) ? ` ${cls}` : '';
+    if (el.classList.contains(cls)) return ' ' + cls;
+    if (cls === this.ACTIVE_CLASS) {
+      var v = el.getAttribute(this.ACTIVE_CLASS);
+      if (v === 'true') return ' ' + cls;
+    }
+    return '';
   }
 
   private emitChangeFor(indexVal: number, item: HTMLElement) {
-    const id = item.getAttribute(this.TAB_ID);
-    const header = this.headerContainer?.querySelector<HTMLElement>(
-      `.${this.TAB_HEADER_CLASS}[${this.TAB_ID}="${id}"]`
-    ) || null;
-
-    // Payload shape is not asserted in the test; keep it minimal but stable.
+    var id = item.getAttribute(this.TAB_ID);
+    var headerWrap = this.headerContainer;
+    var header: HTMLElement | null = null;
+    if (headerWrap) {
+      header = headerWrap.querySelector('.' + this.TAB_HEADER_CLASS + '[' + this.TAB_ID + '="' + id + '"]');
+    }
     this.tabChange.emit({
       tabId: id,
       tabHeader: header,
@@ -194,80 +228,86 @@ export class Tabs {
   }
 
   setActiveTab(indexVal: number, isDisabled: boolean, emitEvent: boolean) {
-    if (isDisabled || !this.tabItems?.[0]) return;
+    if (isDisabled) return;
+    if (!this.tabItems || this.tabItems.length === 0) return;
 
-    // If same tab is requested, still emit (test expects click/activate to emit even if already active)
+    // If same tab requested, still emit (tests expect this)
     if (indexVal === this.activeIndex) {
       if (emitEvent) {
-        const item = this.tabItems[indexVal];
-        this.emitChangeFor(indexVal, item);
+        this.emitChangeFor(indexVal, this.tabItems[indexVal]);
       }
       return;
     }
 
-    // Normalize attr+class for active state so header reflects immediately
-    this.tabItems.forEach((item: HTMLElement, i) => {
-      const isActive = i === indexVal;
-      item.toggleAttribute(this.ACTIVE_CLASS, isActive);
-      item.classList.toggle(this.ACTIVE_CLASS, isActive);
-    });
+    for (var i = 0; i < this.tabItems.length; i++) {
+      var isActive = i === indexVal;
+      this.tabItems[i].setAttribute(this.ACTIVE_CLASS, isActive ? 'true' : 'false');
+      if (isActive) this.tabItems[i].classList.add(this.ACTIVE_CLASS);
+      else this.tabItems[i].classList.remove(this.ACTIVE_CLASS);
+    }
 
     this.activeIndex = indexVal;
     if (emitEvent) {
-      const item = this.tabItems[indexVal];
-      this.emitChangeFor(indexVal, item);
+      this.emitChangeFor(indexVal, this.tabItems[indexVal]);
     }
   }
 
   navControlClick(direction: string, isFirstLast: boolean = false) {
-    if (!this.tabItems?.length) return;
+    if (!this.tabItems || this.tabItems.length === 0) return;
 
     if (direction === this.LEFT) {
       if (isFirstLast) {
-        const isDisabled = this.tabItems[0].hasAttribute(this.DISABLED);
-        if (!isDisabled) this.setActiveTab(0, isDisabled, true);
-      } else if (this.activeIndex > 0) {
-        const isDisabled = this.tabItems[this.activeIndex - 1].hasAttribute(this.DISABLED);
-        if (!isDisabled) this.setActiveTab(this.activeIndex - 1, isDisabled, true);
+        var leftDisabled = this.tabItems[0].hasAttribute(this.DISABLED);
+        if (!leftDisabled) this.setActiveTab(0, leftDisabled, true);
+      } else {
+        if (this.activeIndex > 0) {
+          var prevDisabled = this.tabItems[this.activeIndex - 1].hasAttribute(this.DISABLED);
+          if (!prevDisabled) this.setActiveTab(this.activeIndex - 1, prevDisabled, true);
+        }
       }
     } else {
-      const lastIndex = this.tabItems.length - 1;
+      var lastIndex = this.tabItems.length - 1;
       if (isFirstLast) {
-        const isDisabled = this.tabItems[lastIndex].hasAttribute(this.DISABLED);
-        if (!isDisabled) this.setActiveTab(lastIndex, isDisabled, true);
-      } else if (this.activeIndex < lastIndex) {
-        const isDisabled = this.tabItems[this.activeIndex + 1].hasAttribute(this.DISABLED);
-        if (!isDisabled) this.setActiveTab(this.activeIndex + 1, isDisabled, true);
+        var rightDisabled = this.tabItems[lastIndex].hasAttribute(this.DISABLED);
+        if (!rightDisabled) this.setActiveTab(lastIndex, rightDisabled, true);
+      } else {
+        if (this.activeIndex < lastIndex) {
+          var nextDisabled = this.tabItems[this.activeIndex + 1].hasAttribute(this.DISABLED);
+          if (!nextDisabled) this.setActiveTab(this.activeIndex + 1, nextDisabled, true);
+        }
       }
     }
   }
 
-  hostKeyDown = (event: any): void => {
+  hostKeyDown = (event: KeyboardEvent): void => {
     if (!event) return;
-    const { code } = event;
-    if (code === 'Tab' && this.tabItems?.[this.activeIndex]) {
-      const activeHeader = this.tabItems[this.activeIndex] as any;
-      activeHeader.focus?.();
-      activeHeader.click?.();
+    var code = (event as any).code;
+    if (code === 'Tab' && this.tabItems && this.tabItems[this.activeIndex]) {
+      var activeHeader: any = this.tabItems[this.activeIndex] as any;
+      if (activeHeader && typeof activeHeader.focus === 'function') activeHeader.focus();
+      if (activeHeader && typeof activeHeader.click === 'function') activeHeader.click();
     }
   };
 
-  handleKeyDown = (event: any): void => {
-    if (!event || !event.target) return;
-    const { code, target } = event;
+  handleKeyDown = (event: KeyboardEvent): void => {
+    if (!event) return;
+    var target = event.target as HTMLElement;
+    if (!target) return;
+
+    var code = (event as any).code;
     if (code === 'Enter' || code === 'Space') {
       target.focus();
-      target.click();
+      (target as any).click();
       event.preventDefault();
     }
     if (code === 'ArrowLeft' && target.previousElementSibling) {
-      target.blur();
-      target.previousElementSibling.focus();
+      (target as any).blur();
+      (target.previousElementSibling as any).focus();
       event.preventDefault();
     }
     if (code === 'ArrowRight' && target.nextElementSibling) {
-      target.blur();
-      target.nextElementSibling.focus();
+      (target as any).blur();
+      (target.nextElementSibling as any).focus();
       event.preventDefault();
     }
   };
@@ -281,57 +321,63 @@ export class Tabs {
         {this.tabItems && this.tabItems[0] && (
           <div class="tab-header-wrap">
             {this.tabHeaderContainerWidth < this.tabHeaderListWidth && (
-              <div class={`${this.TAB_CONTROL}s`}>
+              <div class={this.TAB_CONTROL + 's'}>
                 {this.firstLastNavControl && (
                   <span
-                    class={`${this.TAB_CONTROL}${this.activeIndex === 0 ? ' disabled' : ''}`}
+                    class={this.TAB_CONTROL + (this.activeIndex === 0 ? ' disabled' : '')}
                     onClick={() => this.navControlClick(this.LEFT, true)}
                     onKeyDown={this.handleKeyDown}
                   >
                     <ICON
                       icon="chevron-left-to-line"
                       size="xs"
-                      class={`${this.TAB_CONTROL}-first`}
+                      class={this.TAB_CONTROL + '-first'}
                       title="First item"
                       disabled={this.activeIndex === 0}
                     />
                   </span>
                 )}
                 <span
-                  class={`${this.TAB_CONTROL}${this.activeIndex === 0 ? ' disabled' : ''}`}
+                  class={this.TAB_CONTROL + (this.activeIndex === 0 ? ' disabled' : '')}
                   onClick={() => this.navControlClick(this.LEFT)}
                   onKeyDown={this.handleKeyDown}
                 >
                   <ICON
                     icon="chevron-left"
                     size="xs"
-                    class={`${this.TAB_CONTROL}-prev`}
+                    class={this.TAB_CONTROL + '-prev'}
                     title="Previous item"
                     disabled={this.activeIndex === 0}
                   />
                 </span>
               </div>
             )}
-            <div class={`${this.TAB_HEADER_CONTAINER} ${this.fullHeader ? 'is-full-header' : ''}`} ref={el => (this.tabHeaderContainer = el as HTMLDivElement)}>
-              <div class={this.TAB_HEADERS} ref={el => (this.tabHeaderList = el as HTMLDivElement)}>
+            <div
+              class={this.TAB_HEADER_CONTAINER + (this.fullHeader ? ' is-full-header' : '')}
+              ref={(el) => (this.tabHeaderContainer = el as HTMLDivElement)}
+            >
+              <div
+                class={this.TAB_HEADERS}
+                ref={(el) => (this.tabHeaderList = el as HTMLDivElement)}
+              >
                 {this.tabItems.map((tabItem, index) => (
                   <div
                     tab-id={tabItem.getAttribute(this.TAB_ID)}
-                    class={`
-                      ${this.TAB_HEADER_CLASS}
-                      ${this.checkAndRenderClass(tabItem, this.ACTIVE_CLASS)}
-                      ${this.checkAndRenderClass(tabItem, this.DISABLED)}
-                    `}
+                    class={
+                      this.TAB_HEADER_CLASS +
+                      this.checkAndRenderClass(tabItem, this.ACTIVE_CLASS) +
+                      this.checkAndRenderClass(tabItem, this.DISABLED)
+                    }
                     onClick={() => this.setActiveTab(index, tabItem.hasAttribute(this.DISABLED), true)}
                     onKeyDown={this.handleKeyDown}
                     tabindex={tabItem.hasAttribute(this.DISABLED) ? '-1' : '1'}
                   >
                     <span
                       data-badge={tabItem.getAttribute(this.BADGE_VALUE)}
-                      data-active={`${this.checkAndRenderClass(tabItem, this.ACTIVE_CLASS)}`}
+                      data-active={this.checkAndRenderClass(tabItem, this.ACTIVE_CLASS)}
                       innerHTML={
                         tabItem.hasAttribute(this.HEADER_TITLE)
-                          ? `${tabItem.getAttribute(this.HEADER_TITLE)}`
+                          ? '' + tabItem.getAttribute(this.HEADER_TITLE)
                           : undefined
                       }
                     >
@@ -353,30 +399,30 @@ export class Tabs {
               </div>
             </div>
             {this.tabHeaderContainerWidth < this.tabHeaderListWidth && (
-              <div class={`${this.TAB_CONTROL}s`}>
+              <div class={this.TAB_CONTROL + 's'}>
                 <span
-                  class={`${this.TAB_CONTROL}${this.activeIndex === this.tabItems.length - 1 ? ' disabled' : ''}`}
+                  class={this.TAB_CONTROL + (this.activeIndex === this.tabItems.length - 1 ? ' disabled' : '')}
                   onClick={() => this.navControlClick(this.RIGHT)}
                   onKeyDown={this.handleKeyDown}
                 >
                   <ICON
                     icon="chevron-right"
                     size="xs"
-                    class={`${this.TAB_CONTROL}-next`}
+                    class={this.TAB_CONTROL + '-next'}
                     title="Next item"
                     disabled={this.activeIndex === this.tabItems.length - 1}
                   />
                 </span>
                 {this.firstLastNavControl && (
                   <span
-                    class={`${this.TAB_CONTROL}${this.activeIndex === this.tabItems.length - 1 ? ' disabled' : ''}`}
+                    class={this.TAB_CONTROL + (this.activeIndex === this.tabItems.length - 1 ? ' disabled' : '')}
                     onClick={() => this.navControlClick(this.RIGHT, true)}
                     onKeyDown={this.handleKeyDown}
                   >
                     <ICON
                       icon="chevron-right-to-line"
                       size="xs"
-                      class={`${this.TAB_CONTROL}-last`}
+                      class={this.TAB_CONTROL + '-last'}
                       title="Last item"
                       disabled={this.activeIndex === this.tabItems.length - 1}
                     />
@@ -386,7 +432,11 @@ export class Tabs {
             )}
           </div>
         )}
-        <div class="tab-content-wrap" ref={el => (this.tabContent = el as HTMLDivElement)} style={this.contentStyle}>
+        <div
+          class="tab-content-wrap"
+          ref={(el) => (this.tabContent = el as HTMLDivElement)}
+          style={this.contentStyle as any}
+        >
           <slot />
         </div>
       </Host>
