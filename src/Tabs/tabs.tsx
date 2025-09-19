@@ -26,48 +26,28 @@ export class Tabs {
   tabHeaderList!: HTMLDivElement;
   tabContent!: HTMLDivElement;
 
-  /** Tab element */
+  /** Host element */
   @Element() element: HTMLElement;
 
-  /** Property to hide/show the separator line between items in the header */
   @Prop() separator: boolean = false;
-
-  /** Property to hide/show the first and last navigation button/control in tab header */
   @Prop() firstLastNavControl: boolean = true;
-
-  /** Property to set max height on tab content section */
   @Prop() contentHeight: string;
-
-  /** Property to set full header item */
   @Prop() fullHeader: boolean = false;
 
-  /** Event is fired when the tab is changed */
-  @Event() tabChange: EventEmitter;
+  /** Explicitly bubble & cross shadow to reach window listeners in tests */
+  @Event({ eventName: 'tabChange', bubbles: true, composed: true }) tabChange: EventEmitter;
 
-  /** Internal state that contain tab items */
   @State() tabItems: null | HTMLElement[];
-
-  /** Internal state that contain tab container width */
   @State() tabHeaderContainerWidth: number = 0;
-
-  /** Internal state that contain tab list width */
   @State() tabHeaderListWidth: number = 0;
-
-  /** Internal state that contain active index */
   @State() activeIndex: number = 0;
 
-  /** Force re-render when child attributes (disabled, badge, title, etc.) change */
+  /** Bump to force re-render when child attributes change (disabled, badge, etc.) */
   @State() _attrsVersion: number = 0;
 
-  /** Observer to watch child attribute changes */
   private _attrObserver: MutationObserver | null = null;
 
-  /**
-   * Method to set the active tab by array index.
-   *
-   * @param index Array index
-   * @param emitEvent Boolean to emit tabChange event
-   */
+  // ---------- Public API ----------
   @Method() async setActiveTabByIndex(index: number, emitEvent: boolean = true) {
     const items = this.tabItems;
     if (items && items[index]) {
@@ -76,56 +56,37 @@ export class Tabs {
     }
   }
 
-  /**
-   * Method to set the active tab by header title.
-   *
-   * @param title Tab header title
-   * @param emitEvent Boolean to emit tabChange event
-   */
   @Method() async setActiveTabByTitle(title: string, emitEvent: boolean = true) {
     const items = this.tabItems;
     if (!items) return;
 
-    let indexVal: number | undefined = undefined;
+    let idx: number | undefined = undefined;
     for (let i = 0; i < items.length; i++) {
-      const item: any = items[i];
-      if (item && item.headerTitle === title) {
-        indexVal = i;
-        break;
-      }
+      const it: any = items[i];
+      if (it && it.headerTitle === title) { idx = i; break; }
     }
-
-    if (typeof indexVal !== 'undefined') {
-      const isDisabled = items[indexVal].hasAttribute(this.DISABLED);
-      this.setActiveTab(indexVal, isDisabled, emitEvent);
+    if (typeof idx !== 'undefined') {
+      const isDisabled = items[idx].hasAttribute(this.DISABLED);
+      this.setActiveTab(idx, isDisabled, emitEvent);
     }
   }
 
-  /**
-   * Method to set the active tab by the tab ID.
-   *
-   * @param tabId Tab id
-   * @param emitEvent Boolean to emit tabChange event
-   */
   @Method() async setActiveTabByTabId(tabId: string, emitEvent: boolean = true) {
     const items = this.tabItems;
     if (!items) return;
 
-    let indexVal: number | undefined = undefined;
+    let idx: number | undefined = undefined;
     for (let i = 0; i < items.length; i++) {
-      const item: any = items[i];
-      if (item && item.tabId === tabId) {
-        indexVal = i;
-        break;
-      }
+      const it: any = items[i];
+      if (it && it.tabId === tabId) { idx = i; break; }
     }
-
-    if (typeof indexVal !== 'undefined') {
-      const isDisabled = items[indexVal].hasAttribute(this.DISABLED);
-      this.setActiveTab(indexVal, isDisabled, emitEvent);
+    if (typeof idx !== 'undefined') {
+      const isDisabled = items[idx].hasAttribute(this.DISABLED);
+      this.setActiveTab(idx, isDisabled, emitEvent);
     }
   }
 
+  // ---------- Lifecycle ----------
   componentWillLoad() {
     this.tabItems = getChildren<HTMLElement>(this.element, [TAB_ITEM]);
     removeInvalidElements(this.element, TAB_ITEM, this.tabItems);
@@ -134,7 +95,6 @@ export class Tabs {
       const currentActiveIndex = this.tabItems.findIndex(function (item) {
         return item.getAttribute(this.ACTIVE_CLASS) === 'true';
       }.bind(this));
-
       const activeIndex = currentActiveIndex === -1 ? 0 : currentActiveIndex;
 
       this.tabItems[activeIndex].setAttribute(this.ACTIVE_CLASS, 'true');
@@ -172,9 +132,7 @@ export class Tabs {
 
       let activeTab: HTMLElement | null = null;
       const hc = this.headerContainer;
-      if (hc) {
-        activeTab = hc.querySelector('.' + this.ACTIVE_CLASS) as HTMLElement;
-      }
+      if (hc) activeTab = hc.querySelector('.' + this.ACTIVE_CLASS) as HTMLElement;
 
       if (activeTab) {
         const activeTabOffsetRight = activeTab.offsetLeft + activeTab.clientWidth;
@@ -188,7 +146,6 @@ export class Tabs {
       }
     }
 
-    // Re-attach in case children changed
     this.attachAttributeObservers();
   }
 
@@ -199,7 +156,7 @@ export class Tabs {
     }
   }
 
-  /** Safer shadowRoot getter for tests without leaking into utils that touch internal win */
+  // ---------- Internals ----------
   private getShadowRoot(): ShadowRoot | null {
     const host: any = this.element;
     if (host && host.shadowRoot) return host.shadowRoot as ShadowRoot;
@@ -245,10 +202,7 @@ export class Tabs {
             name === self.BADGE_RADIUS ||
             name === self.HEADER_TITLE ||
             name === self.TAB_ID
-          ) {
-            shouldUpdate = true;
-            break;
-          }
+          ) { shouldUpdate = true; break; }
         }
       }
       if (shouldUpdate) {
@@ -258,9 +212,7 @@ export class Tabs {
 
     for (let i = 0; i < this.tabItems.length; i++) {
       const item = this.tabItems[i];
-      if (item) {
-        this._attrObserver.observe(item, { attributes: true });
-      }
+      if (item) this._attrObserver.observe(item, { attributes: true });
     }
   }
 
@@ -268,29 +220,29 @@ export class Tabs {
     return el.classList.contains(cls) ? ' ' + cls : '';
   }
 
+  /**
+   * Updated: always emits when not disabled (even if selecting the same active tab),
+   * so window listener in tests gets at least one call.
+   */
   setActiveTab(indexVal: number, isDisabled: boolean, emitEvent: boolean) {
     if (isDisabled) return;
 
     const items = this.tabItems;
     if (!items || !items[0]) return;
 
-    if (indexVal !== this.activeIndex) {
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i];
-        if (it.hasAttribute(this.ACTIVE_CLASS)) {
-          it.removeAttribute(this.ACTIVE_CLASS);
-        }
-        if (i === indexVal) {
-          it.setAttribute(this.ACTIVE_CLASS, 'true');
-          if (emitEvent) {
-            this.tabChange.emit({ item: it, index: i, title: (it as any).headerTitle });
-          }
-        } else {
-          it.setAttribute(this.ACTIVE_CLASS, 'false');
-        }
-      }
-      this.activeIndex = indexVal;
-      this._attrsVersion = this._attrsVersion + 1; // reflect immediately in header
+    // Normalize active attributes on every call
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (i === indexVal) it.setAttribute(this.ACTIVE_CLASS, 'true');
+      else it.setAttribute(this.ACTIVE_CLASS, 'false');
+    }
+
+    this.activeIndex = indexVal;
+    this._attrsVersion = this._attrsVersion + 1;
+
+    if (emitEvent) {
+      const item = items[indexVal];
+      this.tabChange.emit({ item, index: indexVal, title: (item as any).headerTitle });
     }
   }
 
@@ -358,7 +310,7 @@ export class Tabs {
   };
 
   render() {
-    // Reference _attrsVersion to ensure we re-render header when children mutate.
+    // touch _attrsVersion to react to child-attr mutations
     const _ = this._attrsVersion;
 
     return (
