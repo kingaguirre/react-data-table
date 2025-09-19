@@ -8,33 +8,35 @@ import { randomString } from '../../../utils';
   shadow: true
 })
 export class TabItem {
+  TAB_TITLE: string = `${TAB_ITEM}-content`;
+  TAB_TITLE_PLACEHOLDER: string = 'Tab Header Title';
   TAB_CONTENT: string = `${TAB_ITEM}-content`;
   ACTIVE: string = 'active';
   TAB_ID: string = 'tab-id';
 
-  /** Host el */
-  @Element() tabItem!: HTMLElement;
+  /** Tab item element */
+  @Element() tabItem: HTMLElement;
 
-  /** Disabled status (reflected for parent to read & style) */
-  @Prop({ reflect: true }) disabled: boolean = false;
+  /** Optional property to set the disabled status */
+  @Prop() disabled?: boolean;
 
-  /** Optional badge content */
-  @Prop({ reflect: true }) badge?: string;
+  /** Optional property to enable/set badge */
+  @Prop() badge?: string = undefined;
 
-  /** Badge border radius (e.g., "6px") */
-  @Prop({ reflect: true, attribute: 'badge-radius' }) badgeRadius: string = '6px';
+  /** Optional property to set badge border radius (ex. 8px) */
+  @Prop() badgeRadius?: string = '6px';
 
-  /** Header title (string HTML accepted) */
-  @Prop({ reflect: true, attribute: 'header-title' }) headerTitle: string;
+  /** Property to set the header title */
+  @Prop() headerTitle: string;
 
-  /** Optional id used to link header & content */
-  @Prop({ reflect: true, attribute: 'tab-id' }) tabId?: string | number;
+  /** Optional property to set ID */
+  @Prop() tabId?: string | number;
 
-  /** Active status (presence of attribute is the source of truth) */
-  @Prop({ mutable: true, reflect: true }) active: boolean = false;
+  /** Property to set the active status */
+  @Prop({ mutable: true, reflectToAttr: true }) active = false;
 
-  componentDidLoad() {
-    // Ensure a persistent tab-id (Tabs also guards this pre-render)
+  // Assign tab-id BEFORE first parent render (headers read it immediately)
+  componentWillLoad() {
     if (!this.tabItem.hasAttribute(this.TAB_ID)) {
       this.tabItem.setAttribute(this.TAB_ID, randomString('tab-'));
     }
@@ -47,11 +49,10 @@ export class TabItem {
         disabled={this.disabled}
         header-title={this.headerTitle}
         badge-radius={this.badgeRadius}
-        active={this.active}
-        data-active={this.active ? 'true' : 'false'}
-        class={`tx-core-tab-item ${this.active ? 'active' : ''} ${this.disabled ? 'disabled' : ''}`}
+        active={this.active ? this.ACTIVE : ''} // keep existing behavior
+        class={`${TAB_ITEM} ${this.active ? this.ACTIVE : ''} ${this.disabled ? 'disabled' : ''}`}
       >
-        <div class="tx-core-tab-item-content">
+        <div class={this.TAB_CONTENT}>
           <slot />
         </div>
       </Host>
