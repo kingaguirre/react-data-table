@@ -1,6 +1,5 @@
-// src/components/tabs/tabs.tsx
 import { Component, h, Host, Event, EventEmitter, Element, Method, Prop, State } from '@stencil/core';
-import { getElement, getChildren, removeInvalidElements } from '../../utils';
+import { getElement, getChildren, removeInvalidElements, randomString } from '../../utils'; // ⬅ add randomString
 import { TAB_ITEM, BADGE, ICON } from '../../constant/tags';
 
 type TabChangeDetail = {
@@ -51,7 +50,7 @@ export class Tabs {
   @Prop() fullHeader: boolean = false;
 
   /** Emits when active tab changes */
-  @Event({ eventName: 'change' }) tabChange: EventEmitter<TabChangeDetail>;
+  @Event({ eventName: 'tabChange' }) tabChange: EventEmitter<TabChangeDetail>; // ⬅ rename event
 
   /** Internal: tab items */
   @State() tabItems: HTMLElement[] | null;
@@ -96,7 +95,10 @@ export class Tabs {
    */
   @Method() async setActiveTabByTabId(tabId: string, emitEvent: boolean = true) {
     if (!this.tabItems) return;
-    const indexVal = this.tabItems.findIndex((item: any) => item.tabId === tabId);
+    const indexVal = this.tabItems.findIndex((item: any) => {
+      // Prefer attribute to avoid any prop timing issues
+      return item.getAttribute?.(this.TAB_ID) === String(tabId) || (item as any).tabId === tabId;
+    });
     if (indexVal > -1) {
       const isDisabled = this.tabItems[indexVal].hasAttribute(this.DISABLED);
       this.setActiveTab(indexVal, isDisabled, emitEvent);
@@ -106,6 +108,13 @@ export class Tabs {
   componentWillLoad() {
     this.tabItems = getChildren<HTMLElement>(this.element, [TAB_ITEM]);
     removeInvalidElements(this.element, TAB_ITEM, this.tabItems);
+
+    // Ensure every tab item has a stable tab-id BEFORE initial render (headers read it)
+    this.tabItems?.forEach((item) => {
+      if (!item.hasAttribute(this.TAB_ID)) {
+        item.setAttribute(this.TAB_ID, randomString('tab-'));
+      }
+    });
 
     // Initial active item (attribute presence, not value)
     if (this.tabItems?.[0]) {
@@ -128,7 +137,7 @@ export class Tabs {
       this.tabHeaderListWidth = tabHeaderList.clientWidth;
     }
 
-    // Observe attribute changes on slotted tab items (disabled, badge, header-title, active)
+    // Observe attribute changes on slotted tab items (disabled, badge, header-title, active, tab-id)
     this.mo = new MutationObserver(muts => {
       const relevant = muts.some(
         m =>
@@ -137,9 +146,9 @@ export class Tabs {
       );
       if (relevant) {
         // Re-read children and trigger re-render
-        this.tabItems = Array.from(this.element.shadowRoot
-          ? this.element.querySelectorAll('tx-core-tab-item')
-          : []) as HTMLElement[];
+        this.tabItems = Array.from(
+          this.element.querySelectorAll('tx-core-tab-item')
+        ) as HTMLElement[];
         this._tick++;
       }
     });
@@ -147,7 +156,7 @@ export class Tabs {
     this.mo.observe(this.element, {
       attributes: true,
       subtree: true,
-      attributeFilter: ['disabled', 'badge', 'badge-radius', 'header-title', 'active']
+      attributeFilter: ['disabled', 'badge', 'badge-radius', 'header-title', 'active', 'tab-id'] // ⬅ include tab-id
     });
   }
 
@@ -206,7 +215,15 @@ export class Tabs {
 
   setActiveTab(indexVal: number, isDisabled: boolean, emitEvent: boolean) {
     if (isDisabled || !this.tabItems?.[0]) return;
-    if (indexVal === this.activeIndex) return;
+
+    // If same tab is requested, still emit when asked (tests expect this)
+    if (indexVal === this.activeIndex) {
+      if (emitEvent) {
+        const item = this.tabItems[indexVal];
+        this.emitChangeFor(indexVal, item);
+      }
+      return;
+    }
 
     this.tabItems = this.tabItems.map((item: HTMLElement, itemIndex) => {
       const shouldBeActive = itemIndex === indexVal;

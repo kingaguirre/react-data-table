@@ -1,4 +1,3 @@
-// src/components/tabs/tab-item/tab-item.tsx
 import { Component, Prop, h, Host, Element } from '@stencil/core';
 import { TAB_ITEM } from '../../../constant/tags';
 import { randomString } from '../../../utils';
@@ -35,7 +34,7 @@ export class TabItem {
   @Prop({ mutable: true, reflect: true }) active: boolean = false;
 
   componentDidLoad() {
-    // Ensure a persistent tab-id
+    // Ensure a persistent tab-id (Tabs also guards this pre-render)
     if (!this.tabItem.hasAttribute(this.TAB_ID)) {
       this.tabItem.setAttribute(this.TAB_ID, randomString('tab-'));
     }
