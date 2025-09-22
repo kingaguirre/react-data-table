@@ -1,0 +1,42 @@
+Subject: Why we cannot move our ViteJS microfrontend to a Next.js version
+
+Hi team,
+
+Quick heads-up: over the weekend I tried prototyping a migration of our ViteJS microfrontend setup to Next.js 15. During the prototype I hit architectural limits that block our core requirement: shared in-memory state across modules. In Next.js today there are two architectural options, and each carries significant trade-offs relative to our requirements.
+
+Option 1 — Next.js Multi-Zones (official) — strong isolation, no shared runtime
+
+What it is: multiple independent Next apps stitched together by path rewrites under one domain.
+Docs: https://nextjs.org/docs/pages/guides/multi-zones
+ and https://nextjs.org/docs/app/guides/multi-zones
+
+Vercel guidance/templates: https://vercel.com/docs/microfrontends
+ and https://vercel.com/templates/next.js/microfrontends-multi-zones
+
+Why it doesn’t meet our requirement: each zone is a separate app/runtime, so no state library (Zustand, Redux, Context, etc.) can provide one shared in-memory store across modules.
+
+About “simulating” shared state: the only way would be to build a custom cross-zone state bus (e.g., SharedWorker/WebSocket/localStorage/BC). I don’t recommend this for us: it adds ongoing maintenance overhead (extra infra, error handling, cross-zone debugging) and creates room for performance/optimization regressions (extra serialization, network hops, duplicated fetches/renders). It’s a workaround, not a first-class solution.
+
+Option 2 — Third-party Module Federation for Next.js — shared runtime, but plugin is deprecating
+
+Pro: Module Federation gives a single runtime across host/remotes, so real shared in-memory state is possible (like we have today with Vite).
+
+Cons: The Next.js MF integration is not maintained by the Next/Vercel team and is being deprecated/put in maintenance by its maintainers. The official page clearly says “App Router Not Supported” and “Support for Next.js is ending.” In practice you’re limited to the Pages Router, losing core App Router features (React Server Components/streaming, Server Actions, app-level layouts/loading/error, route handlers, etc.).
+Plugin status/limitations: https://module-federation.io/guide/framework/nextjs
+
+Maintainer notes (maintenance/EOL): https://x.com/ScriptedAlchemy/status/1852456101318725655
+ and https://twitter.com/ScriptedAlchemy/status/1808227445952467116
+
+App Router feature overview: https://nextjs.org/docs/app
+
+Conclusion / recommendation
+
+Given the need for shared in-memory state across modules:
+
+Multi-Zones (official) → robust, but no shared runtime (you’d be simulating state with real costs).
+
+Module Federation (3rd-party) → shared runtime works, but it’s not first-party, App Router isn’t supported, and we’d leave a lot of modern Next features on the table.
+
+Recommendation
+
+Stay on our ViteJS + Module Federation microfrontend. It already gives us a single runtime, true shared state across modules, and SPA behavior with minimal boilerplate. It’s currently in use by the WTP team, and no issues or blockers have been reported that limit their needs. We can re-evaluate Next.js if/when there’s a first-party, App-Router-compatible Module Federation story that preserves shared runtime semantics without workarounds.
