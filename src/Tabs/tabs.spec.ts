@@ -302,6 +302,29 @@ describe('Tabs', () => {
       await p.waitForChanges();
     };
 
+    // --- helpers (replace your forceOverflowAndRerender with this) ---
+    const forceOverflowAndRerender = async (p: any) => {
+      const container = p.root.shadowRoot.querySelector('.tab-header-container') as HTMLDivElement;
+      const list = p.root.shadowRoot.querySelector('.tab-headers') as HTMLDivElement;
+
+      // Mock widths so controls render (list wider than container)
+      Object.defineProperty(container, 'clientWidth', { configurable: true, get: () => 100 });
+      Object.defineProperty(list, 'clientWidth', { configurable: true, get: () => 300 });
+
+      // Make sure scrollLeft exists and is mutable
+      Object.defineProperty(container, 'scrollLeft', {
+        configurable: true,
+        get: () => (container as any).__sl ?? 0,
+        set: (v) => ((container as any).__sl = v),
+      });
+
+      // Trigger an update path that recomputes widths in componentDidUpdate
+      await p.rootInstance.setActiveTabByIndex(0);
+      await p.waitForChanges();
+    };
+
+    // --- tests (replace the two failing blocks with these) ---
+
     it('renders prev/next and first/last controls by default and they emit on click', async () => {
       // Rebuild with 3 tabs so next/last actually move
       page = await newSpecPage({
@@ -317,40 +340,52 @@ describe('Tabs', () => {
       await forceOverflowAndRerender(page);
 
       // Two control groups (left & right)
-      const controlBars = qsa(page.root.shadowRoot, '.tab-controls');
+      const controlBars = Array.from(page.root.shadowRoot.querySelectorAll('.tab-controls')) as HTMLElement[];
       expect(controlBars.length).toBe(2);
 
+      const leftBar = controlBars[0];   // order in DOM: left controls, headers, right controls
       const rightBar = controlBars[1];
-      const nextBtn = qs(rightBar, '.tab-control-next');
-      const lastBtn = qs(rightBar, '.tab-control-last');
+
+      const leftSpans = Array.from(leftBar.querySelectorAll('span')) as HTMLSpanElement[];
+      const rightSpans = Array.from(rightBar.querySelectorAll('span')) as HTMLSpanElement[];
+
+      // With firstLastNavControl=true:
+      // leftBar: [0]=first, [1]=prev
+      // rightBar: [0]=next,  [1]=last
+      const firstSpan = leftSpans[0];
+      const prevSpan  = leftSpans[1];
+      const nextSpan  = rightSpans[0];
+      const lastSpan  = rightSpans[1];
+
+      expect(firstSpan).toBeTruthy();
+      expect(prevSpan).toBeTruthy();
+      expect(nextSpan).toBeTruthy();
+      expect(lastSpan).toBeTruthy();
 
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
 
       // click next => index 1
-      nextBtn.click();
+      nextSpan.click();
       await page.waitForChanges();
       expect(spy).toHaveBeenCalled();
       let { index } = spy.mock.calls.pop()[0].detail;
       expect(index).toBe(1);
 
       // click last => index 2
-      lastBtn.click();
+      lastSpan.click();
       await page.waitForChanges();
       ({ index } = spy.mock.calls.pop()[0].detail);
       expect(index).toBe(2);
 
-      // left bar: prev/first
-      const leftBar = controlBars[0];
-      const prevBtn = qs(leftBar, '.tab-control-prev');
-      const firstBtn = qs(leftBar, '.tab-control-first');
-
-      prevBtn.click();
+      // click prev (left) => index 1
+      prevSpan.click();
       await page.waitForChanges();
       ({ index } = spy.mock.calls.pop()[0].detail);
       expect(index).toBe(1);
 
-      firstBtn.click();
+      // click first (left) => index 0
+      firstSpan.click();
       await page.waitForChanges();
       ({ index } = spy.mock.calls.pop()[0].detail);
       expect(index).toBe(0);
@@ -369,16 +404,37 @@ describe('Tabs', () => {
 
       await forceOverflowAndRerender(page);
 
-      const controlBars = qsa(page.root.shadowRoot, '.tab-controls');
+      const controlBars = Array.from(page.root.shadowRoot.querySelectorAll('.tab-controls')) as HTMLElement[];
       expect(controlBars.length).toBe(2);
 
-      // No first/last classes should exist
-      expect(qsa(page.root.shadowRoot, '.tab-control-first').length).toBe(0);
-      expect(qsa(page.root.shadowRoot, '.tab-control-last').length).toBe(0);
+      // No first/last icons rendered
+      expect(page.root.shadowRoot.querySelectorAll('.tab-control-first').length).toBe(0);
+      expect(page.root.shadowRoot.querySelectorAll('.tab-control-last').length).toBe(0);
 
-      // prev/next still exist
-      expect(qsa(page.root.shadowRoot, '.tab-control-prev').length).toBe(1);
-      expect(qsa(page.root.shadowRoot, '.tab-control-next').length).toBe(1);
+      // prev/next still exist (icons)
+      expect(page.root.shadowRoot.querySelectorAll('.tab-control-prev').length).toBe(1);
+      expect(page.root.shadowRoot.querySelectorAll('.tab-control-next').length).toBe(1);
+
+      // And clicking the spans still navigates
+      const leftBar = controlBars[0];
+      const rightBar = controlBars[1];
+      const prevSpan = leftBar.querySelector('span') as HTMLSpanElement;   // only one span in left bar now
+      const nextSpan = rightBar.querySelector('span') as HTMLSpanElement; // only one span in right bar now
+
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+
+      // from index 0 -> next -> 1
+      nextSpan.click();
+      await page.waitForChanges();
+      let { index } = spy.mock.calls.pop()[0].detail;
+      expect(index).toBe(1);
+
+      // back to prev -> 0
+      prevSpan.click();
+      await page.waitForChanges();
+      ({ index } = spy.mock.calls.pop()[0].detail);
+      expect(index).toBe(0);
     });
 
     it('auto-scrolls active tab into view when it overflows', async () => {
