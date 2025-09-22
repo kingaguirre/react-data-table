@@ -259,10 +259,9 @@ describe('Tabs', () => {
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
 
-      // Active attr should remain on first item
-      const items = (page.rootInstance as Tabs).tabItems!;
-      expect(items[0].getAttribute('active')).toBe('true');
-      expect(items[1].getAttribute('active')).toBe('false');
+      // Active state should be reflected on the rendered headers
+      expect(headers[0].classList.contains('active')).toBe(true);
+      expect(headers[1].classList.contains('active')).toBe(false);
 
       // Disabled header should not be tabbable
       const disabledHeader = headers[1];
@@ -290,36 +289,42 @@ describe('Tabs', () => {
   });
 
   describe('overflow nav controls', () => {
-    const forceOverflowAndRerender = async (p: any) => {
-      const container = qs(p.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
-      const list = qs(p.root.shadowRoot, '.tab-headers') as HTMLDivElement;
-      // Make list wider than container to render controls
-      mockClientWidth(container, 100);
-      mockClientWidth(list, 300);
+    // const forceOverflowAndRerender = async (p: any) => {
+    //   const container = qs(p.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
+    //   const list = qs(p.root.shadowRoot, '.tab-headers') as HTMLDivElement;
+    //   // Make list wider than container to render controls
+    //   mockClientWidth(container, 100);
+    //   mockClientWidth(list, 300);
 
-      // Trigger an update path that recomputes widths (componentDidUpdate)
-      await p.rootInstance.setActiveTabByIndex(0);
-      await p.waitForChanges();
-    };
+    //   // Trigger an update path that recomputes widths (componentDidUpdate)
+    //   await p.rootInstance.setActiveTabByIndex(0);
+    //   await p.waitForChanges();
+    // };
 
     // --- helpers (replace your forceOverflowAndRerender with this) ---
     const forceOverflowAndRerender = async (p: any) => {
-      const container = p.root.shadowRoot.querySelector('.tab-header-container') as HTMLDivElement;
-      const list = p.root.shadowRoot.querySelector('.tab-headers') as HTMLDivElement;
+      const sr = p.root.shadowRoot as ShadowRoot;
+      const container = sr.querySelector('.tab-header-container') as HTMLDivElement;
+      const list = sr.querySelector('.tab-headers') as HTMLDivElement;
 
       // Mock widths so controls render (list wider than container)
-      Object.defineProperty(container, 'clientWidth', { configurable: true, get: () => 100 });
-      Object.defineProperty(list, 'clientWidth', { configurable: true, get: () => 300 });
+      Object.defineProperty(container, 'clientWidth', { configurable: true, get() { return 100; } });
+      Object.defineProperty(list, 'clientWidth', { configurable: true, get() { return 300; } });
 
-      // Make sure scrollLeft exists and is mutable
+      // Make scrollLeft mutable & observable without nullish-coalescing
       Object.defineProperty(container, 'scrollLeft', {
         configurable: true,
-        get: () => (container as any).__sl ?? 0,
-        set: (v) => ((container as any).__sl = v),
+        get() {
+          const v = (container as any).__sl;
+          return v === undefined || v === null ? 0 : v;
+        },
+        set(v: number) { (container as any).__sl = v; },
       });
 
-      // Trigger an update path that recomputes widths in componentDidUpdate
+      // Trigger an update so componentDidUpdate reads mocked widths
       await p.rootInstance.setActiveTabByIndex(0);
+      // Ensure the lifecycle that reads clientWidth actually runs
+      p.rootInstance.componentDidUpdate?.();
       await p.waitForChanges();
     };
 
@@ -335,6 +340,10 @@ describe('Tabs', () => {
           <${TAB_ITEM} header-title="Three" tab-id="t3">3</${TAB_ITEM}>
         </${TABS}>`,
       });
+      await page.waitForChanges();
+
+      // Stencil boolean prop must be set as a property, not an attribute string
+      page.rootInstance.firstLastNavControl = false;
       await page.waitForChanges();
 
       await forceOverflowAndRerender(page);
