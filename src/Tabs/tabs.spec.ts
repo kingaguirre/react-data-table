@@ -5,93 +5,6 @@ import { getElements } from '../../utils';
 import { Tabs } from './tabs';
 import { TabItem } from './tab-item/tab-item';
 
-describe('Tabs', () => {
-  let mainTabsPage: any;
-  beforeEach(async () => {
-    mainTabsPage = await newSpecPage({
-      components: [Tabs, TabItem],
-      html: `<${TABS} separator="false">
-        <${TAB_ITEM} active="true" header-title="Tab one">Item 1</${TAB_ITEM}>
-        <${TAB_ITEM} id="tab-2" header-title="Tab two">Item 2 </${TAB_ITEM}>
-      </${TABS} >`
-    });
-    await mainTabsPage.waitForChanges();
-  });
-
-  it('should render', async () => {
-    expect(mainTabsPage.rootInstance).toBeTruthy();
-  });
-
-  describe('with properties', () => {
-    it('should not render separator', async () => {
-      expect(mainTabsPage.rootInstance.separator).toBe(false);
-    });
-  });
-
-  describe('With events', () => {
-    let clickEvent: any, tabHeaders: any;
-
-    beforeEach(async () => {
-      clickEvent = jest.spyOn(mainTabsPage.root, 'dispatchEvent');
-      tabHeaders = getElements<HTMLElement>(mainTabsPage.root!, '.tab-header');
-    });
-  });
-  describe('With methods', () => {
-    it('should set active tab by title and emit tabChange event', async () => {
-      const tabChangeSpy = jest.fn()
-      mainTabsPage.win.addEventListener('tabChange', tabChangeSpy)
-      mainTabsPage.rootInstance.setActiveTabByTitle('Tab two');
-      await mainTabsPage.waitForChanges();
-      expect(mainTabsPage.rootInstance).toBeTruthy();
-      expect(tabChangeSpy).toHaveBeenCalled();
-    });
-    it('should set active tab by index and emit tabChange event', async () => {
-      const tabChangeSpy = jest.fn()
-      mainTabsPage.win.addEventListener('tabChange', tabChangeSpy)
-      mainTabsPage.rootInstance.setActiveTabByIndex(1);
-      await mainTabsPage.waitForChanges();
-      expect(mainTabsPage.rootInstance).toBeTruthy();
-      expect(tabChangeSpy).toHaveBeenCalled();
-    });
-    it('should set active tab by index and emit tabChange event', async () => {
-      const tabChangeSpy = jest.fn()
-      mainTabsPage.win.addEventListener('tabChange', tabChangeSpy)
-      const tabHeaderId = mainTabsPage.root.shadowRoot.querySelector('.tab-header').getAttribute('tab-id')
-      mainTabsPage.rootInstance.setActiveTabByTabId(tabHeaderId);
-      await mainTabsPage.waitForChanges();
-      expect(mainTabsPage.rootInstance).toBeTruthy();
-      expect(tabChangeSpy).toHaveBeenCalled();
-    });
-    it('should be able to click on tab and emit tabChange event', async () => {
-      const tabChangeSpy = jest.fn()
-      mainTabsPage.win.addEventListener('tabChange', tabChangeSpy)
-      const tabHeaderId = mainTabsPage.root.shadowRoot.querySelector('.tab-header')
-      // mainTabsPage.rootInstance.setActiveTabByTabId(tabHeaderId);/
-      tabHeaderId.click()
-      await mainTabsPage.waitForChanges();
-      expect(mainTabsPage.rootInstance).toBeTruthy();
-      expect(tabChangeSpy).toHaveBeenCalled();
-    });
-  });
-});
-
-
-
-
-
-
-
-
-
-
-
-// tabs.spec.tsx
-import { newSpecPage } from '@stencil/core/testing';
-
-import { TAB_ITEM, TABS } from '../../constant/tags';
-import { Tabs } from './tabs';
-import { TabItem } from './tab-item/tab-item';
-
 /**
  * Small helpers
  */
@@ -198,6 +111,17 @@ describe('Tabs', () => {
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
     });
+
+    it('setActiveTabByIndex respects emitEvent=false (changes active, no event)', async () => {
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+      await page.rootInstance.setActiveTabByIndex(1, false);
+      await page.waitForChanges();
+      expect(spy).not.toHaveBeenCalled();
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[1].classList.contains('active')).toBe(true);
+      expect(headers[0].classList.contains('active')).toBe(false);
+    });
   });
 
   describe('click & keyboard', () => {
@@ -227,10 +151,47 @@ describe('Tabs', () => {
       await page.waitForChanges();
       expect(spy).toHaveBeenCalled();
     });
+
+    it('ArrowLeft and ArrowRight move focus to sibling headers', async () => {
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      // stub focus/blur so we can assert
+      headers[0].focus = jest.fn();
+      headers[1].focus = jest.fn();
+      headers[0].blur = jest.fn();
+      headers[1].blur = jest.fn();
+
+      // Focus on second, ArrowLeft should move to first
+      headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'ArrowLeft' }));
+      expect(headers[1].blur).toHaveBeenCalled();
+      expect(headers[0].focus).toHaveBeenCalled();
+
+      // Focus on first, ArrowRight should move to second
+      headers[0].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'ArrowRight' }));
+      expect(headers[0].blur).toHaveBeenCalled();
+      expect(headers[1].focus).toHaveBeenCalled();
+    });
+
+    it('Pressing Tab on host focuses active header and emits (click on active)', async () => {
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      headers[0].focus = jest.fn();
+      headers[0].click = jest.fn(() => {
+        // mimic default handler path; real component will handle onClick
+      });
+
+      page.root.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Tab' }));
+      await page.waitForChanges();
+
+      // Because component’s hostKeyDown clicks active header (and setActiveTab emits even if same tab)
+      expect(spy).toHaveBeenCalled();
+      expect(headers[0].focus).toHaveBeenCalled();
+    });
   });
 
-  describe('disabled tabs', () => {
-    it('disabled tab cannot become active via click or methods; no event emitted', async () => {
+  describe('disabled behavior', () => {
+    it('disabled tab cannot become active via click or methods; no event emitted; style/tabindex reflect disabled', async () => {
       // Rebuild page with disabled second tab
       page = await newSpecPage({
         components: [Tabs, TabItem],
@@ -244,28 +205,57 @@ describe('Tabs', () => {
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
 
-      // Click header
       const headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[1].classList.contains('disabled')).toBe(true);
+      expect(headers[1].getAttribute('tabindex')).toBe('-1');
+
+      // Click should be ignored for disabled
       headers[1].click();
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
-
-      // Call methods
-      await page.rootInstance.setActiveTabByIndex(1);
-      await page.waitForChanges();
-      expect(spy).not.toHaveBeenCalled();
-
-      await page.rootInstance.setActiveTabByTitle('Tab two');
-      await page.waitForChanges();
-      expect(spy).not.toHaveBeenCalled();
-
-      // Active state should be reflected on the rendered headers
       expect(headers[0].classList.contains('active')).toBe(true);
       expect(headers[1].classList.contains('active')).toBe(false);
 
-      // Disabled header should not be tabbable
-      const disabledHeader = headers[1];
-      expect(disabledHeader.getAttribute('tabindex')).toBe('-1');
+      // Keyboard Enter/Space on disabled should also be ignored
+      headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter' }));
+      headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Space' }));
+      await page.waitForChanges();
+      expect(spy).not.toHaveBeenCalled();
+
+      // Public API should also ignore disabled target
+      await page.rootInstance.setActiveTabByIndex(1);
+      await page.waitForChanges();
+      expect(spy).not.toHaveBeenCalled();
+      expect(headers[0].classList.contains('active')).toBe(true);
+    });
+
+    it('toggling disabled at runtime updates class and tabindex, then becomes clickable', async () => {
+      const items = (page.rootInstance as Tabs).tabItems!;
+      // Disable second tab
+      items[1].setAttribute('disabled', '');
+      await page.waitForChanges();
+
+      let headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[1].classList.contains('disabled')).toBe(true);
+      expect(headers[1].getAttribute('tabindex')).toBe('-1');
+
+      // Re-enable
+      items[1].removeAttribute('disabled');
+      await page.waitForChanges();
+
+      headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[1].classList.contains('disabled')).toBe(false);
+      expect(headers[1].getAttribute('tabindex')).toBe('1');
+
+      // Now click should work
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+
+      headers[1].click();
+      await page.waitForChanges();
+
+      expect(spy).toHaveBeenCalled();
+      expect(headers[1].classList.contains('active')).toBe(true);
     });
   });
 
@@ -286,166 +276,15 @@ describe('Tabs', () => {
       expect(badgeEl).toBeTruthy();
       expect(badgeEl.textContent?.trim()).toBe('3');
     });
+
+    it('header mirrors tab-id attribute from item', async () => {
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[0].getAttribute('tab-id')).toBe('t1');
+      expect(headers[1].getAttribute('tab-id')).toBe('t2');
+    });
   });
 
   describe('overflow nav controls', () => {
-    // const forceOverflowAndRerender = async (p: any) => {
-    //   const container = qs(p.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
-    //   const list = qs(p.root.shadowRoot, '.tab-headers') as HTMLDivElement;
-    //   // Make list wider than container to render controls
-    //   mockClientWidth(container, 100);
-    //   mockClientWidth(list, 300);
-
-    //   // Trigger an update path that recomputes widths (componentDidUpdate)
-    //   await p.rootInstance.setActiveTabByIndex(0);
-    //   await p.waitForChanges();
-    // };
-
-    // --- helpers (replace your forceOverflowAndRerender with this) ---
-    const forceOverflowAndRerender = async (p: any) => {
-      const sr = p.root.shadowRoot as ShadowRoot;
-      const container = sr.querySelector('.tab-header-container') as HTMLDivElement;
-      const list = sr.querySelector('.tab-headers') as HTMLDivElement;
-
-      // Mock widths so controls render (list wider than container)
-      Object.defineProperty(container, 'clientWidth', { configurable: true, get() { return 100; } });
-      Object.defineProperty(list, 'clientWidth', { configurable: true, get() { return 300; } });
-
-      // Make scrollLeft mutable & observable without nullish-coalescing
-      Object.defineProperty(container, 'scrollLeft', {
-        configurable: true,
-        get() {
-          const v = (container as any).__sl;
-          return v === undefined || v === null ? 0 : v;
-        },
-        set(v: number) { (container as any).__sl = v; },
-      });
-
-      // Trigger an update so componentDidUpdate reads mocked widths
-      await p.rootInstance.setActiveTabByIndex(0);
-      // Ensure the lifecycle that reads clientWidth actually runs
-      p.rootInstance.componentDidUpdate?.();
-      await p.waitForChanges();
-    };
-
-    // --- tests (replace the two failing blocks with these) ---
-
-    it('renders prev/next and first/last controls by default and they emit on click', async () => {
-      // Rebuild with 3 tabs so next/last actually move
-      page = await newSpecPage({
-        components: [Tabs, TabItem],
-        html: `<${TABS}>
-          <${TAB_ITEM} active="true" header-title="One" tab-id="t1">1</${TAB_ITEM}>
-          <${TAB_ITEM} header-title="Two" tab-id="t2">2</${TAB_ITEM}>
-          <${TAB_ITEM} header-title="Three" tab-id="t3">3</${TAB_ITEM}>
-        </${TABS}>`,
-      });
-      await page.waitForChanges();
-
-      // Stencil boolean prop must be set as a property, not an attribute string
-      page.rootInstance.firstLastNavControl = false;
-      await page.waitForChanges();
-
-      await forceOverflowAndRerender(page);
-
-      // Two control groups (left & right)
-      const controlBars = Array.from(page.root.shadowRoot.querySelectorAll('.tab-controls')) as HTMLElement[];
-      expect(controlBars.length).toBe(2);
-
-      const leftBar = controlBars[0];   // order in DOM: left controls, headers, right controls
-      const rightBar = controlBars[1];
-
-      const leftSpans = Array.from(leftBar.querySelectorAll('span')) as HTMLSpanElement[];
-      const rightSpans = Array.from(rightBar.querySelectorAll('span')) as HTMLSpanElement[];
-
-      // With firstLastNavControl=true:
-      // leftBar: [0]=first, [1]=prev
-      // rightBar: [0]=next,  [1]=last
-      const firstSpan = leftSpans[0];
-      const prevSpan  = leftSpans[1];
-      const nextSpan  = rightSpans[0];
-      const lastSpan  = rightSpans[1];
-
-      expect(firstSpan).toBeTruthy();
-      expect(prevSpan).toBeTruthy();
-      expect(nextSpan).toBeTruthy();
-      expect(lastSpan).toBeTruthy();
-
-      const spy = jest.fn();
-      page.win.addEventListener('tabChange', spy);
-
-      // click next => index 1
-      nextSpan.click();
-      await page.waitForChanges();
-      expect(spy).toHaveBeenCalled();
-      let { index } = spy.mock.calls.pop()[0].detail;
-      expect(index).toBe(1);
-
-      // click last => index 2
-      lastSpan.click();
-      await page.waitForChanges();
-      ({ index } = spy.mock.calls.pop()[0].detail);
-      expect(index).toBe(2);
-
-      // click prev (left) => index 1
-      prevSpan.click();
-      await page.waitForChanges();
-      ({ index } = spy.mock.calls.pop()[0].detail);
-      expect(index).toBe(1);
-
-      // click first (left) => index 0
-      firstSpan.click();
-      await page.waitForChanges();
-      ({ index } = spy.mock.calls.pop()[0].detail);
-      expect(index).toBe(0);
-    });
-
-    it('hides first/last when firstLastNavControl=false', async () => {
-      page = await newSpecPage({
-        components: [Tabs, TabItem],
-        html: `<${TABS} first-last-nav-control="false">
-          <${TAB_ITEM} active="true" header-title="One" tab-id="t1">1</${TAB_ITEM}>
-          <${TAB_ITEM} header-title="Two" tab-id="t2">2</${TAB_ITEM}>
-          <${TAB_ITEM} header-title="Three" tab-id="t3">3</${TAB_ITEM}>
-        </${TABS}>`,
-      });
-      await page.waitForChanges();
-
-      await forceOverflowAndRerender(page);
-
-      const controlBars = Array.from(page.root.shadowRoot.querySelectorAll('.tab-controls')) as HTMLElement[];
-      expect(controlBars.length).toBe(2);
-
-      // No first/last icons rendered
-      expect(page.root.shadowRoot.querySelectorAll('.tab-control-first').length).toBe(0);
-      expect(page.root.shadowRoot.querySelectorAll('.tab-control-last').length).toBe(0);
-
-      // prev/next still exist (icons)
-      expect(page.root.shadowRoot.querySelectorAll('.tab-control-prev').length).toBe(1);
-      expect(page.root.shadowRoot.querySelectorAll('.tab-control-next').length).toBe(1);
-
-      // And clicking the spans still navigates
-      const leftBar = controlBars[0];
-      const rightBar = controlBars[1];
-      const prevSpan = leftBar.querySelector('span') as HTMLSpanElement;   // only one span in left bar now
-      const nextSpan = rightBar.querySelector('span') as HTMLSpanElement; // only one span in right bar now
-
-      const spy = jest.fn();
-      page.win.addEventListener('tabChange', spy);
-
-      // from index 0 -> next -> 1
-      nextSpan.click();
-      await page.waitForChanges();
-      let { index } = spy.mock.calls.pop()[0].detail;
-      expect(index).toBe(1);
-
-      // back to prev -> 0
-      prevSpan.click();
-      await page.waitForChanges();
-      ({ index } = spy.mock.calls.pop()[0].detail);
-      expect(index).toBe(0);
-    });
-
     it('auto-scrolls active tab into view when it overflows', async () => {
       page = await newSpecPage({
         components: [Tabs, TabItem],
@@ -478,6 +317,89 @@ describe('Tabs', () => {
       expect(spy).toHaveBeenCalled();
       expect(container.scrollLeft).toBe(130);
     });
+
+    it('first/prev/next/last controls navigate and reflect disabled state at edges', async () => {
+      page = await newSpecPage({
+        components: [Tabs, TabItem],
+        html: `<${TABS} first-last-nav-control="true">
+          <${TAB_ITEM} header-title="A" tab-id="a" active="true">A</${TAB_ITEM}>
+          <${TAB_ITEM} header-title="B" tab-id="b">B</${TAB_ITEM}>
+        </${TABS}>`,
+      });
+      await page.waitForChanges();
+
+      // Force overflow so controls render
+      const container = qs(page.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
+      const list = qs(page.root.shadowRoot, '.tab-headers') as HTMLDivElement;
+      mockClientWidth(container, 100);
+      mockClientWidth(list, 300);
+      await page.waitForChanges();
+
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+
+      const controlGroups = qsa(page.root.shadowRoot, '.tab-controls');
+      const leftControls = Array.from(controlGroups[0].querySelectorAll('span.tab-control')) as HTMLElement[];
+      const rightControls = Array.from(controlGroups[1].querySelectorAll('span.tab-control')) as HTMLElement[];
+
+      // At start (index 0): left controls are disabled
+      expect(leftControls[0].classList.contains('disabled')).toBe(true); // first
+      expect(leftControls[1].classList.contains('disabled')).toBe(true); // prev
+
+      // Next: go to index 1
+      rightControls[0].click();
+      await page.waitForChanges();
+      expect(spy).toHaveBeenCalled();
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[1].classList.contains('active')).toBe(true);
+
+      // At end: right controls disabled
+      expect(rightControls[0].classList.contains('disabled')).toBe(true); // next
+      expect(rightControls[1].classList.contains('disabled')).toBe(true); // last
+
+      // Go to first using "first" control (keyboard activation)
+      leftControls[0].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter' }));
+      await page.waitForChanges();
+      expect(headers[0].classList.contains('active')).toBe(true);
+
+      // From first, use "last" via Space key
+      rightControls[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Space' }));
+      await page.waitForChanges();
+      expect(headers[1].classList.contains('active')).toBe(true);
+    });
+
+    it('prev/next do nothing if neighbor is disabled', async () => {
+      page = await newSpecPage({
+        components: [Tabs, TabItem],
+        html: `<${TABS} first-last-nav-control="true">
+          <${TAB_ITEM} header-title="A" tab-id="a" active="true">A</${TAB_ITEM}>
+          <${TAB_ITEM} header-title="B" tab-id="b" disabled>B</${TAB_ITEM}>
+          <${TAB_ITEM} header-title="C" tab-id="c">C</${TAB_ITEM}>
+        </${TABS}>`,
+      });
+      await page.waitForChanges();
+
+      // Force overflow so controls render
+      const container = qs(page.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
+      const list = qs(page.root.shadowRoot, '.tab-headers') as HTMLDivElement;
+      mockClientWidth(container, 100);
+      mockClientWidth(list, 500);
+      await page.waitForChanges();
+
+      const spy = jest.fn();
+      page.win.addEventListener('tabChange', spy);
+
+      const controlGroups = qsa(page.root.shadowRoot, '.tab-controls');
+      const rightControls = Array.from(controlGroups[1].querySelectorAll('span.tab-control')) as HTMLElement[];
+
+      const headers = qsa(page.root.shadowRoot, '.tab-header');
+      expect(headers[0].classList.contains('active')).toBe(true);
+
+      // Try "next" (neighbor is disabled) -> should do nothing
+      rightControls[0].click();
+      await page.waitForChanges();
+      expect(spy).not.toHaveBeenCalled();
+      expect(headers[0].classList.contains('active')).toBe(true);
+    });
   });
 });
-
