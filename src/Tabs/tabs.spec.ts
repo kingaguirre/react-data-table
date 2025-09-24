@@ -1,13 +1,8 @@
 import { newSpecPage } from '@stencil/core/testing';
-
 import { TAB_ITEM, TABS } from '../../constant/tags';
-import { getElements } from '../../utils';
 import { Tabs } from './tabs';
 import { TabItem } from './tab-item/tab-item';
 
-/**
- * Small helpers
- */
 const qsa = (root: Element | ShadowRoot, sel: string) =>
   Array.from(root.querySelectorAll(sel)) as HTMLElement[];
 
@@ -17,21 +12,21 @@ const qs = (root: Element | ShadowRoot, sel: string) =>
 const mockClientWidth = (el: HTMLElement, width: number) => {
   Object.defineProperty(el, 'clientWidth', {
     configurable: true,
-    get: () => width,
+    get: () => width
   });
 };
 
-const mockOffset = (
-  el: HTMLElement,
-  { offsetLeft = 0, clientWidth = 0 }: { offsetLeft?: number; clientWidth?: number },
-) => {
+const setOffsetLeft = (el: HTMLElement, n: number) => {
   Object.defineProperty(el, 'offsetLeft', {
     configurable: true,
-    get: () => offsetLeft,
+    get: () => n
   });
+};
+
+const setClientWidth = (el: HTMLElement, n: number) => {
   Object.defineProperty(el, 'clientWidth', {
     configurable: true,
-    get: () => clientWidth,
+    get: () => n
   });
 };
 
@@ -44,7 +39,7 @@ describe('Tabs', () => {
       html: `<${TABS} separator="false">
         <${TAB_ITEM} active="true" header-title="Tab one" tab-id="t1">Item 1</${TAB_ITEM}>
         <${TAB_ITEM} header-title="Tab two" tab-id="t2">Item 2</${TAB_ITEM}>
-      </${TABS}>`,
+      </${TABS}>`
     });
     await page.waitForChanges();
   });
@@ -84,10 +79,9 @@ describe('Tabs', () => {
       expect(evt.item).toBeTruthy();
     });
 
-    it('setActiveTabByIndex emits even if selecting same active tab again', async () => {
+    it('setActiveTabByIndex emits even when re-selecting same active tab', async () => {
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
-      // already on index 0; re-select index 0:
       await page.rootInstance.setActiveTabByIndex(0);
       await page.waitForChanges();
       expect(spy).toHaveBeenCalled();
@@ -112,7 +106,7 @@ describe('Tabs', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('setActiveTabByIndex respects emitEvent=false (changes active, no event)', async () => {
+    it('setActiveTabByIndex respects emitEvent=false', async () => {
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
       await page.rootInstance.setActiveTabByIndex(1, false);
@@ -152,53 +146,46 @@ describe('Tabs', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('ArrowLeft and ArrowRight move focus to sibling headers', async () => {
+    it('ArrowLeft and ArrowRight move focus between headers', async () => {
       const headers = qsa(page.root.shadowRoot, '.tab-header');
-      // stub focus/blur so we can assert
       headers[0].focus = jest.fn();
       headers[1].focus = jest.fn();
       headers[0].blur = jest.fn();
       headers[1].blur = jest.fn();
 
-      // Focus on second, ArrowLeft should move to first
       headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'ArrowLeft' }));
       expect(headers[1].blur).toHaveBeenCalled();
       expect(headers[0].focus).toHaveBeenCalled();
 
-      // Focus on first, ArrowRight should move to second
       headers[0].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'ArrowRight' }));
       expect(headers[0].blur).toHaveBeenCalled();
       expect(headers[1].focus).toHaveBeenCalled();
     });
 
-    it('Pressing Tab on host focuses active header and emits (click on active)', async () => {
+    it('Tab on host focuses active header and emits', async () => {
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
 
       const headers = qsa(page.root.shadowRoot, '.tab-header');
       headers[0].focus = jest.fn();
-      headers[0].click = jest.fn(() => {
-        // mimic default handler path; real component will handle onClick
-      });
+      headers[0].click = jest.fn();
 
       page.root.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Tab' }));
       await page.waitForChanges();
 
-      // Because component’s hostKeyDown clicks active header (and setActiveTab emits even if same tab)
       expect(spy).toHaveBeenCalled();
       expect(headers[0].focus).toHaveBeenCalled();
     });
   });
 
   describe('disabled behavior', () => {
-    it('disabled tab cannot become active via click or methods; no event emitted; style/tabindex reflect disabled', async () => {
-      // Rebuild page with disabled second tab
+    it('disabled tab cannot be activated (click/keys/methods), and style/tabindex reflect disabled', async () => {
       page = await newSpecPage({
         components: [Tabs, TabItem],
         html: `<${TABS}>
           <${TAB_ITEM} active="true" header-title="Tab one" tab-id="t1">Item 1</${TAB_ITEM}>
           <${TAB_ITEM} header-title="Tab two" tab-id="t2" disabled>Item 2</${TAB_ITEM}>
-        </${TABS}>`,
+        </${TABS}>`
       });
       await page.waitForChanges();
 
@@ -209,29 +196,25 @@ describe('Tabs', () => {
       expect(headers[1].classList.contains('disabled')).toBe(true);
       expect(headers[1].getAttribute('tabindex')).toBe('-1');
 
-      // Click should be ignored for disabled
       headers[1].click();
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
       expect(headers[0].classList.contains('active')).toBe(true);
       expect(headers[1].classList.contains('active')).toBe(false);
 
-      // Keyboard Enter/Space on disabled should also be ignored
       headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter' }));
       headers[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Space' }));
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
 
-      // Public API should also ignore disabled target
       await page.rootInstance.setActiveTabByIndex(1);
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
       expect(headers[0].classList.contains('active')).toBe(true);
     });
 
-    it('toggling disabled at runtime updates class and tabindex, then becomes clickable', async () => {
+    it('toggling disabled at runtime updates class/tabindex and then allows activation', async () => {
       const items = (page.rootInstance as Tabs).tabItems!;
-      // Disable second tab
       items[1].setAttribute('disabled', '');
       await page.waitForChanges();
 
@@ -239,7 +222,6 @@ describe('Tabs', () => {
       expect(headers[1].classList.contains('disabled')).toBe(true);
       expect(headers[1].getAttribute('tabindex')).toBe('-1');
 
-      // Re-enable
       items[1].removeAttribute('disabled');
       await page.waitForChanges();
 
@@ -247,10 +229,8 @@ describe('Tabs', () => {
       expect(headers[1].classList.contains('disabled')).toBe(false);
       expect(headers[1].getAttribute('tabindex')).toBe('1');
 
-      // Now click should work
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
-
       headers[1].click();
       await page.waitForChanges();
 
@@ -260,8 +240,7 @@ describe('Tabs', () => {
   });
 
   describe('badge / attribute mutation re-render', () => {
-    it('adding badge attribute reflects in header (data-badge and <badge> element)', async () => {
-      // add badge on second tab item
+    it('adding badge reflects in header (data-badge and element)', async () => {
       const items = (page.rootInstance as Tabs).tabItems!;
       items[1].setAttribute('badge', '3');
       items[1].setAttribute('badge-radius', '6px');
@@ -271,13 +250,15 @@ describe('Tabs', () => {
       const span = qs(headers[1], 'span');
       expect(span.getAttribute('data-badge')).toBe('3');
 
-      // Custom element renders anyway in JSDOM
-      const badgeEl = qs(headers[1], 'i > badge, i > tx-core-badge, i > BADGE');
+      const badgeEl =
+        qs(headers[1], 'i > badge') ||
+        qs(headers[1], 'i > tx-core-badge') ||
+        qs(headers[1], 'i > BADGE');
       expect(badgeEl).toBeTruthy();
-      expect(badgeEl.textContent?.trim()).toBe('3');
+      expect((badgeEl!.textContent || '').trim()).toBe('3');
     });
 
-    it('header mirrors tab-id attribute from item', async () => {
+    it('header mirrors tab-id from item', () => {
       const headers = qsa(page.root.shadowRoot, '.tab-header');
       expect(headers[0].getAttribute('tab-id')).toBe('t1');
       expect(headers[1].getAttribute('tab-id')).toBe('t2');
@@ -285,32 +266,30 @@ describe('Tabs', () => {
   });
 
   describe('overflow nav controls', () => {
-    it('auto-scrolls active tab into view when it overflows', async () => {
+    it('auto-scrolls active tab into view when overflowing', async () => {
       page = await newSpecPage({
         components: [Tabs, TabItem],
         html: `<${TABS}>
           <${TAB_ITEM} header-title="A" tab-id="a" active="true">A</${TAB_ITEM}>
           <${TAB_ITEM} header-title="B" tab-id="b">B</${TAB_ITEM}>
-        </${TABS}>`,
+        </${TABS}>`
       });
       await page.waitForChanges();
 
       const container = qs(page.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
       const list = qs(page.root.shadowRoot, '.tab-headers') as HTMLDivElement;
 
-      // Make list wider than container to trigger controls/scroll math
       mockClientWidth(container, 100);
       mockClientWidth(list, 300);
       container.scrollLeft = 0;
 
-      // Activate the second tab and make it appear far to the right
       const headers = qsa(page.root.shadowRoot, '.tab-header');
-      mockOffset(headers[1], { offsetLeft: 150, clientWidth: 80 }); // right edge = 230
+      setOffsetLeft(headers[1], 150);
+      setClientWidth(headers[1], 80); // right edge = 230
 
       const spy = jest.fn();
       page.win.addEventListener('tabChange', spy);
 
-      // move to index 1 => componentDidUpdate computes scrollLeft = 230 - 100 = 130
       await page.rootInstance.setActiveTabByIndex(1);
       await page.waitForChanges();
 
@@ -318,17 +297,16 @@ describe('Tabs', () => {
       expect(container.scrollLeft).toBe(130);
     });
 
-    it('first/prev/next/last controls navigate and reflect disabled state at edges', async () => {
+    it('first/prev/next/last controls navigate and disable at edges', async () => {
       page = await newSpecPage({
         components: [Tabs, TabItem],
         html: `<${TABS} first-last-nav-control="true">
           <${TAB_ITEM} header-title="A" tab-id="a" active="true">A</${TAB_ITEM}>
           <${TAB_ITEM} header-title="B" tab-id="b">B</${TAB_ITEM}>
-        </${TABS}>`,
+        </${TABS}>`
       });
       await page.waitForChanges();
 
-      // Force overflow so controls render
       const container = qs(page.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
       const list = qs(page.root.shadowRoot, '.tab-headers') as HTMLDivElement;
       mockClientWidth(container, 100);
@@ -342,44 +320,39 @@ describe('Tabs', () => {
       const leftControls = Array.from(controlGroups[0].querySelectorAll('span.tab-control')) as HTMLElement[];
       const rightControls = Array.from(controlGroups[1].querySelectorAll('span.tab-control')) as HTMLElement[];
 
-      // At start (index 0): left controls are disabled
-      expect(leftControls[0].classList.contains('disabled')).toBe(true); // first
-      expect(leftControls[1].classList.contains('disabled')).toBe(true); // prev
+      expect(leftControls[0].classList.contains('disabled')).toBe(true);
+      expect(leftControls[1].classList.contains('disabled')).toBe(true);
 
-      // Next: go to index 1
-      rightControls[0].click();
+      rightControls[0].click(); // next
       await page.waitForChanges();
       expect(spy).toHaveBeenCalled();
+
       const headers = qsa(page.root.shadowRoot, '.tab-header');
       expect(headers[1].classList.contains('active')).toBe(true);
 
-      // At end: right controls disabled
-      expect(rightControls[0].classList.contains('disabled')).toBe(true); // next
-      expect(rightControls[1].classList.contains('disabled')).toBe(true); // last
+      expect(rightControls[0].classList.contains('disabled')).toBe(true);
+      expect(rightControls[1].classList.contains('disabled')).toBe(true);
 
-      // Go to first using "first" control (keyboard activation)
-      leftControls[0].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter' }));
+      leftControls[0].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Enter' })); // first
       await page.waitForChanges();
       expect(headers[0].classList.contains('active')).toBe(true);
 
-      // From first, use "last" via Space key
-      rightControls[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Space' }));
+      rightControls[1].dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, code: 'Space' })); // last
       await page.waitForChanges();
       expect(headers[1].classList.contains('active')).toBe(true);
     });
 
-    it('prev/next do nothing if neighbor is disabled', async () => {
+    it('next does nothing if neighbor is disabled', async () => {
       page = await newSpecPage({
         components: [Tabs, TabItem],
         html: `<${TABS} first-last-nav-control="true">
           <${TAB_ITEM} header-title="A" tab-id="a" active="true">A</${TAB_ITEM}>
           <${TAB_ITEM} header-title="B" tab-id="b" disabled>B</${TAB_ITEM}>
           <${TAB_ITEM} header-title="C" tab-id="c">C</${TAB_ITEM}>
-        </${TABS}>`,
+        </${TABS}>`
       });
       await page.waitForChanges();
 
-      // Force overflow so controls render
       const container = qs(page.root.shadowRoot, '.tab-header-container') as HTMLDivElement;
       const list = qs(page.root.shadowRoot, '.tab-headers') as HTMLDivElement;
       mockClientWidth(container, 100);
@@ -395,8 +368,7 @@ describe('Tabs', () => {
       const headers = qsa(page.root.shadowRoot, '.tab-header');
       expect(headers[0].classList.contains('active')).toBe(true);
 
-      // Try "next" (neighbor is disabled) -> should do nothing
-      rightControls[0].click();
+      rightControls[0].click(); // next (neighbor is disabled)
       await page.waitForChanges();
       expect(spy).not.toHaveBeenCalled();
       expect(headers[0].classList.contains('active')).toBe(true);
