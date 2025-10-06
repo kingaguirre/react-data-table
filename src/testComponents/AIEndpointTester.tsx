@@ -9,7 +9,9 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
  * - Copy-to-clipboard for cURL and Output
  */
 export default function AIEndpointTester() {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(
+    (process as any)?.env?.NEXT_PUBLIC_COMPANY_AI_URL || ""
+  );
   const [token, setToken] = useState(""); // accepts raw token or "Bearer …"
   const [model, setModel] = useState("gpt-4o-mini");
   const [prompt, setPrompt] = useState("say hello in 3 words");
@@ -223,7 +225,8 @@ export default function AIEndpointTester() {
             <pre className="aiet-pre">{output || "(no output yet)"}</pre>
           </Panel>
           <Panel title="Logs">
-            <pre className="aiet-pre aiet-pre-sm">{logs.length ? logs.join("") : "(no logs yet)"}</pre>
+            <pre className="aiet-pre aiet-pre-sm">{logs.length ? logs.join("
+") : "(no logs yet)"}</pre>
           </Panel>
         </div>
 
@@ -342,10 +345,13 @@ async function pumpSSE(body: ReadableStream<Uint8Array>, onChunk: (s: string) =>
     if (done) break;
     buf += dec.decode(value, { stream: true });
     let i;
-    while ((i = buf.indexOf("")) !== -1) {
+    while ((i = buf.indexOf("
+
+")) !== -1) {
       const event = buf.slice(0, i);
       buf = buf.slice(i + 2);
-      for (const line of event.split("")) {
+      for (const line of event.split("
+")) {
         if (!line.startsWith("data:")) continue;
         const data = line.slice(5).trim();
         if (data === "[DONE]") return;
@@ -367,7 +373,8 @@ async function pumpNDJSON(body: ReadableStream<Uint8Array>, onChunk: (s: string)
     if (done) break;
     buf += dec.decode(value, { stream: true });
     let nl;
-    while ((nl = buf.indexOf("")) !== -1) {
+    while ((nl = buf.indexOf("
+")) !== -1) {
       const line = buf.slice(0, nl).trim();
       buf = buf.slice(nl + 1);
       if (!line) continue;
@@ -399,7 +406,8 @@ function extract(obj: any): string {
 }
 
 function truncate(s: string, max = 2000) {
-  return s.length > max ? s.slice(0, max) + "…(truncated)…" : s;
+  return s.length > max ? s.slice(0, max) + "
+…(truncated)…" : s;
 }
 
 function hintFromHttp(status: number, ct: string, body: string): string {
@@ -426,6 +434,17 @@ function hintFromFetchError(e: any): string {
   return `Unknown fetch error: ${msg}`;
 }
 
+// Ensure we can safely read body text for errors or JSON-only responses
+async function safeText(r: Response): Promise<string> {
+  try {
+    // Some browsers throw if body already consumed or empty; catch and return empty
+    const t = await r.text();
+    return t ?? "";
+  } catch {
+    return "";
+  }
+}
+
 // ---------------- Inline CSS ----------------
 const CSS = `
 :root {
@@ -449,7 +468,7 @@ const CSS = `
 .aiet-field { display: flex; flex-direction: column; gap: 6px; }
 .aiet-label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 
-.aiet-input { padding: 10px 12px; border-radius: 10px; border:1px solid var(--border); background: rgba(255,255,255); color: black; outline: none; }
+.aiet-input { padding: 10px 12px; border-radius: 10px; border:1px solid var(--border); background: rgba(255,255,255,.7); color: var(--ink); outline: none; }
 .aiet-input:focus { border-color:#7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
 .aiet-textarea { min-height: 96px; resize: vertical; }
 
