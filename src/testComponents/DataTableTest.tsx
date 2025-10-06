@@ -33,6 +33,7 @@ import { TXModal } from '../TXModal'
 import { GlobalStyle } from './globalStyle'
 import PathPickerDemo from '../PathPicker';
 import { TXBarChart } from '../TXBarChart';
+import AIEndpointTester from './AIEndpointTester'
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -536,6 +537,7 @@ export default () => {
 
   return (
     <Container>
+    <AIEndpointTester/>
       {/* <TXBarChart/> */}
       {/* <TXBarChart orientation='horizontal'/> */}
       {/* <GlobalStyle/>
