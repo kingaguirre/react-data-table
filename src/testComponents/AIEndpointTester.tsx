@@ -9,9 +9,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
  * - Copy-to-clipboard for cURL and Output
  */
 export default function AIEndpointTester() {
-  const [url, setUrl] = useState(
-    (process as any)?.env?.NEXT_PUBLIC_COMPANY_AI_URL || ""
-  );
+  const [url, setUrl] = useState("");
   const [token, setToken] = useState(""); // accepts raw token or "Bearer …"
   const [model, setModel] = useState("gpt-4o-mini");
   const [prompt, setPrompt] = useState("say hello in 3 words");
@@ -32,6 +30,7 @@ export default function AIEndpointTester() {
   const [output, setOutput] = useState("");
   const [logs, setLogs] = useState<string[]>([]);
   const [hint, setHint] = useState("");
+  const [streamGuess, setStreamGuess] = useState<"yes" | "no" | "unknown">("unknown");
 
   const abortRef = useRef<AbortController | null>(null);
   const [copiedOut, setCopiedOut] = useState(false);
@@ -118,6 +117,11 @@ export default function AIEndpointTester() {
 
       const mode = parser === "auto" ? detectParser(ct) : parser;
       appendLog(`[resp] content-type: ${ct} → parser: ${mode}`);
+
+      const len = resp.headers.get("content-length");
+      const guess = computeStreamGuess(mode, ct, len, stream);
+      setStreamGuess(guess);
+      appendLog(`[resp] stream? ${guess} (ct=${ct}, len=${len || "—"}, mode=${mode})`);
 
       setState("streaming");
       const onChunk = (s: string) => setOutput((prev) => prev + s);
@@ -216,6 +220,7 @@ export default function AIEndpointTester() {
               <StatusPill state={state} />
               {httpStatus && <Pill>{httpStatus}</Pill>}
               {ctype && <Pill>{ctype}</Pill>}
+              <Pill>Stream: {streamGuess}</Pill>
             </div>
           </div>
         </div>
@@ -225,8 +230,7 @@ export default function AIEndpointTester() {
             <pre className="aiet-pre">{output || "(no output yet)"}</pre>
           </Panel>
           <Panel title="Logs">
-            <pre className="aiet-pre aiet-pre-sm">{logs.length ? logs.join("
-") : "(no logs yet)"}</pre>
+            <pre className="aiet-pre aiet-pre-sm">{logs.length ? logs.join("") : "(no logs yet)"}</pre>
           </Panel>
         </div>
 
@@ -336,6 +340,19 @@ function detectParser(ct: string): "sse" | "ndjson" | "text" | "json" {
   return "text";
 }
 
+function computeStreamGuess(
+  mode: "sse" | "ndjson" | "text" | "json",
+  ct: string,
+  lenHeader: string | null,
+  streamRequested: boolean
+): "yes" | "no" | "unknown" {
+  if (mode === "sse" || mode === "ndjson") return "yes"; // headers imply streaming
+  if (mode === "text" && streamRequested) return "yes";   // many providers stream plain text
+  const len = lenHeader ? Number(lenHeader) : NaN;
+  if (!Number.isNaN(len) && len > 0 && mode === "json") return "no"; // fixed-length JSON likely non-stream
+  return "unknown"; // headers inconclusive
+}
+
 async function pumpSSE(body: ReadableStream<Uint8Array>, onChunk: (s: string) => void) {
   const reader = body.getReader();
   const dec = new TextDecoder();
@@ -345,13 +362,10 @@ async function pumpSSE(body: ReadableStream<Uint8Array>, onChunk: (s: string) =>
     if (done) break;
     buf += dec.decode(value, { stream: true });
     let i;
-    while ((i = buf.indexOf("
-
-")) !== -1) {
+    while ((i = buf.indexOf("")) !== -1) {
       const event = buf.slice(0, i);
       buf = buf.slice(i + 2);
-      for (const line of event.split("
-")) {
+      for (const line of event.split("")) {
         if (!line.startsWith("data:")) continue;
         const data = line.slice(5).trim();
         if (data === "[DONE]") return;
@@ -373,8 +387,7 @@ async function pumpNDJSON(body: ReadableStream<Uint8Array>, onChunk: (s: string)
     if (done) break;
     buf += dec.decode(value, { stream: true });
     let nl;
-    while ((nl = buf.indexOf("
-")) !== -1) {
+    while ((nl = buf.indexOf("")) !== -1) {
       const line = buf.slice(0, nl).trim();
       buf = buf.slice(nl + 1);
       if (!line) continue;
@@ -406,8 +419,7 @@ function extract(obj: any): string {
 }
 
 function truncate(s: string, max = 2000) {
-  return s.length > max ? s.slice(0, max) + "
-…(truncated)…" : s;
+  return s.length > max ? s.slice(0, max) + "…(truncated)…" : s;
 }
 
 function hintFromHttp(status: number, ct: string, body: string): string {
@@ -453,7 +465,7 @@ const CSS = `
 @media (prefers-color-scheme: dark) {
   :root { --card:#0e0e0f; --border:#262626; --muted:#aaa; --bg:#0a0a0b; --ink:#f2f2f2; }
 }
-.aiet-container { max-width: 1040px; margin: 0 auto; padding: 16px; color: var(--ink); }
+.aiet-container { max-width: 1040px; margin: 0 auto; color: var(--ink); }
 .aiet-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .aiet-badge { width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; border-radius: 10px; background: linear-gradient(135deg,#e0f2ff,#eae2ff); color:#2563eb; font-weight:700; border:1px solid var(--border); }
 .aiet-title { font-size: 18px; font-weight: 700; }
@@ -495,10 +507,10 @@ const CSS = `
 .aiet-statusbar { margin-left: auto; display:flex; align-items:center; gap:6px; }
 .aiet-pill { padding: 4px 8px; border-radius: 999px; border:1px solid var(--border); font-size: 12px; color: var(--muted); }
 
-.aiet-split { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 12px; border-top:1px solid var(--border); }
-@media (min-width: 860px) { .aiet-split { grid-template-columns: 1fr 1fr; } }
+.aiet-split { display:flex; gap: 12px; padding: 12px; border-top:1px solid var(--border); overflow-x: auto; }
+/* enforce side-by-side 50/50 at all widths */
 
-.aiet-panel { border:1px solid var(--border); border-radius: 12px; padding: 10px; background: rgba(0,0,0,0.02); }
+.aiet-panel { border:1px solid var(--border); border-radius: 12px; padding: 10px; background: rgba(0,0,0,0.02); flex: 1; max-width: 50%; }
 @media (prefers-color-scheme: dark) { .aiet-panel { background: rgba(255,255,255,0.03); } }
 .aiet-panel-head { display:flex; align-items:center; justify-content: space-between; margin-bottom: 6px; }
 .aiet-panel-title { font-size: 13px; font-weight: 700; color: var(--muted); }
