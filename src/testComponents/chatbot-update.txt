@@ -1,0 +1,90 @@
+Subject: Helix Assistant (Phase 1) is live — context-aware chat with DB access, screen awareness, knowledge base, and streaming UX
+
+Hi team,
+
+Quick update on the chatbot work. I’ve shipped Helix Assistant — Phase 1, and it’s already usable in the scoped areas below. Here’s what it can do today, what it can’t (yet), and what’s coming next.
+
+What’s in Phase 1 (now live)
+
+Reads real data: Helix can query our database and return answers grounded in live records.
+
+Wired areas (current scope): Home, txnworkdesk → General Details, Document Details, and Finance Details are wired. Other menus within txnworkdesk are intentionally wired as empty placeholders so the AI will respond that those sections are “under development.”
+
+Understands the current screen (when wired): Using hooks from our microfronten packages/common, Helix can detect which screen you’re on and tailor responses. Important: the hooks must be added per screen; if a screen isn’t wired, the AI is blind there.
+
+Updatable knowledge base: Helix uses a curated knowledge base we can keep expanding (FAQ, ownership, “how do I…”, internal glossaries, etc.).
+
+Streaming responses: Messages stream token-by-token for a smoother, faster UI—early signal first, then details—so you’re not staring at a spinner.
+
+Memory & context (local): Chats are saved in Local Storage; you can rename a chat and delete a chat anytime.
+
+What isn’t automatic yet (by design)
+
+Prompts are processed one-by-one. Helix does not automatically “know everything” we could pass to it. We still need a capability adapter to assemble the right context for each kind of request—mapping user intents → data fetches → prompt templates → structured outputs. This sits outside the model and centralizes orchestration and guardrails.
+
+Developer notes (please read)
+
+Wire the hooks on every screen that should be AI-aware. No hooks = no context.
+
+Define minimal data contracts for the capability adapter (inputs/outputs, schemas). This keeps prompts stable and reduces prompt fragility.
+
+Keep the KB clean and versioned. Small, well-scoped articles beat giant dumps.
+
+Guardrails: read-only where appropriate; log tool calls; add rate limits; redact sensitive fields in the adapter layer.
+
+Recently tested prompts (examples)
+
+You can try these now to get a feel for capabilities and current limits:
+
+how many transactions we have right now?
+
+what screen is this?
+
+what is the oldest transactions? (this one is test only where the ai don’t have access to the data asked by user)
+
+how many transaction per year?
+
+can you give me summary data snapshot
+
+show status mix group by year
+
+can you give last 5 pending transaction last 2022?
+
+can you give the details in json format?
+
+Put this 5 in table
+
+can you give percentage value of the transactions per year?
+
+i mean the percentage compare from previous year to the next year so i'll now if its increasing or decreasing
+
+how did you get it? can you show
+
+can you give me summary data snapshot
+
+can you show table for pending and register status per month for year 2020-2021?
+
+export its table
+
+Export all transactions
+
+who is behind tradeexpress?
+
+who should i ask regarding this
+
+who works in tradexpress
+
+who develop tradexpress helix
+
+(Stars indicate variants that request structured output or exports.)
+
+What’s next — Phase 2 (navigation & actions)
+
+Phase 2 will focus on true UI actions: navigating screens, clicking Edit, populating form fields, confirming with the user, clicking Save, typing into fields, and so on. This will extend the capability adapter with safe tool-calling (click, type, select, submit), confirmations, deterministic selectors, stable IDs, transaction safety (dry-runs, previews, undo where possible), and robust audit logging.
+
+I’ll also be exploring OpenAI’s AgentKit—released October 6, 2025—as it could materially improve how Helix’s chat works behind the scenes by standardizing tools, memory/state, evals, and embeddable chat UI components. This aligns well with Phase 2’s goals and may significantly reduce custom glue while tightening permissions and observability. 
+OpenAI
++1
+
+Thanks,
+King
