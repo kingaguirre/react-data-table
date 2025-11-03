@@ -78,39 +78,23 @@ export default function CustomEditableColumnsDemo() {
 
     // 2) Star rating — commit on click
     {
-      title: 'Rating (★ commit-on-click)',
-      column: 'rating',
+      title: "Rating (custom stars)",
+      column: "rating",
       width: 200,
       actionConfig: {
-        // optional: ensure a non-undefined default
         value: 0,
-        render: ({ value, onChange, error }) => (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            {Array.from({ length: 5 }).map((_, i) => {
-              const n = i + 1;
-              const filled = n <= (Number(value) || 0);
-              return (
-                <span
-                  key={n}
-                  role="button"
-                  aria-label={`rate ${n}`}
-                  onClick={() => {
-                    // 1) stage the value so editingCells has it
-                    onChange(n, { commit: false });
-                    // 2) commit on next frame so validation reads the staged value
-                    requestAnimationFrame(() => onChange(n, { commit: true }));
-                  }}
-                  style={{ cursor: 'pointer', fontSize: 18, userSelect: 'none' }}
-                >
-                  {filled ? '★' : '☆'}
-                </span>
-              );
-            })}
-            {error ? <span style={{ color: 'var(--color-danger)' }}>{error}</span> : null}
-          </div>
+        // keep your validation as-is
+        validation: (row) => (Number(row?.rating) > 0 ? undefined : "pick at least 1 star"),
+        render: ({ value, onChange, isInvalid, error, disabled }) => (
+          <StarRatingEditor
+            value={value}
+            disabled={disabled}
+            isInvalid={isInvalid}
+            error={error || undefined}
+            // IMPORTANT: commit on click; StarRatingEditor handles event ordering
+            onChange={(n, opts) => onChange(n, { commit: opts?.commit ?? true })}
+          />
         ),
-        // keep your validation; cast defensively
-        validation: (row) => (Number(row?.rating) > 0 ? undefined : 'pick at least 1 star'),
       },
     },
 
@@ -254,5 +238,74 @@ export default function CustomEditableColumnsDemo() {
         headerSearchSettings
       />
     </Container>
+  );
+}
+
+export type StarRatingEditorProps = {
+  value: number | null | undefined;
+  max?: number;
+  disabled?: boolean;
+  isInvalid?: boolean;
+  error?: string | null;
+  /** table’s render(ctx).onChange; must accept { commit?: boolean } */
+  onChange: (next: number, opts?: { commit?: boolean }) => void;
+};
+
+export function StarRatingEditor({
+  value,
+  max = 5,
+  disabled,
+  isInvalid,
+  error,
+  onChange,
+}: StarRatingEditorProps) {
+  const current = Number.isFinite(value as number) ? Number(value) : 0;
+
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <div>
+        {Array.from({ length: max }).map((_, i) => {
+          const n = i + 1;
+          const filled = n <= current;
+          return (
+            <span
+              key={n}
+              role="button"
+              aria-label={`rate ${n}`}
+              // CRITICAL: pointerDown fires before blur/click; preventDefault
+              // so the parent cell doesn't lose focus/commit the old value.
+              onPointerDown={(e) => {
+                if (disabled) return;
+                e.preventDefault();
+                e.stopPropagation();
+                // Commit immediately; no need to stage first.
+                onChange(n, { commit: true });
+              }}
+              onKeyDown={(e) => {
+                if (disabled) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange(n, { commit: true });
+                }
+              }}
+              // Non-focusable element avoids focus transfer -> no blur
+              tabIndex={-1}
+              style={{
+                cursor: disabled ? "not-allowed" : "pointer",
+                fontSize: 18,
+                lineHeight: 1,
+                userSelect: "none",
+                color: filled ? "currentColor" : "var(--color-border, #bbb)",
+                marginRight: 2,
+              }}
+            >
+              {filled ? "★" : "☆"}
+            </span>
+          );
+        })}
+      </div>
+      {error ? <span style={{ color: "var(--color-danger)" }}>{error}</span> : null}
+    </div>
   );
 }
