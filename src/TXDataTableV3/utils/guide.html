@@ -1,0 +1,267 @@
+<div style="font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; color: #202020;">
+  <div style="background-color: #e6f9fd; border-left: 4px solid #005c84; padding: 15px; margin: 20px 0; border-radius: 3px;">
+    <p><strong>📝 Migration Reference</strong></p>
+    <p>This guide was created by comparing the following branches—mvp1.5.0 and mvp1.7.0—corresponding to the commits
+      listed below:</p>
+    <ul>
+      <li>📦 <strong>Base (mvp1.5.0 commit) TXDataTableV2:</strong>
+        <a href="https://dev.azure.com/sc-ado/TBQPR/_git/51514-tx-react-components/commit/05b731c9dae626199dd8afcda31f93e35967bef7?refName=refs%2Fheads%2Frelease%2Fmvp1.7.0"
+          target="_blank" rel="noopener" style="color: #005c84;">
+          05b731c9dae626199dd8afcda31f93e35967bef7
+        </a>
+      </li>
+      <li>📦 <strong>Target (mvp1.7.0 commit) TXDataTableV3:</strong>
+        <a href="https://dev.azure.com/sc-ado/TBQPR/_git/51514-tx-react-components/commit/ebd6050b50b87220f69364027e60dcadbc937dae?refName=refs%2Fheads%2Frelease%2Fmvp1.7.0"
+          target="_blank" rel="noopener" style="color: #005c84;">
+          ebd6050b50b87220f69364027e60dcadbc937dae
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <h2 style="color: #003366; font-weight: bold;">🔍 Migration Focus</h2>
+  <p>⚙️ This guide provides:</p>
+  <ul>
+    <li>✅ <strong>Developer Checklist</strong>: Code paths, imports, and props to update or verify.</li>
+    <li>✅ <strong>High‑level Overview</strong>: Functional and behavioral changes.</li>
+  </ul>
+
+  <h2 style="color: #003366; font-weight: bold;">📋 Summary</h2>
+  <div style="background-color: #e6fdf0; border-left: 4px solid #6ac07a; padding: 15px; margin: 20px 0; border-radius: 3px;">
+    <ul>
+      <li>🔄 <strong>Version Upgrade</strong>: <code style="color: #A31515;">TXDataTable</code> v2 → v3 (mvp1.5.0 to
+        mvp1.7.0).</li>
+      <li>🚀 <strong>Key Benefits</strong>: Enhanced export options, robust validation, improved controls, better test
+        coverage.</li>
+      <li>🌟 <strong>Key Highlights</strong>:
+        <ul>
+          <li>New <code style="color: #A31515;">downloadHiddenColumn</code> flag: include/exclude hidden columns in
+            exports.</li>
+          <li>Custom download callbacks (<code style="color: #A31515;">onDownloadAllClick</code>, <code
+              style="color: #A31515;">onDownloadSelectedClick</code>).</li>
+          <li>Page‑size selector converted to dropdown with preset options (5–50).</li>
+          <li>Optional disabling of virtualization for dynamic‑height tables (<code
+              style="color: #A31515;">disabled</code> prop in <code style="color: #A31515;">useVirtualizer</code>).</li>
+          <li>Whitespace‑trimmed input and validation via <code style="color: #A31515;">trimValue()</code>.</li>
+          <li><code style="color: #A31515;">data-testid</code> attributes added across components for reliable UI
+            testing.</li>
+          <li>Improved “Select All” logic respecting disabled rows (<code
+              style="color: #A31515;">disabledSelectedRows</code>).</li>
+          <li>Enhanced sorting: sort by custom‑renderer <code style="color: #A31515;">downloadText</code> when present.
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <h2 style="color: #003366; font-weight: bold;">🔧 How to Integrate</h2>
+  <ul>
+    <li>
+      <strong style="color: #3f9c35">🔄 Change your import:</strong>
+      <pre style="background:#f4f4f4; padding:8px;"><code style="color: #202020;">— import { TXDataTable } from '@atoms/TXDataTableV2'
++  import { TXDataTable } from '@atoms/TXDataTableV3'</code></pre>
+    </li>
+    <li>From now on, all fixes and enhancements will be in V3.
+      If you encounter an issue in V2, try V3 first—any remaining fixes will be released there.</li>
+  </ul>
+
+  <h2 style="color: #005c84; font-weight: bold; margin-bottom: 12px;">🔑 Key Detailed Changes (v2 → v3)</h2>
+  <div style="margin-left: 20px;">
+
+    <h3 style="color: #003366; font-weight: bold;">⚙️ 0. Root Entry Point Updates</h3>
+    <ul>
+      <li>🔹 <strong style="color: #3f9c35;">index.tsx</strong>
+        <ul>
+          <li>Import new utilities: <code style="color: #A31515;">trimValue</code>, <code
+              style="color: #A31515;">getSelectedRows</code>.</li>
+          <li>Default <code style="color: #A31515;">minPageSize</code> updated from <code
+              style="color: #A31515;">5</code> → <code style="color: #A31515;">10</code>.</li>
+          <li>Added <code style="color: #A31515;">downloadHiddenColumn = true</code> default state prop.</li>
+          <li><em>doEdit</em> now trims values, applies <code style="color: #A31515;">validation()</code> callbacks, and
+            centralizes comparison on trimmed data.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3 style="color: #003366; font-weight: bold;">⚙️ 1. GlobalStateProvider</h3>
+    <ul>
+      <li>🔄 Flasher now checks for <code style="color: #A31515;">'txdatatablev3'</code> in URL instead of V2.</li>
+    </ul>
+
+    <h3 style="color: #003366; font-weight: bold;">🛠️ 2. Component Enhancements &amp; Test IDs</h3>
+
+    <ul>
+      <li>
+        <strong style="color: #3f9c35;">🔹 ActionsColumn</strong>
+        <ul>
+          <li>Guard JSON parse: skip <code style="color: #A31515;">getActionIcons</code> when <code
+              style="color: #A31515;">data === undefined</code>.</li>
+          <li>Import <code style="color: #A31515;">isValidJsonObj</code> to pre-validate JSON strings.</li>
+          <li>Added <code style="color: #A31515;">data-testid="actions-container"</code> for UI tests.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 BulkDeletePanel</strong>
+        <ul>
+          <li>Added <code style="color: #A31515;">data-testid="buld-delete-panel"</code>.</li>
+        </ul>
+      </li>
+      <li><strong style="color: #3f9c35;">🔹 ColumnFilters</strong>
+        <ul>
+          <li>Container now has <code style="color: #A31515;">data-testid="column-filters-container"</code>.</li>
+          <li>Each filter cell: <code style="color: #A31515;">data-testid="column-filter-&lt;column&gt;"</code>.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 ColumnHeader</strong>
+        <ul>
+          <li>“Select All” respects <code style="color: #A31515;">disabledSelectedRows</code> via new <code
+              style="color: #A31515;">filterRows</code> util.</li>
+          <li>Sort tooltip cycles with new <code style="color: #A31515;">getSortDescription</code> helper.</li>
+          <li>Sorting gated by <code style="color: #A31515;">enableSorting</code>, excludes <code
+              style="color: #A31515;">downloadOnly</code> columns.</li>
+          <li>Accessible <code style="color: #A31515;">title</code> attributes added to pin &amp; resize handles.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 Footer</strong>
+        <ul>
+          <li>Replaced numeric input with a dropdown (<code style="color: #A31515;">TXInput type="dropdown"</code>)
+            offering fixed page sizes.</li>
+          <li>Removed debounce; onChange signature: <code style="color: #A31515;">(value: string)</code>.</li>
+          <li>Added <code style="color: #A31515;">data-testid="footer-pagination-container"</code> &amp; <code
+              style="color: #A31515;">data-testid="footer-refresh-icon"</code>.</li>
+          <li>Info hover tooltip summarizing record range.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3 style="color: #003366; font-weight: bold;">🖥️ 3. MainHeader Adjustments</h3>
+
+    <ul>
+      <li>
+        <strong style="color: #3f9c35;">🔹 RightPanel</strong>
+        <ul>
+          <li>New props: <code style="color: #A31515;">localStorageSettingsKey</code>, <code
+              style="color: #A31515;">actionColumnSetting</code>, <code
+              style="color: #A31515;">actionsDropdownItems</code>.</li>
+          <li>Reset now clears stored settings via <code style="color: #A31515;">sessionStorage.removeItem()</code>.
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 MainHeader Index</strong>
+        <ul>
+          <li>Added props: <code style="color: #A31515;">downloadHiddenColumn</code>, <code
+              style="color: #A31515;">disableDefaultDownload*</code>.</li>
+          <li>New callbacks: <code style="color: #A31515;">onDownloadAllClick(data)</code>, <code
+              style="color: #A31515;">onDownloadSelectedClick(data)</code>.</li>
+          <li>Conditional skip of built‑in <code style="color: #A31515;">downloadExcel</code> when disable flags are
+            set.</li>
+          <li>Added test IDs: <code style="color: #A31515;">main-header-wrapper</code>, <code
+              style="color: #A31515;">download-all-icon</code>, <code style="color: #A31515;">download-all-menu</code>.
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3 style="color: #003366; font-weight: bold;">📑 4. Row &amp; Cell Improvements</h3>
+
+    <ul>
+      <li>
+        <strong style="color: #3f9c35;">🔹 Cell</strong>
+        <ul>
+          <li>Introduced <code style="color: #A31515;">trimValue()</code> to strip whitespace before validation/storage.
+          </li>
+          <li>Auto‑focus on edit inputs.</li>
+          <li>Unified value extraction: <code style="color: #A31515;">getValue(getDeepValue(...))</code>.</li>
+          <li>Validation returns <code style="color: #A31515;">{ isValid, errorMessage }</code>, supports AJV &amp;
+            custom <code style="color: #A31515;">validation()</code>.</li>
+          <li>Added test IDs: <code style="color: #A31515;">table-cell-&lt;row&gt;-&lt;col&gt;</code> &amp; <code
+              style="color: #A31515;">invalid-border-&lt;row&gt;-&lt;col&gt;</code>.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 VirtualRowItem</strong>
+        <ul>
+          <li>Supports <code style="color: #A31515;">disabled</code> prop to bypass virtualization logic.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 Rows</strong>
+        <ul>
+          <li>Selection logic extracted to <code style="color: #A31515;">getSelectedRows()</code>.</li>
+          <li>Added <code style="color: #A31515;">data-testid="row-&lt;index&gt;"</code> on each row.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 SelectCheckboxColumn</strong>
+        <ul>
+          <li>Unified input type: <code style="color: #A31515;">checkbox</code> vs. <code
+              style="color: #A31515;">radio</code>.</li>
+          <li>Test IDs: <code style="color: #A31515;">row-selector-header</code> &amp; <code
+              style="color: #A31515;">row-selector-&lt;rowIndex&gt;</code>.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3 style="color: #003366; font-weight: bold;">📂 5. Data Source &amp; Storybook</h3>
+
+    <ul>
+      <li>
+        <strong style="color: #3f9c35;">🔹 data.tsx</strong>
+        <ul>
+          <li><code style="color: #A31515;">DUMMY_DATA_SOURCE</code> expanded to 1000 items.</li>
+          <li><code style="color: #A31515;">intentAction</code> values now wrapped as <code
+              style="color: #A31515;">{ value: "N" }</code> objects.</li>
+        </ul>
+      </li>
+      <li>
+        <strong style="color: #3f9c35;">🔹 Stories</strong>
+        <ul>
+          <li>Titles updated: “V2” → “V3”.</li>
+          <li>Default story uses <code style="color: #A31515;">DUMMY_DATA_SOURCE</code> &amp; <code
+              style="color: #A31515;">EDITABLE_COLUMN_SETTINGS</code>.</li>
+          <li>New demos: documentation page, hidden‑column export, organism integration.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <h2 style="color: #003366; font-weight: bold;">🔧 6. Hooks &amp; Utils</h2>
+  <ul>
+    <li><strong>useVirtualizer</strong>: adds <code style="color: #A31515;">disabled</code> flag to skip listeners.</li>
+    <li><strong>sortData</strong>: now takes <code style="color: #A31515;">ColumnSettings</code>, prioritizes <code
+        style="color: #A31515;">downloadText</code> for custom renderers.</li>
+    <li>New util <code style="color: #A31515;">getColumnValueFromKey</code> to merge current &amp; default column
+      settings.</li>
+    <li>Added <code style="color: #A31515;">trimValue</code>, <code style="color: #A31515;">getSelectedRows</code>,
+      <code style="color: #A31515;">filterRows</code>.</li>
+    <li><code style="color: #A31515;">downloadExcel</code>: now honors <code
+        style="color: #A31515;">downloadHiddenColumn</code> flag.</li>
+    <li><code style="color: #A31515;">getIsDuplicate</code> normalizes via <code
+        style="color: #A31515;">trimValue</code>.</li>
+  </ul>
+
+  <h2 style="color: #003366; font-weight: bold;">📐 7. Interfaces</h2>
+  <ul>
+    <li>New <code style="color: #A31515;">IActionConfig.validation(row, isSelected)</code> callback returning string
+      error.</li>
+    <li><code style="color: #A31515;">DataTableProps</code>: added <code
+        style="color: #A31515;">downloadHiddenColumn</code>, <code
+        style="color: #A31515;">disableDefaultDownload*</code>, and callbacks.</li>
+  </ul>
+
+  <div style="background-color: #e6fdf0; border-left: 4px solid #6ac07a; padding: 15px; margin: 20px 0; border-radius: 3px;">
+    <h2 style="color: #003366; font-weight: bold;">✅ Summary &amp; Next Steps</h2>
+    <ul>
+      <li><strong>Switch imports</strong> to V3 in your codebase.</li>
+      <li><strong>Run full test suite</strong>, including UI tests against new <code
+          style="color: #A31515;">data-testid</code> markers.</li>
+      <li><strong>Update internal docs</strong> and Storybook stories to reflect V3 usage.</li>
+      <li><strong>Deprecate V2</strong>: remove V2 references and communicate V3 as source of truth.</li>
+      <li><strong>Monitor &amp; Iterate</strong>: funnel all bug reports and enhancements to the V3 branch.</li>
+    </ul>
+  </div>
+
+</div>
