@@ -162,67 +162,6 @@ export default function CustomEditableColumnsDemo() {
         ),
       },
     },
-
-    // 5) Derived min length using rowValues.userID
-    {
-      title: 'Derived MinLen (from userID)',
-      column: 'customText',
-      width: 280,
-      actionConfig: {
-        render: ({ value = '', rowValues, onChange, onCancel, inputRef }) => {
-          const tail = String(rowValues?.userID ?? '').slice(-1);
-          const minLen = Math.max(3, Number(tail) || 3);
-          const tooShort = String(value || '').length < minLen;
-          return (
-            <div style={{ display: 'grid', gap: 6 }}>
-              <AutoFocusInput
-                inputRef={inputRef}
-                value={value}
-                onChange={(e) => onChange((e.target as HTMLInputElement).value)} // stage
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onChange((e.currentTarget as HTMLInputElement).value, { commit: true });
-                  if (e.key === 'Escape') onCancel();
-                }}
-                onBlur={(e) => onChange((e.currentTarget as HTMLInputElement).value, { commit: true })}
-                placeholder={`Min ${minLen} chars (based on userID)`}
-                style={{
-                  padding: '6px 8px',
-                  border: `1px solid ${tooShort ? 'var(--color-danger)' : 'var(--color-border, #ddd)'}`,
-                  borderRadius: 6,
-                  fontSize: 12,
-                  width: '100%',
-                }}
-              />
-              {tooShort && <ErrorText error={`Enter at least ${minLen} characters`} />}
-            </div>
-          );
-        },
-      },
-    },
-
-    // 6) Cancel flow — ESC discards staged value (no commit)
-    {
-      title: 'Cancelable Text (ESC discards)',
-      column: 'customText',
-      width: 260,
-      actionConfig: {
-        render: ({ value = '', onChange, onCancel, inputRef, disabled }) => (
-          <AutoFocusInput
-            inputRef={inputRef}
-            value={value}
-            disabled={disabled}
-            onChange={(e) => onChange((e.target as HTMLInputElement).value)} // stage
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') onCancel();
-              if (e.key === 'Enter') onChange((e.currentTarget as HTMLInputElement).value, { commit: true });
-            }}
-            onBlur={(e) => onChange((e.currentTarget as HTMLInputElement).value, { commit: true })}
-            placeholder="ESC cancels, Enter/Blur commits"
-            style={{ padding: '6px 8px', border: '1px solid var(--color-border, #ddd)', borderRadius: 6, fontSize: 12, width: '100%' }}
-          />
-        ),
-      },
-    },
   ];
 
   return (
@@ -232,10 +171,9 @@ export default function CustomEditableColumnsDemo() {
       <TXDataTable
         dataSource={data}
         columnSettings={columns}
-        actions={[Actions.EDIT, Actions.ADD, Actions.DELETE]}
-        rowKey="id"
-        undoRedoCellEditing
-        headerSearchSettings
+        actions={[Actions.EDIT,Actions.DELETE]}
+        rowKey='id'
+        onChange={(value) => console.log('onChange: ', value)}
       />
     </Container>
   );
