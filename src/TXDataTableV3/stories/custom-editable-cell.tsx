@@ -82,40 +82,35 @@ export default function CustomEditableColumnsDemo() {
       column: 'rating',
       width: 200,
       actionConfig: {
-        validation: (row) => (row.rating > 0 ? undefined : 'Pick at least 1 star'),
-        render: ({ value = 0, onChange, onCancel, isInvalid, error, disabled }) => {
-          const current = Number(value) || 0;
-          const size = 18;
-          return (
-            <div
-              onKeyDown={(e) => e.key === 'Escape' && onCancel()}
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
+        // optional: ensure a non-undefined default
+        value: 0,
+        render: ({ value, onChange, error }) => (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            {Array.from({ length: 5 }).map((_, i) => {
+              const n = i + 1;
+              const filled = n <= (Number(value) || 0);
+              return (
+                <span
                   key={n}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onChange(n, { commit: true })}
-                  style={{
-                    width: size,
-                    height: size,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    fontSize: size,
-                    lineHeight: `${size}px`,
-                    padding: 0,
+                  role="button"
+                  aria-label={`rate ${n}`}
+                  onClick={() => {
+                    // 1) stage the value so editingCells has it
+                    onChange(n, { commit: false });
+                    // 2) commit on next frame so validation reads the staged value
+                    requestAnimationFrame(() => onChange(n, { commit: true }));
                   }}
-                  aria-label={`Rate ${n}`}
+                  style={{ cursor: 'pointer', fontSize: 18, userSelect: 'none' }}
                 >
-                  {n <= current ? '★' : '☆'}
-                </button>
-              ))}
-              <ErrorText error={error || (isInvalid ? 'Invalid rating' : undefined)} />
-            </div>
-          );
-        },
+                  {filled ? '★' : '☆'}
+                </span>
+              );
+            })}
+            {error ? <span style={{ color: 'var(--color-danger)' }}>{error}</span> : null}
+          </div>
+        ),
+        // keep your validation; cast defensively
+        validation: (row) => (Number(row?.rating) > 0 ? undefined : 'pick at least 1 star'),
       },
     },
 
