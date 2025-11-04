@@ -57,6 +57,12 @@ import { BulkDeletePanel } from "./components/BulkDeletePanel";
 import { useValidationMessage } from "@atoms/../hooks";
 import { isValidArray, isObjectValuesEmpty } from '@utils/index';
 
+// A column is "width-ready" if it has any usable width source
+const hasDefinedWidth = (c: ColumnSettings) => {
+  const first = c?.width ?? c?.minWidth;
+  return first !== undefined && first !== null && first !== 0;
+};
+
 export const DataTableContext = createContext<any>(null);
 
 export const TXDataTable = React.forwardRef((props: DataTableProps, ref: React.Ref<any>) => {
@@ -872,18 +878,26 @@ export const TXDataTable = React.forwardRef((props: DataTableProps, ref: React.R
     const { columnSettings, collapsibleRowRender, customRowSettings, actions } = props;
 
     if (tableRef.current) {
+      const computed = setColumnSettings(
+        columnSettings,
+        getTotalWidth(globalState.observedWidth, !!collapsibleRowRender, selectable),
+        customRowSettings,
+        actions,
+        actionColumnSetting,
+        props?.localStorageSettingsKey,
+        actionsDropdownItems,
+        globalState.columns
+      );
+
+      // Hide only columns that don't have any width yet (keeps the rest visible)
+      const guarded = computed.map(col => ({
+        ...col,
+        hidden: col.hidden === true ? true : !hasDefinedWidth(col),
+      }));
+
       setGlobalStateByObj({
         tableWidth: tableRef.current.offsetWidth,
-        columns: setColumnSettings(
-          columnSettings,
-          getTotalWidth(globalState.observedWidth, !!collapsibleRowRender, selectable),
-          customRowSettings,
-          actions,
-          actionColumnSetting,
-          props?.localStorageSettingsKey,
-          actionsDropdownItems,
-          globalState.columns
-        )
+        columns: guarded,
       });
     }
   }, [tableRef, props?.columnSettings, props?.customRowSettings, props?.actions, globalState.observedWidth]); // Include observedWidth in the dependency array
@@ -1071,8 +1085,13 @@ export const TXDataTable = React.forwardRef((props: DataTableProps, ref: React.R
 
     const updatedColumns = columnWidthUpdatedWidths.map(i => ({...i, defaultWidth}));
 
-    handleOnColumnSettingsChange(updatedColumns);
-    setGlobalStateByKey('columns', updatedColumns);
+    // Ensure columns without a width remain hidden until a width exists
+    const guarded = updatedColumns.map(col => ({
+      ...col,
+      hidden: col.hidden === true ? true : !hasDefinedWidth(col),
+    }));
+    handleOnColumnSettingsChange(guarded);
+    setGlobalStateByKey('columns', guarded);
   };
 
   return (
