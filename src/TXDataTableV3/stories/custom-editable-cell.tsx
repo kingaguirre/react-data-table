@@ -162,6 +162,43 @@ export default function CustomEditableColumnsDemo() {
         ),
       },
     },
+
+    {
+      title: 'Status (always on)',
+      column: 'status',
+      width: 180,
+      actionConfig: {
+        alwaysShowEditor: true,
+        value: 'active',
+        render: ({ value, onChange, disabled }) => (
+          <select
+            disabled={!!disabled}
+            value={getValue(value) ?? ''}
+            onChange={(e) => onChange((e.target as HTMLSelectElement).value, { commit: true })} // commit-on-change
+            style={{ padding: '6px 8px', borderRadius: 6 }}
+          >
+            <option value="">Select…</option>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="archived">Archived</option>
+          </select>
+        ),
+        schema: { type: 'string', minLength: 1 },
+      },
+    },
+    {
+      title: 'Rating (always on)',
+      column: 'rating',
+      width: 200,
+      actionConfig: {
+        alwaysShowEditor: true,
+        value: 0,
+        validation: (row) => (Number(getValue(row?.rating)) > 0 ? undefined : 'pick at least 1 star'),
+        render: ({ value, onChange, error, disabled }) => (
+          <StarRatingEditor value={value} onChange={onChange} error={error || null} disabled={!!disabled} />
+        ),
+      },
+    },
   ];
 
   return (

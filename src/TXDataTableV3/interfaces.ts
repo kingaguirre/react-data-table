@@ -210,6 +210,8 @@ export interface IActionConfig {
   verticalAlign?: boolean;
   validation?: (rowData: any, isSelected: boolean) => string | undefined
 
+  /** Force the editor to be visible without click */
+  alwaysShowEditor?: boolean;
   render?: (ctx: {
     value: any;
     rowValues: any;

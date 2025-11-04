@@ -1004,4 +1004,116 @@ describe('TXDataTable', () => {
     expect(JSON.stringify(onChange.mock.calls)).toMatch(/"note"/);
   });
 
+
+
+
+
+
+
+  it('alwaysShowEditor renders inputs without click and commits on blur/enter', async () => {
+    const onChange = jest.fn();
+
+    render(
+      <TXDataTable
+        dataSource={[{ id: 1, text: 'John', status: 'active', rating: 0 }]}
+        columnSettings={[
+          { column: 'id', title: 'ID' },
+          {
+            column: 'text',
+            title: 'Name',
+            actionConfig: {
+              alwaysShowEditor: true,
+              render: ({ value, onChange }: any) => (
+                <input
+                  aria-label="always-name"
+                  value={value ?? ''}
+                  onChange={(e) => onChange((e.target as HTMLInputElement).value)} // stage
+                  onBlur={(e) => onChange((e.currentTarget as HTMLInputElement).value, { commit: true })} // commit
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onChange((e.currentTarget as HTMLInputElement).value, { commit: true });
+                  }}
+                />
+              ),
+            },
+          },
+          {
+            column: 'status',
+            title: 'Status',
+            actionConfig: {
+              alwaysShowEditor: true,
+              render: ({ value, onChange }: any) => (
+                <select
+                  aria-label="always-status"
+                  value={value ?? ''}
+                  onChange={(e) => onChange((e.target as HTMLSelectElement).value, { commit: true })}
+                >
+                  <option value="">Select…</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                </select>
+              ),
+            },
+          },
+          {
+            column: 'rating',
+            title: 'Rating',
+            actionConfig: {
+              alwaysShowEditor: true,
+              validation: (row: any) => (Number((row?.rating && row.rating.value) ?? row?.rating ?? 0) > 0 ? undefined : 'pick at least 1 star'),
+              render: ({ value, onChange, error }: any) => (
+                <div>
+                  {[1,2,3,4,5].map((n) => (
+                    <span
+                      key={n}
+                      role="button"
+                      aria-label={`rate ${n}`}
+                      tabIndex={-1}
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onChange(n, { commit: true });
+                      }}
+                    >
+                      {n <= Number(value ?? 0) ? '★' : '☆'}
+                    </span>
+                  ))}
+                  {error ? <span data-testid="rating-error">{error}</span> : null}
+                </div>
+              ),
+            },
+          },
+        ]}
+        actions={[Actions.EDIT]}
+        rowKey="id"
+        onChange={onChange}
+      />
+    );
+
+    // Inputs are present immediately without clicking the cell
+    const nameCell = screen.getByTestId('table-cell-0-text');
+    expect(within(nameCell).getByLabelText('always-name')).toBeInTheDocument();
+
+    const statusCell = screen.getByTestId('table-cell-0-status');
+    expect(within(statusCell).getByLabelText('always-status')).toBeInTheDocument();
+
+    const ratingCell = screen.getByTestId('table-cell-0-rating');
+    expect(within(ratingCell).getByLabelText('rate 3')).toBeInTheDocument();
+
+    // Update name (stage) then blur -> commit
+    const nameInput = within(nameCell).getByLabelText('always-name') as HTMLInputElement;
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Jane');
+    await userEvent.tab(); // triggers blur commit
+    expect(onChange).toHaveBeenCalled();
+
+    // Update status (commit-on-change)
+    const statusSelect = within(statusCell).getByLabelText('always-status');
+    await userEvent.selectOptions(statusSelect, 'paused');
+    expect(onChange).toHaveBeenCalled();
+
+    // Update rating via pointer (commit immediately, no error afterwards)
+    await userEvent.pointer({ target: within(ratingCell).getByLabelText('rate 4'), keys: '[MouseLeft]' });
+    expect(screen.queryByTestId('rating-error')).toBeNull();
+  });
+
 });

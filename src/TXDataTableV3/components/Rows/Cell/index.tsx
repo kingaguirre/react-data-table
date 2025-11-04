@@ -106,6 +106,7 @@ export const Cell = withState({
     cell.rowKeyValue === rowKeyValue && cell.column === columnKey
   );
   const isInEditableStatus = !!(editingCell && editingCell.editable === true);
+  const forceAlwaysEditor = !!column?.actionConfig?.alwaysShowEditor;
   const isSelectedCell = selectedCell?.rowKeyValue === rowKeyValue && selectedCell?.column === columnKey;
   const hasEditAction = hasAction(Actions.EDIT);
   const noActionConfig = column?.actionConfig === false;
@@ -336,9 +337,17 @@ export const Cell = withState({
       cell.rowKeyValue === _rowKeyValue && cell.column === columnKey
     );
     const _isInEditableStatus = !!(_editingCell && _editingCell.editable === true);
+    const _forceAlways = !!_column?.actionConfig?.alwaysShowEditor;
+    const { isValid: _colValid, errorMessage: _colErr } = isColumnValid(_column, row, dataSource);
 
-    if (_isInEditableStatus && !columnCustomRenderer && isCellEditable) {
-      return getInputs(_column, _editingCell);
+    // Normalize current value (same logic used by click-to-edit)
+    const _trimmedValue = trimValue(getParsedValue(cellValue, _column));
+    const _currentValue = (_trimmedValue !== "null" && _trimmedValue !== null) ? _trimmedValue : "";
+
+
+    if ((_isInEditableStatus || _forceAlways) && !columnCustomRenderer && isCellEditable) {
+      const synthetic = _editingCell ?? { value: _currentValue, invalid: !_colValid, error: _colErr };
+      return getInputs(_column, synthetic);
     } else {
       /** Render normal cell content */
       if (columnCustomRenderer) {
@@ -469,13 +478,13 @@ export const Cell = withState({
           ...((isUpdatedRow && !!customRowSettings && !overrideUpdateStyle) ? {
             backgroundColor: (_hasOldValue && !isInEditableStatus && showPreviousValue) ? "#FFE380" : "white"
           } : customRowStyle),
-          ...(((isInEditableStatus && isAutoHeightTableCell(column)) || editingCell?.invalid || isCustomCell) ? { height: "auto" } : {})
+          ...((((isInEditableStatus || forceAlwaysEditor) && isAutoHeightTableCell(column)) || editingCell?.invalid || isCustomCell) ? { height: "auto" } : {})
         }}
-        {...(isCellEditable && !isInEditableStatus ? {
+        {...(isCellEditable && !(isInEditableStatus || forceAlwaysEditor) ? {
           onClick: () => handleCellClick(column, row)
         } : {})}
         className={getTableCellClass({
-          isInEditableStatus,
+          isInEditableStatus: (isInEditableStatus || forceAlwaysEditor),
           isSelectedCell,
           hasEditAction,
           isCellEditable,
@@ -512,14 +521,14 @@ export const Cell = withState({
             placement="top"
             theme="light"
           >
-            <SC.InvalidBorder isInEditableStatus={isInEditableStatus} data-testid={`invalid-border-${rowIndex}-${columnKey}`}/>
+            <SC.InvalidBorder isInEditableStatus={(isInEditableStatus || forceAlwaysEditor)} data-testid={`invalid-border-${rowIndex}-${columnKey}`}/>
           </Tippy>
         )}
       </SC.TableCell>
-      {(hasEllipsis && !isInEditableStatus && !isCustomCell) && (
+      {(hasEllipsis && !(isInEditableStatus || forceAlwaysEditor) && !isCustomCell) && (
         <Tippy content={<SC.ToolTipContent>{getCellContent(column)}</SC.ToolTipContent>} placement="bottom" reference={cellRef} />
       )}
-      {!!(_hasOldValue && !isInEditableStatus && showPreviousValue) && (
+      {!!(_hasOldValue && !(isInEditableStatus || forceAlwaysEditor) && showPreviousValue) && (
         <Tippy
           content={`Previous Value: ${_hasOldValue}`}
           placement="top"
