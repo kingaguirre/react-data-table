@@ -373,3 +373,69 @@ describe('TXGrid', () => {
     expect(spies.onChange).toHaveBeenCalled();
   });
 });
+
+
+// --- Example data row ---
+const rows = [
+  {
+    id: 1,
+    makerTimestamp: "2025-0911T11:51:13.758Z",
+    checkerTimestamp: "2025-0911T11:51:13.758Z",
+  },
+  // add more rows as needed…
+];
+
+// --- Helpers (drop these near your table code) ---
+const normalizeTimestamp = (s: string | null | undefined) => {
+  if (!s) return "";
+  // Fix "YYYY-0911T..." → "YYYY-09-11T..."
+  // General rule: if it’s "YYYY-MMDDT", insert the missing '-' before the day.
+  return s.replace(/^(\d{4})-(\d{2})(\d{2})T/, "$1-$2-$3T");
+};
+
+const toDate = (s: string | null | undefined) => new Date(normalizeTimestamp(s));
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+// UTC formatting to avoid timezone drift for "…Z"
+const formatUtcDmyHms = (d: Date) => {
+  const day = pad2(d.getUTCDate());
+  const month = pad2(d.getUTCMonth() + 1);
+  const year = d.getUTCFullYear();
+  const hour = pad2(d.getUTCHours());
+  const minutes = pad2(d.getUTCMinutes());
+  const seconds = pad2(d.getUTCSeconds());
+  return `${day}-${month}-${year}, ${hour}:${minutes}:${seconds}`;
+};
+
+// --- Column settings (only the relevant parts) ---
+const columns: ColumnSettings[] = [
+  {
+    title: "Maker TS (raw)",
+    column: "makerTimestamp",
+    // sortFunction: ascending comparator; table flips for desc
+    sortFunction: (a, b, col) => {
+      const ta = toDate(getDeepValue(a, col.column)).getTime();
+      const tb = toDate(getDeepValue(b, col.column)).getTime();
+      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+    },
+    width: 200,
+  },
+  {
+    title: "Checker TS (formatted)",
+    column: "checkerTimestamp",
+    columnCustomRenderer: (_: any, data: any) => {
+      const d = toDate(data?.checkerTimestamp);
+      // If invalid date, show empty string (or a placeholder)
+      return isNaN(d.getTime()) ? "" : formatUtcDmyHms(d);
+    },
+    // Keep sorting consistent with the rendered date
+    sortFn: (a, b, col) => {
+      const ta = toDate(getDeepValue(a, col.column)).getTime();
+      const tb = toDate(getDeepValue(b, col.column)).getTime();
+      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+    },
+    width: 220,
+  },
+];
+

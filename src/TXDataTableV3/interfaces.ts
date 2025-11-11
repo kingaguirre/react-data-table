@@ -244,6 +244,8 @@ export interface ColumnSettings {
   class?: string; // (Optional) CSS class for styling the column.
   selectable?: boolean; // (Optional) If false, selecting the column is disabled.
   type?: string; // (Optional) Convert cell base on type passed.
+  /** Ascending comparator. Direction is applied by the table. */
+  sortFn?: (aRow: any, bRow: any, column: ColumnSettings) => number;
   columnCustomRenderer?: (value: any, rowData: any) => React.ReactNode; // (Optional) Custom renderer for column data, can be any component.
 }
 

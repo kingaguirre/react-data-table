@@ -107,50 +107,60 @@ export const setDeepValue = (obj, path, value) => {
 };
 
 export const sortData = (data: any[] | null, column: ColumnSettings, direction: 'asc' | 'desc') => {
+  if (data === null) return null;
+
+  // 1) Custom column comparator (ascending). We apply direction here.
+  const custom = (column as any).sortFn;
+  if (typeof custom === 'function') {
+    const asc = (a: any, b: any) => custom(a, b, column);
+    const cmp = direction === 'asc' ? asc : (a: any, b: any) => -asc(a, b);
+    return [...data].sort(cmp);
+  }
+
+  // 2) Default comparator: date → number-in-string → locale string
   const compareFunction = (a: any, b: any) => {
     let aVal: any = '';
     let bVal: any = '';
 
-    /** Get value based on column key */
+    // Prefer raw cell value; fall back to custom renderer's downloadText/default
     const aColVal = getDeepValue(a, column.column);
     const bColVal = getDeepValue(b, column.column);
 
     if (aColVal !== undefined || bColVal !== undefined) {
-      aVal = String(aColVal);
-      bVal = String(bColVal);
+      aVal = String(aColVal ?? '');
+      bVal = String(bColVal ?? '');
     } else {
-      // Get custom renderer value
-      const aCustomVal = column.columnCustomRenderer?.(null, a ?? null);
-      const bCustomVal = column.columnCustomRenderer?.(null, b ?? null);
-      // Get custom renderer downloadText value
-      const aDownloadTextVal = renderColumnCustomRenderer(aCustomVal, 'downloadText');
-      const bDownloadTextVal = renderColumnCustomRenderer(bCustomVal, 'downloadText');
-
-      if (column.columnCustomRenderer && typeof column.columnCustomRenderer === 'function') {
-        // Prioritize checking downloadText before checking custom column renderer default value
-        aVal = String(aDownloadTextVal ?? aCustomVal);
-        bVal = String(bDownloadTextVal ?? bCustomVal);
-      }
+      const aCustom = column.columnCustomRenderer?.(null, a ?? null);
+      const bCustom = column.columnCustomRenderer?.(null, b ?? null);
+      const aDownloadTextVal = renderColumnCustomRenderer(aCustom, 'downloadText');
+      const bDownloadTextVal = renderColumnCustomRenderer(bCustom, 'downloadText');
+      aVal = String(aDownloadTextVal ?? aCustom ?? '');
+      bVal = String(bDownloadTextVal ?? bCustom ?? '');
     }
 
-    /** Extract numbers from the strings  */
+    // Try dates (handles ISO & most parseable formats)
+    const aTime = Date.parse(aVal);
+    const bTime = Date.parse(bVal);
+    if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+      return aTime - bTime;
+    }
+
+    // Try number extraction (e.g., "RM 1,234.50" → 123450)
     const aMatches = aVal.match(/\d+/g) || [];
     const bMatches = bVal.match(/\d+/g) || [];
-
-    /** If both have numbers, compare as numbers  */
     if (aMatches.length > 0 && bMatches.length > 0) {
       const aNum = parseInt(aMatches.join(''), 10);
       const bNum = parseInt(bMatches.join(''), 10);
-      if (aNum !== bNum) {
-        return aNum - bNum;
-      }
+      if (aNum !== bNum) return aNum - bNum;
     }
 
-    /** If not, or if the numbers are equal, compare as strings  */
+    // Fallback to string compare
     return aVal.localeCompare(bVal);
-  }
+  };
 
-  return data !== null ? direction === 'asc' ? [...data].sort(compareFunction) : [...data].sort((a, b) => -compareFunction(a, b)) : null;
+  return direction === 'asc'
+    ? [...data].sort(compareFunction)
+    : [...data].sort((x, y) => -compareFunction(x, y));
 };
 
 export const getTableWidth = (props) => {
