@@ -4,10 +4,10 @@ import { TXDataTable, getDeepValue } from '../index';
 import { Container } from './utils';
 import type { ColumnSettings } from '../interfaces';
 
-// --- helpers ---
+// ---------- helpers ----------
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-// "YYYY-MMDDT..." normalizer (fixes missing dash before day)
+// Fix "YYYY-MMDDT..." → "YYYY-MM-DDT..."
 const normalizeTimestamp = (s: string | null | undefined) =>
   (s || '').replace(/^(\d{4})-(\d{2})(\d{2})T/, '$1-$2-$3T');
 
@@ -23,19 +23,22 @@ const formatUtcDmyHms = (d: Date) => {
   return `${day}-${month}-${year}, ${hour}:${minutes}:${seconds}`;
 };
 
-// produce weird ISO like "YYYY-0911T11:51:13.758Z"
+const makeUTC = (y: number, m: number, d: number, h: number, mi: number, s: number, ms = 0) =>
+  new Date(Date.UTC(y, m - 1, d, h, mi, s, ms));
+
+/** Turn a Date into your weird ISO: "YYYY-MMDDT..." (missing dash before day) */
 const toWeirdIso = (d: Date) => {
   const y = d.getUTCFullYear();
   const m = pad2(d.getUTCMonth() + 1);
   const day = pad2(d.getUTCDate());
-  const iso = d.toISOString(); // YYYY-MM-DDTHH:mm:ss.sssZ
-  const time = iso.split('T')[1]; // HH:mm:ss.sssZ
+  const time = d.toISOString().split('T')[1]; // "HH:mm:ss.sssZ"
   return `${y}-${m}${day}T${time}`;
 };
 
 const rm = (n: number) =>
   `RM ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+// Custom sorters
 const amountSortFn = (a: any, b: any, col: ColumnSettings) => {
   const toNum = (s: string) => Number((s || '').replace(/[^\d.-]/g, '')) || 0;
   const av = toNum(getDeepValue(a, col.column));
@@ -51,37 +54,59 @@ const tsSortFn = (a: any, b: any, col: ColumnSettings) => {
   return A - B;
 };
 
-// --- data (120 rows) ---
-const BASE = new Date('2025-09-11T11:51:13.758Z').getTime();
+// ---------- data (120 rows with varied years/months/days/times) ----------
 const ROWS = Array.from({ length: 120 }, (_, i) => {
-  const dA = new Date(BASE + i * 60 * 60 * 1000);       // hourly steps
-  const dB = new Date(BASE + i * 17 * 60 * 1000);       // 17-minute steps
-  const amount = 1000 + i * 13.37;                      // arbitrary ascending
+  // Maker timestamp varies forward across 2019..2025, all months, days, and times
+  const yA = 2019 + (i % 7);         // 2019..2025
+  const mA = 1 + (i % 12);           // 1..12
+  const dA = 1 + ((i * 7) % 28);     // 1..28 (safe for all months)
+  const hA = (i * 3) % 24;
+  const miA = (i * 11) % 60;
+  const sA = (i * 19) % 60;
+
+  // Checker timestamp varies differently (and sometimes earlier years) to avoid correlation
+  const yB = 2025 - (i % 6);         // 2025..2020
+  const mB = 12 - (i % 12) || 12;    // 12..1
+  const dB = 1 + ((i * 5) % 28);     // 1..28
+  const hB = (i * 7) % 24;
+  const miB = (i * 13) % 60;
+  const sB = (i * 23) % 60;
+
+  const makerDate = makeUTC(yA, mA, dA, hA, miA, sA, 758);
+  const checkerDate = makeUTC(yB, mB, dB, hB, miB, sB, 758);
+
+  // Non-monotonic amounts so sorting is obvious
+  const amount =
+    1000 +
+    ((i * 137) % 1234) + // wrap-around pattern
+    ((i % 3) === 0 ? 0.5 : 0); // sprinkle some cents
+
   return {
     id: i + 1,
     name: `Row ${i + 1}`,
     amountText: rm(amount),
-    makerTimestamp: toWeirdIso(dA),                     // e.g. "2025-0911T..."
-    checkerTimestamp: toWeirdIso(dB),
+    makerTimestamp: toWeirdIso(makerDate),     // e.g., "2025-0911T..."
+    checkerTimestamp: toWeirdIso(checkerDate), // same weird format
   };
 });
 
-// --- columns ---
+// ---------- columns ----------
 const COLUMNS: ColumnSettings[] = [
-  { title: 'ID', column: 'id', width: 80, sorted: 'asc' },
+  { title: 'ID', column: 'id', width: 80 },
   { title: 'Name', column: 'name', width: 180 },
   {
     title: 'Amount (RM)',
     column: 'amountText',
     width: 160,
-    sortFn: amountSortFn, // custom numeric sort for currency text
+    sortFn: amountSortFn, // numeric sort for currency strings
   },
   {
     title: 'Maker TS (raw)',
     column: 'makerTimestamp',
     width: 220,
+    // try default 'desc' to quickly verify flip
     sorted: 'desc',
-    sortFunction: tsSortFn, // custom date sort for weird ISO
+    sortFunction: tsSortFn, // date sort for weird ISO
   },
   {
     title: 'Checker TS (formatted)',
@@ -91,20 +116,22 @@ const COLUMNS: ColumnSettings[] = [
       const d = toDate(data?.checkerTimestamp);
       return Number.isNaN(d.getTime()) ? '' : formatUtcDmyHms(d); // "DD-MM-YYYY, HH:mm:ss"
     },
-    sortFn: tsSortFn, // keep sort consistent with the underlying timestamp
+    sortFn: tsSortFn, // stay consistent with underlying timestamp
   },
 ];
 
 export default () => (
   <Container>
-    <h2>TX Data Table V3 — Sorting Demo</h2>
-    <p>Shows custom sorting for currency and timestamps (including weird ISO like <code>YYYY-MMDDT…Z</code>).</p>
+    <h2>TX Data Table V3 — Sorting (Wide Date Coverage)</h2>
+    <p>
+      Dates span different <b>years</b>, <b>months</b>, <b>days</b>, and <b>times</b> using the weird format
+      <code> YYYY-MMDDT…Z</code>. Columns use custom comparators for correct sorting.
+    </p>
     <TXDataTable
       dataSource={ROWS}
       columnSettings={COLUMNS}
       rowKey="id"
       headerSearchSettings
-      // keep the rest minimal; sorting is via header clicks
     />
   </Container>
 );
