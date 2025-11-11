@@ -13,14 +13,18 @@ const normalizeTimestamp = (s: string | null | undefined) =>
 
 const toDate = (s: string | null | undefined) => new Date(normalizeTimestamp(s));
 
-const formatUtcDmyHms = (d: Date) => {
+// Month short names
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Format to "DD-MMM-YYYY: hh:mm:ss" (UTC-based, matching the trailing Z)
+const formatUtcDmyMonHms = (d: Date) => {
   const day = pad2(d.getUTCDate());
-  const month = pad2(d.getUTCMonth() + 1);
+  const mon = MONTHS[d.getUTCMonth()];
   const year = d.getUTCFullYear();
-  const hour = pad2(d.getUTCHours());
+  const hour = pad2(d.getUTCHours());      // 00..23; change if you want 12h
   const minutes = pad2(d.getUTCMinutes());
   const seconds = pad2(d.getUTCSeconds());
-  return `${day}-${month}-${year}, ${hour}:${minutes}:${seconds}`;
+  return `${day}-${mon}-${year}: ${hour}:${minutes}:${seconds}`;
 };
 
 const makeUTC = (y: number, m: number, d: number, h: number, mi: number, s: number, ms = 0) =>
@@ -59,7 +63,7 @@ const ROWS = Array.from({ length: 120 }, (_, i) => {
   // Maker timestamp varies forward across 2019..2025, all months, days, and times
   const yA = 2019 + (i % 7);         // 2019..2025
   const mA = 1 + (i % 12);           // 1..12
-  const dA = 1 + ((i * 7) % 28);     // 1..28 (safe for all months)
+  const dA = 1 + ((i * 7) % 28);     // 1..28 (safe)
   const hA = (i * 3) % 24;
   const miA = (i * 11) % 60;
   const sA = (i * 19) % 60;
@@ -93,7 +97,7 @@ const ROWS = Array.from({ length: 120 }, (_, i) => {
 // ---------- columns ----------
 const COLUMNS: ColumnSettings[] = [
   { title: 'ID', column: 'id', width: 80 },
-  { title: 'Name', column: 'name', width: 180 },
+  { title: 'Name', column: 'name' }, // ← no width per request
   {
     title: 'Amount (RM)',
     column: 'amountText',
@@ -104,19 +108,18 @@ const COLUMNS: ColumnSettings[] = [
     title: 'Maker TS (raw)',
     column: 'makerTimestamp',
     width: 220,
-    // try default 'desc' to quickly verify flip
     sorted: 'desc',
-    sortFunction: tsSortFn, // date sort for weird ISO
+    sortFn: tsSortFn, // use sortFn (no sortFunction)
   },
   {
     title: 'Checker TS (formatted)',
     column: 'checkerTimestamp',
-    width: 240,
+    width: 260,
     columnCustomRenderer: (_: any, data: any) => {
       const d = toDate(data?.checkerTimestamp);
-      return Number.isNaN(d.getTime()) ? '' : formatUtcDmyHms(d); // "DD-MM-YYYY, HH:mm:ss"
+      return Number.isNaN(d.getTime()) ? '' : formatUtcDmyMonHms(d); // "DD-MMM-YYYY: hh:mm:ss"
     },
-    sortFn: tsSortFn, // stay consistent with underlying timestamp
+    sortFn: tsSortFn, // consistent with the underlying timestamp
   },
 ];
 
@@ -125,7 +128,8 @@ export default () => (
     <h2>TX Data Table V3 — Sorting (Wide Date Coverage)</h2>
     <p>
       Dates span different <b>years</b>, <b>months</b>, <b>days</b>, and <b>times</b> using the weird format
-      <code> YYYY-MMDDT…Z</code>. Columns use custom comparators for correct sorting.
+      <code> YYYY-MMDDT…Z</code>. Columns use <code>sortFn</code> and the formatted date shows as
+      <code> DD-MMM-YYYY: hh:mm:ss</code>.
     </p>
     <TXDataTable
       dataSource={ROWS}
