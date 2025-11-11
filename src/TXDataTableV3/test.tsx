@@ -1116,4 +1116,228 @@ describe('TXDataTable', () => {
     expect(screen.queryByTestId('rating-error')).toBeNull();
   });
 
+
+
+
+
+
+
+
+
+  // --- NEW TESTS: custom sorting + renderer columns ----------------------------
+
+it('sortData honors custom sortFn for weird ISO timestamps (YYYY-MMDDT...)', () => {
+  const rows = [
+    { ts: '2025-0911T11:51:13.758Z' }, // Sep 11, 2025
+    { ts: '2024-1205T10:00:00.000Z' }, // Dec 05, 2024
+    { ts: '2025-0102T00:00:01.000Z' }, // Jan 02, 2025
+  ];
+
+  // normalize "YYYY-MMDDT..." → "YYYY-MM-DDT..."
+  const normalize = (s: string) => s.replace(/^(\d{4})-(\d{2})(\d{2})T/, '$1-$2-$3T');
+  const tsSortFn = (a: any, b: any, col: any) =>
+    new Date(normalize(a[col.column])).getTime() - new Date(normalize(b[col.column])).getTime();
+
+  const sortedAsc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'asc');
+  expect(sortedAsc.map(r => r.ts)).toEqual([
+    '2024-1205T10:00:00.000Z',
+    '2025-0102T00:00:01.000Z',
+    '2025-0911T11:51:13.758Z',
+  ]);
+
+  const sortedDesc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'desc');
+  expect(sortedDesc.map(r => r.ts)).toEqual([
+    '2025-0911T11:51:13.758Z',
+    '2025-0102T00:00:01.000Z',
+    '2024-1205T10:00:00.000Z',
+  ]);
+});
+
+it('sortData works when columnCustomRenderer returns JSX render + downloadText', () => {
+  const rows = [
+    { buyerLtpId: { value: '10' } },
+    { buyerLtpId: { value: '2' } },
+    { buyerLtpId: { value: '30' } },
+  ];
+
+  const col = {
+    title: 'ID',
+    column: 'buyerLtpId_',
+    sorted: 'none',
+    columnCustomRenderer: (_: any, data: any) => ({
+      render: <>{data.buyerLtpId.value}</>,
+      downloadText: String(data.buyerLtpId.value), // used for sorting & export
+    }),
+  };
+
+  const asc = sortData(rows, col as any, 'asc');
+  expect(asc.map(r => r.buyerLtpId.value)).toEqual(['10', '2', '30']); // string compare (no custom sortFn)
+
+  // provide numeric custom comparator to prove we can override to numeric
+  const numericCol = { ...col, sortFn: (a: any, b: any, c: any) =>
+    Number(a.buyerLtpId.value) - Number(b.buyerLtpId.value) };
+  const ascNum = sortData(rows, numericCol as any, 'asc');
+  expect(ascNum.map(r => r.buyerLtpId.value)).toEqual(['2', '10', '30']);
+});
+
+it('header click sorts renderer-only columns (rating, code, grade, virtual label)', async () => {
+  const ratingSortFn = (a: any, b: any) => Number(a.rating ?? 0) - Number(b.rating ?? 0);
+  const alphaNumSortFn = (a: any, b: any) => {
+    const parse = (s: string) => {
+      const m = (s || '').match(/^([A-Za-z]+)(\d+)?$/);
+      return m ? [m[1].toUpperCase(), Number(m[2] ?? 0)] as const : [s.toUpperCase(), 0] as const;
+    };
+    const [la, na] = parse(a.code);
+    const [lb, nb] = parse(b.code);
+    return la === lb ? na - nb : (la < lb ? -1 : 1);
+  };
+  const GRADE_ORDER = ['F','D','C-','C','C+','B-','B','B+','A-','A','A+'];
+  const gradeSortFn = (a: any, b: any) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
+  const rendererTextSort = (a: any, b: any, col: any) => {
+    const getText = (row: any) => {
+      const out = col.columnCustomRenderer?.(null, row);
+      return typeof out === 'string' ? out : String(out?.downloadText ?? '');
+    };
+    return getText(a).localeCompare(getText(b));
+  };
+
+  const rows = [
+    { id: 1, name: 'A', rating: 3, code: 'A10', grade: 'B'  },
+    { id: 2, name: 'B', rating: 1, code: 'A2',  grade: 'A-' },
+    { id: 3, name: 'C', rating: 5, code: 'B2',  grade: 'C+' },
+  ];
+
+  render(
+    <TXDataTable
+      dataSource={rows}
+      columnSettings={[
+        { column: 'id', title: 'ID' },
+        { column: 'name', title: 'Name' },
+
+        {
+          title: 'Rating ★',
+          column: 'ratingStars',
+          columnCustomRenderer: (_: any, row: any) => ({
+            render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
+            downloadText: String(row.rating),
+          }),
+          sortFn: ratingSortFn,
+        },
+        {
+          title: 'Code (A1/B12)',
+          column: 'codeCell',
+          columnCustomRenderer: (_: any, row: any) => ({
+            render: <>Code: <b>{row.code}</b></>,
+            downloadText: row.code,
+          }),
+          sortFn: alphaNumSortFn,
+        },
+        {
+          title: 'Grade',
+          column: 'gradeCell',
+          columnCustomRenderer: (_: any, row: any) => ({ render: <>{row.grade}</>, downloadText: row.grade }),
+          sortFn: gradeSortFn,
+        },
+        {
+          title: 'Virtual Label',
+          column: 'virtualLabel',
+          columnCustomRenderer: (_: any, row: any) => {
+            const text = `#${String(row.id).padStart(2, '0')} • ${row.name}`;
+            return { render: <>{text}</>, downloadText: text };
+          },
+          sortFn: rendererTextSort,
+        },
+      ]}
+    />
+  );
+
+  // Rating asc: ids should be [2,1,3]
+  fireEvent.click(screen.getByTitle('Sort Rating ★ (asc)'));
+  await waitFor(() => {
+    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
+    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+  });
+
+  // Rating desc
+  fireEvent.click(screen.getByTitle('Sort Rating ★ (desc)'));
+  await waitFor(() => {
+    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
+    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
+  });
+
+  // Code asc using natural sort → A2, A10, B2 → ids [2,1,3]
+  fireEvent.click(screen.getByTitle('Sort Code (A1/B12) (asc)'));
+  await waitFor(() => {
+    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
+    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+  });
+
+  // Grade asc using ladder F..A+ → C+ (id 3), B (id 1), A- (id 2)
+  fireEvent.click(screen.getByTitle('Sort Grade (asc)'));
+  await waitFor(() => {
+    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
+    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
+  });
+
+  // Virtual Label asc sorts by downloadText "#01 • A", "#02 • B", "#03 • C"
+  fireEvent.click(screen.getByTitle('Sort Virtual Label (asc)'));
+  await waitFor(() => {
+    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('1');
+    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('2');
+    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+  });
+});
+
+it('downloadXLS uses downloadText for renderer-only columns', async () => {
+  jest.clearAllMocks();
+
+  const rows = [
+    { id: 1, name: 'Alpha', rating: 2 },
+    { id: 2, name: 'Beta',  rating: 5 },
+  ];
+
+  render(
+    <TXDataTable
+      dataSource={rows}
+      columnSettings={[
+        { column: 'id', title: 'ID' },
+        { column: 'name', title: 'Name' },
+        {
+          title: 'Rating ★',
+          column: 'ratingStars',
+          columnCustomRenderer: (_: any, row: any) => ({
+            render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
+            downloadText: String(row.rating), // what we expect to see in XLS
+          }),
+        },
+      ]}
+      downloadXLS
+    />
+  );
+
+  // open "download all" and trigger
+  const icon = screen.getByTestId('download-all-icon');
+  fireEvent.click(icon);
+  const menu = screen.getByTestId('download-all-menu');
+  fireEvent.click(menu);
+
+  await waitFor(() => {
+    expect(XLSX.writeFile).toHaveBeenCalledTimes(1);
+  });
+
+  const [workbookArg] = (XLSX.writeFile as jest.Mock).mock.calls[0];
+  const sheetName = workbookArg.SheetNames[0];
+  const worksheet = workbookArg.Sheets[sheetName];
+  const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  // Header should include renderer-only column
+  expect(data[0]).toEqual(['ID', 'Name', 'Rating ★']);
+  // Rows should contain downloadText (plain numbers "2" and "5"), not JSX
+  expect(data[1]).toEqual([1, 'Alpha', '2']);
+  expect(data[2]).toEqual([2, 'Beta',  '5']);
+});
+
 });
