@@ -1166,18 +1166,28 @@ it('sortData works when columnCustomRenderer returns JSX render + downloadText',
     sorted: 'none',
     columnCustomRenderer: (_: any, data: any) => ({
       render: <>{data.buyerLtpId.value}</>,
-      downloadText: String(data.buyerLtpId.value), // used for sorting & export
+      downloadText: String(data.buyerLtpId.value),
     }),
+  } as const;
+
+  // Default behavior: numeric (because both sides have digits)
+  const asc = sortData(rows, col as any, 'asc');
+  expect(asc.map(r => r.buyerLtpId.value)).toEqual(['2', '10', '30']);
+
+  // If you want lexicographic ordering, provide an explicit sortFn:
+  const lexCol = {
+    ...col,
+    sortFn: (a: any, b: any, c: any) => {
+      const toText = (row: any) => {
+        const out = c.columnCustomRenderer?.(null, row);
+        return typeof out === 'string' ? out : String(out?.downloadText ?? '');
+      };
+      return toText(a).localeCompare(toText(b));
+    },
   };
 
-  const asc = sortData(rows, col as any, 'asc');
-  expect(asc.map(r => r.buyerLtpId.value)).toEqual(['10', '2', '30']); // string compare (no custom sortFn)
-
-  // provide numeric custom comparator to prove we can override to numeric
-  const numericCol = { ...col, sortFn: (a: any, b: any, c: any) =>
-    Number(a.buyerLtpId.value) - Number(b.buyerLtpId.value) };
-  const ascNum = sortData(rows, numericCol as any, 'asc');
-  expect(ascNum.map(r => r.buyerLtpId.value)).toEqual(['2', '10', '30']);
+  const ascLex = sortData(rows, lexCol as any, 'asc');
+  expect(ascLex.map(r => r.buyerLtpId.value)).toEqual(['10', '2', '30']);
 });
 
 it('header click sorts renderer-only columns (rating, code, grade, virtual label)', async () => {
