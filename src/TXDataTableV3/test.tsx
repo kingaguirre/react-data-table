@@ -38,7 +38,7 @@ const onPageSizeChangeHandler = jest.fn();
 const onPageIndexChangeHandler = jest.fn();
 const onRefreshIconClickHandler = jest.fn();
 
-jest.spyOn(XLSX, 'writeFile').mockImplementation(() => {});
+jest.spyOn(XLSX, 'writeFile').mockImplementation(() => { });
 
 const Validation = () => {
   const dataTableRef = React.createRef<any>();
@@ -189,7 +189,7 @@ describe('TXDataTable', () => {
 
     fireEvent(input, createEvent('change', input, { detail: 0 }, { EventType: 'CustomEvent' }));
     fireEvent(input, createEvent('blur', input, { detail: 0 }, { EventType: 'CustomEvent' }));
-  
+
     expect(screen.queryByText('0')).toBeDefined();
 
     const save = await screen.findByTitle('Save');
@@ -216,9 +216,9 @@ describe('TXDataTable', () => {
     expect(input).toBeDefined();
     await userEvent.click(input);
 
-    fireEvent(input, createEvent( 'change', input, { detail: 'King' }, { EventType: 'CustomEvent' }));
+    fireEvent(input, createEvent('change', input, { detail: 'King' }, { EventType: 'CustomEvent' }));
     fireEvent.blur(input)
-  
+
     expect(screen.queryByText('King')).not.toBeNull();
 
     expect(onChangeHandler).toHaveBeenCalledWith([{
@@ -246,20 +246,20 @@ describe('TXDataTable', () => {
         "intentAction": "U"
       }
     ]);
-  
-     // do redo
-     fireEvent.keyDown(document, {
+
+    // do redo
+    fireEvent.keyDown(document, {
       key: 'y',
       code: 'KeyY',
       ctrlKey: true
     })
-     expect(onChangeHandler).toHaveBeenCalledWith([
-       {
-         "id": 1,
-         "intentAction": "U",
-         "name": undefined
-       }
-     ]);
+    expect(onChangeHandler).toHaveBeenCalledWith([
+      {
+        "id": 1,
+        "intentAction": "U",
+        "name": undefined
+      }
+    ]);
     cleanup();
   });
 
@@ -292,7 +292,7 @@ describe('TXDataTable', () => {
     fireEvent.click(firstRowNameColumn);
     const input = firstRowNameColumn.querySelector('tx-core-form-control')!;
     // Update text for manadatory check
-    fireEvent(input, createEvent( 'change', input, { detail: '' }, { EventType: 'CustomEvent' }));
+    fireEvent(input, createEvent('change', input, { detail: '' }, { EventType: 'CustomEvent' }));
     fireEvent(input, createEvent('blur', input, { detail: '' }, { EventType: 'CustomEvent' }));
     expect(onChangeHandler).toHaveBeenCalledWith([
       {
@@ -325,7 +325,7 @@ describe('TXDataTable', () => {
     fireEvent.click(firstRowNameColumn);
     expect(screen.queryByText('Name is mandatory')).toBeDefined();
     // Update text for unique check
-    fireEvent(input, createEvent( 'change', input, { detail: 'Jane' }, { EventType: 'CustomEvent' }));
+    fireEvent(input, createEvent('change', input, { detail: 'Jane' }, { EventType: 'CustomEvent' }));
     fireEvent(input, createEvent('blur', input, { detail: 'Jane' }, { EventType: 'CustomEvent' }));
     expect(onChangeHandler).toHaveBeenCalledWith([
       {
@@ -352,7 +352,7 @@ describe('TXDataTable', () => {
     fireEvent.click(firstRowNameColumn);
     expect(screen.queryByText('Data should be unique')).toBeDefined();
     // Update text to remove validation
-    fireEvent(input, createEvent( 'change', input, { detail: 'King' }, { EventType: 'CustomEvent' }));
+    fireEvent(input, createEvent('change', input, { detail: 'King' }, { EventType: 'CustomEvent' }));
     fireEvent(input, createEvent('blur', input, { detail: 'King' }, { EventType: 'CustomEvent' }));
     expect(onChangeHandler).toHaveBeenCalledWith([
       {
@@ -422,7 +422,7 @@ describe('TXDataTable', () => {
         isPermanentDelete={true}
       />
     );
-    
+
     await userEvent.click(screen.getByTitle('Delete'));
     expect(screen.queryByText('Final')).toBeNull();
     expect(screen.queryByTitle('rowKey is required if actions or selectable prop is defined')).toBeDefined();
@@ -482,7 +482,7 @@ describe('TXDataTable', () => {
         onSelectedRowsChange={onSelectedRowsChangeHandler}
       />
     );
-    
+
     const rowSelector0 = screen.getByTestId('row-selector-0');
     expect(rowSelector0).toBeDefined();
     expect(rowSelector0.getAttribute('class')).toContain('radio');
@@ -503,8 +503,8 @@ describe('TXDataTable', () => {
 
     // select first row
     fireEvent(rowCheckbox1, createEvent('change', rowCheckbox1, {}, { EventType: 'CustomEvent' }));
-    expect(onSelectedRowsChangeHandler).toHaveBeenCalledWith([{"id": 2, "name": "Jane Smith"}]);
-    
+    expect(onSelectedRowsChangeHandler).toHaveBeenCalledWith([{ "id": 2, "name": "Jane Smith" }]);
+
     // check if first row is selected
     const row1 = screen.getByTestId('row-1');
     expect(row1.getAttribute('class')).toContain('is-selected');
@@ -524,7 +524,7 @@ describe('TXDataTable', () => {
         onSelectedRowsChange={onSelectedRowsChangeHandler}
       />
     );
-    
+
     const rowSelector0 = screen.getByTestId('row-selector-0');
     expect(rowSelector0).toBeDefined();
     expect(rowSelector0.getAttribute('class')).toContain('checkbox');
@@ -594,7 +594,7 @@ describe('TXDataTable', () => {
         onRowClick={onRowClickHandler}
       />
     );
-    
+
     const row0 = screen.getByTestId('row-0');
     // click first row
     fireEvent.click(row0)
@@ -626,7 +626,7 @@ describe('TXDataTable', () => {
         onRowDoubleClick={onRowDoubleClickHandler}
       />
     );
-    
+
     const dClick = userEvent.setup({ delay: 50 })
 
     const row0 = screen.getByTestId('row-0');
@@ -691,7 +691,7 @@ describe('TXDataTable', () => {
         onRefreshIconClick={onRefreshIconClickHandler}
       />
     );
-    
+
     // check display is correct
     expect(screen.getByTitle('Displaying 1 to 10 of 20 Records')).toBeDefined();
     // check that first and previous button should be disabled
@@ -761,7 +761,7 @@ describe('TXDataTable', () => {
     const worksheet = workbookArg.Sheets[sheetName];
 
     const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-    expect(data).toEqual( [ [ 'ID', 'Name' ], [ 1, 'King' ], [ 2, 'Jane' ] ])
+    expect(data).toEqual([['ID', 'Name'], [1, 'King'], [2, 'Jane']])
   })
 
   it('render custom cell', async () => {
@@ -801,7 +801,7 @@ describe('TXDataTable', () => {
     const nameFilterInput = nameFilter.querySelector('tx-core-form-control')!;
 
     // do filter with 'x' value
-    fireEvent(nameFilterInput, createEvent('change', nameFilterInput, { detail: 'x'}, { EventType: 'CustomEvent' }));
+    fireEvent(nameFilterInput, createEvent('change', nameFilterInput, { detail: 'x' }, { EventType: 'CustomEvent' }));
     // since 'x' doesnt match 'John Doe' it should not be in the document
     expect(screen.queryByText('John Doe')).toBeNull();
 
@@ -812,7 +812,7 @@ describe('TXDataTable', () => {
   });
 
   it('should validate when .validate api is called on button click', async () => {
-    render(<Validation/>);
+    render(<Validation />);
 
     fireEvent.click(screen.getByText('Validate'))
     expect(screen.getByText(/Name is mandatory/))
@@ -834,7 +834,7 @@ describe('TXDataTable', () => {
   });
 
   it('filterRows filter correctly', () => {
-    expect(filterRows([{id: '1', name: 'Name 1'}, {id: '2', name: 'Name 2'}], ['1'], 'id')).toEqual([{id: '2', name: 'Name 2'}]);
+    expect(filterRows([{ id: '1', name: 'Name 1' }, { id: '2', name: 'Name 2' }], ['1'], 'id')).toEqual([{ id: '2', name: 'Name 2' }]);
   });
 
   it('sortData works correctly (default)', () => {
@@ -845,7 +845,7 @@ describe('TXDataTable', () => {
       "title": "ID",
       "column": "buyerLtpId",
       "sorted": "none"
-    }, 'asc')).toEqual([ {"buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" }}]);
+    }, 'asc')).toEqual([{ "buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" } }]);
   });
   it('sortData works correctly (customColumnRenderer)', () => {
     expect(sortData([
@@ -856,7 +856,7 @@ describe('TXDataTable', () => {
       "column": "buyerLtpId_",
       "sorted": "none",
       columnCustomRenderer: (_, data) => data.buyerLtpId
-    }, 'asc')).toEqual([ {"buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" }}]);
+    }, 'asc')).toEqual([{ "buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" } }]);
   });
   it('sortData works correctly (customColumnRenderer + downloadText)', () => {
     expect(sortData([
@@ -867,7 +867,7 @@ describe('TXDataTable', () => {
       "column": "buyerLtpId_",
       "sorted": "none",
       columnCustomRenderer: (_, data) => ({ render: data.buyerLtpId, downloadText: data.buyerLtpId })
-    }, 'asc')).toEqual([ {"buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" }}]);
+    }, 'asc')).toEqual([{ "buyerLtpId": { "value": "1" } }, { "buyerLtpId": { "value": "2" } }]);
   });
 
 
@@ -1004,12 +1004,6 @@ describe('TXDataTable', () => {
     expect(JSON.stringify(onChange.mock.calls)).toMatch(/"note"/);
   });
 
-
-
-
-
-
-
   it('alwaysShowEditor renders inputs without click and commits on blur/enter', async () => {
     const onChange = jest.fn();
 
@@ -1062,7 +1056,7 @@ describe('TXDataTable', () => {
               validation: (row: any) => (Number((row?.rating && row.rating.value) ?? row?.rating ?? 0) > 0 ? undefined : 'pick at least 1 star'),
               render: ({ value, onChange, error }: any) => (
                 <div>
-                  {[1,2,3,4,5].map((n) => (
+                  {[1, 2, 3, 4, 5].map((n) => (
                     <span
                       key={n}
                       role="button"
@@ -1126,228 +1120,254 @@ describe('TXDataTable', () => {
 
   // --- NEW TESTS: custom sorting + renderer columns ----------------------------
 
-it('sortData honors custom sortFn for weird ISO timestamps (YYYY-MMDDT...)', () => {
-  const rows = [
-    { ts: '2025-0911T11:51:13.758Z' }, // Sep 11, 2025
-    { ts: '2024-1205T10:00:00.000Z' }, // Dec 05, 2024
-    { ts: '2025-0102T00:00:01.000Z' }, // Jan 02, 2025
-  ];
+  it('sortData honors custom sortFn for weird ISO timestamps (YYYY-MMDDT...)', () => {
+    const rows = [
+      { ts: '2025-0911T11:51:13.758Z' }, // Sep 11, 2025
+      { ts: '2024-1205T10:00:00.000Z' }, // Dec 05, 2024
+      { ts: '2025-0102T00:00:01.000Z' }, // Jan 02, 2025
+    ];
 
-  // normalize "YYYY-MMDDT..." → "YYYY-MM-DDT..."
-  const normalize = (s: string) => s.replace(/^(\d{4})-(\d{2})(\d{2})T/, '$1-$2-$3T');
-  const tsSortFn = (a: any, b: any, col: any) =>
-    new Date(normalize(a[col.column])).getTime() - new Date(normalize(b[col.column])).getTime();
+    // normalize "YYYY-MMDDT..." → "YYYY-MM-DDT..."
+    const normalize = (s: string) => s.replace(/^(\d{4})-(\d{2})(\d{2})T/, '$1-$2-$3T');
+    const tsSortFn = (a: any, b: any, col: any) =>
+      new Date(normalize(a[col.column])).getTime() - new Date(normalize(b[col.column])).getTime();
 
-  const sortedAsc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'asc');
-  expect(sortedAsc.map(r => r.ts)).toEqual([
-    '2024-1205T10:00:00.000Z',
-    '2025-0102T00:00:01.000Z',
-    '2025-0911T11:51:13.758Z',
-  ]);
+    const sortedAsc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'asc');
+    expect(sortedAsc.map(r => r.ts)).toEqual([
+      '2024-1205T10:00:00.000Z',
+      '2025-0102T00:00:01.000Z',
+      '2025-0911T11:51:13.758Z',
+    ]);
 
-  const sortedDesc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'desc');
-  expect(sortedDesc.map(r => r.ts)).toEqual([
-    '2025-0911T11:51:13.758Z',
-    '2025-0102T00:00:01.000Z',
-    '2024-1205T10:00:00.000Z',
-  ]);
-});
+    const sortedDesc = sortData(rows, { title: 'TS', column: 'ts', sortFn: tsSortFn }, 'desc');
+    expect(sortedDesc.map(r => r.ts)).toEqual([
+      '2025-0911T11:51:13.758Z',
+      '2025-0102T00:00:01.000Z',
+      '2024-1205T10:00:00.000Z',
+    ]);
+  });
 
-it('sortData works when columnCustomRenderer returns JSX render + downloadText', () => {
-  const rows = [
-    { buyerLtpId: { value: '10' } },
-    { buyerLtpId: { value: '2' } },
-    { buyerLtpId: { value: '30' } },
-  ];
+  it('sortData works when columnCustomRenderer returns JSX render + downloadText', () => {
+    const rows = [
+      { buyerLtpId: { value: '10' } },
+      { buyerLtpId: { value: '2' } },
+      { buyerLtpId: { value: '30' } },
+    ];
 
-  const col = {
-    title: 'ID',
-    column: 'buyerLtpId_',
-    sorted: 'none',
-    columnCustomRenderer: (_: any, data: any) => ({
-      render: <>{data.buyerLtpId.value}</>,
-      downloadText: String(data.buyerLtpId.value),
-    }),
-  } as const;
+    const col = {
+      title: 'ID',
+      column: 'buyerLtpId_',
+      sorted: 'none',
+      columnCustomRenderer: (_: any, data: any) => ({
+        render: <>{data.buyerLtpId.value}</>,
+        downloadText: String(data.buyerLtpId.value),
+      }),
+    } as const;
 
-  // Default behavior: numeric (because both sides have digits)
-  const asc = sortData(rows, col as any, 'asc');
-  expect(asc.map(r => r.buyerLtpId.value)).toEqual(['2', '10', '30']);
+    // Default behavior: numeric (because both sides have digits)
+    const asc = sortData(rows, col as any, 'asc');
+    expect(asc.map(r => r.buyerLtpId.value)).toEqual(['2', '10', '30']);
 
-  // If you want lexicographic ordering, provide an explicit sortFn:
-  const lexCol = {
-    ...col,
-    sortFn: (a: any, b: any, c: any) => {
-      const toText = (row: any) => {
-        const out = c.columnCustomRenderer?.(null, row);
+    // If you want lexicographic ordering, provide an explicit sortFn:
+    const lexCol = {
+      ...col,
+      sortFn: (a: any, b: any, c: any) => {
+        const toText = (row: any) => {
+          const out = c.columnCustomRenderer?.(null, row);
+          return typeof out === 'string' ? out : String(out?.downloadText ?? '');
+        };
+        return toText(a).localeCompare(toText(b));
+      },
+    };
+
+    const ascLex = sortData(rows, lexCol as any, 'asc');
+    expect(ascLex.map(r => r.buyerLtpId.value)).toEqual(['10', '2', '30']);
+  });
+
+  it('header click sorts renderer-only columns (rating, code, grade, virtual label)', async () => {
+    const ratingSortFn = (a: any, b: any) => Number(a.rating ?? 0) - Number(b.rating ?? 0);
+    const alphaNumSortFn = (a: any, b: any) => {
+      const parse = (s: string) => {
+        const m = (s || '').match(/^([A-Za-z]+)(\d+)?$/);
+        return m ? [m[1].toUpperCase(), Number(m[2] ?? 0)] as const : [s.toUpperCase(), 0] as const;
+      };
+      const [la, na] = parse(a.code);
+      const [lb, nb] = parse(b.code);
+      return la === lb ? na - nb : (la < lb ? -1 : 1);
+    };
+    const GRADE_ORDER = ['F', 'D', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+    const gradeSortFn = (a: any, b: any) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
+    const rendererTextSort = (a: any, b: any, col: any) => {
+      const getText = (row: any) => {
+        const out = col.columnCustomRenderer?.(null, row);
         return typeof out === 'string' ? out : String(out?.downloadText ?? '');
       };
-      return toText(a).localeCompare(toText(b));
-    },
-  };
-
-  const ascLex = sortData(rows, lexCol as any, 'asc');
-  expect(ascLex.map(r => r.buyerLtpId.value)).toEqual(['10', '2', '30']);
-});
-
-it('header click sorts renderer-only columns (rating, code, grade, virtual label)', async () => {
-  const ratingSortFn = (a: any, b: any) => Number(a.rating ?? 0) - Number(b.rating ?? 0);
-  const alphaNumSortFn = (a: any, b: any) => {
-    const parse = (s: string) => {
-      const m = (s || '').match(/^([A-Za-z]+)(\d+)?$/);
-      return m ? [m[1].toUpperCase(), Number(m[2] ?? 0)] as const : [s.toUpperCase(), 0] as const;
+      return getText(a).localeCompare(getText(b));
     };
-    const [la, na] = parse(a.code);
-    const [lb, nb] = parse(b.code);
-    return la === lb ? na - nb : (la < lb ? -1 : 1);
-  };
-  const GRADE_ORDER = ['F','D','C-','C','C+','B-','B','B+','A-','A','A+'];
-  const gradeSortFn = (a: any, b: any) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
-  const rendererTextSort = (a: any, b: any, col: any) => {
-    const getText = (row: any) => {
-      const out = col.columnCustomRenderer?.(null, row);
-      return typeof out === 'string' ? out : String(out?.downloadText ?? '');
-    };
-    return getText(a).localeCompare(getText(b));
-  };
 
-  const rows = [
-    { id: 1, name: 'A', rating: 3, code: 'A10', grade: 'B'  },
-    { id: 2, name: 'B', rating: 1, code: 'A2',  grade: 'A-' },
-    { id: 3, name: 'C', rating: 5, code: 'B2',  grade: 'C+' },
-  ];
+    const rows = [
+      { id: 1, name: 'A', rating: 3, code: 'A10', grade: 'B' },
+      { id: 2, name: 'B', rating: 1, code: 'A2', grade: 'A-' },
+      { id: 3, name: 'C', rating: 5, code: 'B2', grade: 'C+' },
+    ];
 
-  render(
-    <TXDataTable
-      dataSource={rows}
-      columnSettings={[
-        { column: 'id', title: 'ID' },
-        { column: 'name', title: 'Name' },
+    render(
+      <TXDataTable
+        dataSource={rows}
+        columnSettings={[
+          { column: 'id', title: 'ID' },
+          { column: 'name', title: 'Name' },
 
-        {
-          title: 'Rating ★',
-          column: 'ratingStars',
-          columnCustomRenderer: (_: any, row: any) => ({
-            render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
-            downloadText: String(row.rating),
-          }),
-          sortFn: ratingSortFn,
-        },
-        {
-          title: 'Code (A1/B12)',
-          column: 'codeCell',
-          columnCustomRenderer: (_: any, row: any) => ({
-            render: <>Code: <b>{row.code}</b></>,
-            downloadText: row.code,
-          }),
-          sortFn: alphaNumSortFn,
-        },
-        {
-          title: 'Grade',
-          column: 'gradeCell',
-          columnCustomRenderer: (_: any, row: any) => ({ render: <>{row.grade}</>, downloadText: row.grade }),
-          sortFn: gradeSortFn,
-        },
-        {
-          title: 'Virtual Label',
-          column: 'virtualLabel',
-          columnCustomRenderer: (_: any, row: any) => {
-            const text = `#${String(row.id).padStart(2, '0')} • ${row.name}`;
-            return { render: <>{text}</>, downloadText: text };
+          {
+            title: 'Rating ★',
+            column: 'ratingStars',
+            columnCustomRenderer: (_: any, row: any) => ({
+              render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
+              downloadText: String(row.rating),
+            }),
+            sortFn: ratingSortFn,
           },
-          sortFn: rendererTextSort,
-        },
-      ]}
-    />
-  );
+          {
+            title: 'Code (A1/B12)',
+            column: 'codeCell',
+            columnCustomRenderer: (_: any, row: any) => ({
+              render: <>Code: <b>{row.code}</b></>,
+              downloadText: row.code,
+            }),
+            sortFn: alphaNumSortFn,
+          },
+          {
+            title: 'Grade',
+            column: 'gradeCell',
+            columnCustomRenderer: (_: any, row: any) => ({ render: <>{row.grade}</>, downloadText: row.grade }),
+            sortFn: gradeSortFn,
+          },
+          {
+            title: 'Virtual Label',
+            column: 'virtualLabel',
+            columnCustomRenderer: (_: any, row: any) => {
+              const text = `#${String(row.id).padStart(2, '0')} • ${row.name}`;
+              return { render: <>{text}</>, downloadText: text };
+            },
+            sortFn: rendererTextSort,
+          },
+        ]}
+      />
+    );
 
-  // Rating asc: ids should be [2,1,3]
-  fireEvent.click(screen.getByTitle('Sort Rating ★ (asc)'));
-  await waitFor(() => {
-    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
-    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
-    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+    // Rating asc: ids should be [2,1,3]
+    fireEvent.click(screen.getByTitle('Sort Rating ★ (asc)'));
+    await waitFor(() => {
+      expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
+      expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+      expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+    });
+
+    // Rating desc
+    fireEvent.click(screen.getByTitle('Sort Rating ★ (desc)'));
+    await waitFor(() => {
+      expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
+      expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
+    });
+
+    // Code asc using natural sort → A2, A10, B2 → ids [2,1,3]
+    fireEvent.click(screen.getByTitle('Sort Code (A1/B12) (asc)'));
+    await waitFor(() => {
+      expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
+      expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+      expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+    });
+
+    // Grade asc using ladder F..A+ → C+ (id 3), B (id 1), A- (id 2)
+    fireEvent.click(screen.getByTitle('Sort Grade (asc)'));
+    await waitFor(() => {
+      expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
+      expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
+      expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
+    });
+
+    // Virtual Label asc sorts by downloadText "#01 • A", "#02 • B", "#03 • C"
+    fireEvent.click(screen.getByTitle('Sort Virtual Label (asc)'));
+    await waitFor(() => {
+      expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('1');
+      expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('2');
+      expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
+    });
   });
 
-  // Rating desc
-  fireEvent.click(screen.getByTitle('Sort Rating ★ (desc)'));
-  await waitFor(() => {
-    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
-    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
+  it('downloadXLS uses downloadText for renderer-only columns', async () => {
+    jest.clearAllMocks();
+
+    const rows = [
+      { id: 1, name: 'Alpha', rating: 2 },
+      { id: 2, name: 'Beta', rating: 5 },
+    ];
+
+    render(
+      <TXDataTable
+        dataSource={rows}
+        columnSettings={[
+          { column: 'id', title: 'ID' },
+          { column: 'name', title: 'Name' },
+          {
+            title: 'Rating ★',
+            column: 'ratingStars',
+            columnCustomRenderer: (_: any, row: any) => ({
+              render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
+              downloadText: String(row.rating), // what we expect to see in XLS
+            }),
+          },
+        ]}
+        downloadXLS
+      />
+    );
+
+    // open "download all" and trigger
+    const icon = screen.getByTestId('download-all-icon');
+    fireEvent.click(icon);
+    const menu = screen.getByTestId('download-all-menu');
+    fireEvent.click(menu);
+
+    await waitFor(() => {
+      expect(XLSX.writeFile).toHaveBeenCalledTimes(1);
+    });
+
+    const [workbookArg] = (XLSX.writeFile as jest.Mock).mock.calls[0];
+    const sheetName = workbookArg.SheetNames[0];
+    const worksheet = workbookArg.Sheets[sheetName];
+    const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    // Header should include renderer-only column
+    expect(data[0]).toEqual(['ID', 'Name', 'Rating ★']);
+    // Rows should contain downloadText (plain numbers "2" and "5"), not JSX
+    expect(data[1]).toEqual([1, 'Alpha', '2']);
+    expect(data[2]).toEqual([2, 'Beta', '5']);
   });
 
-  // Code asc using natural sort → A2, A10, B2 → ids [2,1,3]
-  fireEvent.click(screen.getByTitle('Sort Code (A1/B12) (asc)'));
-  await waitFor(() => {
-    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('2');
-    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
-    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
-  });
 
-  // Grade asc using ladder F..A+ → C+ (id 3), B (id 1), A- (id 2)
-  fireEvent.click(screen.getByTitle('Sort Grade (asc)'));
-  await waitFor(() => {
-    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('3');
-    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('1');
-    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('2');
-  });
 
-  // Virtual Label asc sorts by downloadText "#01 • A", "#02 • B", "#03 • C"
-  fireEvent.click(screen.getByTitle('Sort Virtual Label (asc)'));
-  await waitFor(() => {
-    expect(screen.getByTestId('table-cell-0-id')).toHaveTextContent('1');
-    expect(screen.getByTestId('table-cell-1-id')).toHaveTextContent('2');
-    expect(screen.getByTestId('table-cell-2-id')).toHaveTextContent('3');
-  });
+
+
+
+
+
+  it('sortData string fallback is case-insensitive', () => {
+  const rows = [{ v: 'banana' }, { v: 'Apple' }, { v: 'cherry' }];
+  const col = { title: 'V', column: 'v', sorted: 'none' } as any;
+
+  const asc = sortData(rows, col, 'asc')!;
+  expect(asc.map(r => r.v)).toEqual(['Apple', 'banana', 'cherry']);
+
+  const desc = sortData(rows, col, 'desc')!;
+  expect(desc.map(r => r.v)).toEqual(['cherry', 'banana', 'Apple']);
 });
 
-it('downloadXLS uses downloadText for renderer-only columns', async () => {
-  jest.clearAllMocks();
+it('sortData keeps numeric-in-string before text compare', () => {
+  const rows = [{ v: 'A10' }, { v: 'a2' }, { v: 'A30' }];
+  const col = { title: 'V', column: 'v', sorted: 'none' } as any;
 
-  const rows = [
-    { id: 1, name: 'Alpha', rating: 2 },
-    { id: 2, name: 'Beta',  rating: 5 },
-  ];
-
-  render(
-    <TXDataTable
-      dataSource={rows}
-      columnSettings={[
-        { column: 'id', title: 'ID' },
-        { column: 'name', title: 'Name' },
-        {
-          title: 'Rating ★',
-          column: 'ratingStars',
-          columnCustomRenderer: (_: any, row: any) => ({
-            render: <><span>{'★'.repeat(row.rating)}{'☆'.repeat(5 - row.rating)}</span> <span>({row.rating}/5)</span></>,
-            downloadText: String(row.rating), // what we expect to see in XLS
-          }),
-        },
-      ]}
-      downloadXLS
-    />
-  );
-
-  // open "download all" and trigger
-  const icon = screen.getByTestId('download-all-icon');
-  fireEvent.click(icon);
-  const menu = screen.getByTestId('download-all-menu');
-  fireEvent.click(menu);
-
-  await waitFor(() => {
-    expect(XLSX.writeFile).toHaveBeenCalledTimes(1);
-  });
-
-  const [workbookArg] = (XLSX.writeFile as jest.Mock).mock.calls[0];
-  const sheetName = workbookArg.SheetNames[0];
-  const worksheet = workbookArg.Sheets[sheetName];
-  const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-  // Header should include renderer-only column
-  expect(data[0]).toEqual(['ID', 'Name', 'Rating ★']);
-  // Rows should contain downloadText (plain numbers "2" and "5"), not JSX
-  expect(data[1]).toEqual([1, 'Alpha', '2']);
-  expect(data[2]).toEqual([2, 'Beta',  '5']);
+  const asc = sortData(rows, col, 'asc')!;
+  expect(asc.map(r => r.v)).toEqual(['a2', 'A10', 'A30']); // numeric precedence
 });
 
 });

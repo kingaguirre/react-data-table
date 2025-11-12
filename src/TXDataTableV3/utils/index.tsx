@@ -106,10 +106,17 @@ export const setDeepValue = (obj, path, value) => {
   return newObj;
 };
 
+// Put this near the module top so it isn't recreated on every call
+const TEXT_COLLATOR = new Intl.Collator(undefined, {
+  // keep accents significant, but ignore case (good default for UIs)
+  sensitivity: 'accent',
+  // don't prefer upper or lower; treat case neutrally
+  caseFirst: 'false',
+});
+
 export const sortData = (data: any[] | null, column: ColumnSettings, direction: 'asc' | 'desc') => {
   if (data === null) return null;
 
-  // 1) Custom column comparator (ascending). We apply direction here.
   const custom = (column as any).sortFn;
   if (typeof custom === 'function') {
     const asc = (a: any, b: any) => custom(a, b, column);
@@ -117,35 +124,33 @@ export const sortData = (data: any[] | null, column: ColumnSettings, direction: 
     return [...data].sort(cmp);
   }
 
-  // 2) Default comparator: date → number-in-string → locale string
   const compareFunction = (a: any, b: any) => {
-    let aVal: any = '';
-    let bVal: any = '';
+    let aVal = '';
+    let bVal = '';
 
-    // Prefer raw cell value; fall back to custom renderer's downloadText/default
     const aColVal = getDeepValue(a, column.column);
     const bColVal = getDeepValue(b, column.column);
 
     if (aColVal !== undefined || bColVal !== undefined) {
-      aVal = String(aColVal ?? '');
-      bVal = String(bColVal ?? '');
+      aVal = String(aColVal ?? '').trim();
+      bVal = String(bColVal ?? '').trim();
     } else {
       const aCustom = column.columnCustomRenderer?.(null, a ?? null);
       const bCustom = column.columnCustomRenderer?.(null, b ?? null);
       const aDownloadTextVal = renderColumnCustomRenderer(aCustom, 'downloadText');
       const bDownloadTextVal = renderColumnCustomRenderer(bCustom, 'downloadText');
-      aVal = String(aDownloadTextVal ?? aCustom ?? '');
-      bVal = String(bDownloadTextVal ?? bCustom ?? '');
+      aVal = String(aDownloadTextVal ?? aCustom ?? '').trim();
+      bVal = String(bDownloadTextVal ?? bCustom ?? '').trim();
     }
 
-    // Try dates (handles ISO & most parseable formats)
+    // 1) Dates first
     const aTime = Date.parse(aVal);
     const bTime = Date.parse(bVal);
     if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
       return aTime - bTime;
     }
 
-    // Try number extraction (e.g., "RM 1,234.50" → 123450)
+    // 2) Numeric strings next (extract digits like "RM 1,234" → 1234)
     const aMatches = aVal.match(/\d+/g) || [];
     const bMatches = bVal.match(/\d+/g) || [];
     if (aMatches.length > 0 && bMatches.length > 0) {
@@ -154,8 +159,8 @@ export const sortData = (data: any[] | null, column: ColumnSettings, direction: 
       if (aNum !== bNum) return aNum - bNum;
     }
 
-    // Fallback to string compare
-    return aVal.localeCompare(bVal);
+    // 3) Case-insensitive, accent-sensitive text compare
+    return TEXT_COLLATOR.compare(aVal, bVal);
   };
 
   return direction === 'asc'
