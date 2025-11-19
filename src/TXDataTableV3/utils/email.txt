@@ -1,0 +1,37 @@
+There are two common ways to do this:
+
+1. Natural sort (human-friendly)
+
+This is how people usually expect things to be ordered.
+
+It treats the number part as a real number, not just text.
+
+Example result: A1, A2, A10
+
+Here, 2 comes before 10, so A2 is before A10.
+
+This is what you normally see in file explorers and most “smart” lists.
+
+When to use:
+If these values are visible to end users and look like normal codes or labels (e.g. item codes, room numbers, ticket numbers), natural sort is usually the best choice because it “feels right” to humans.
+
+2. Lexicographical / string sort (computer-style)
+
+This is the default way computers sort text.
+
+It compares from left to right, character by character.
+
+Example result: A1, A10, A2
+
+It sees "A1" then "A10" then "A2", and because "1" and "1" match, it compares the next character: "0" vs "2" → "0" comes first, so A10 goes before A2.
+
+This can look “wrong” to people, but it is very strict and predictable.
+
+When to use:
+If the codes are purely technical identifiers, or always in a fixed format (e.g. padded like A001, A002, A010), then lexicographical sort can be acceptable.
+
+Decision summary:
+
+If we want the list to match human expectation, we should use natural sort.
+
+If we want to keep the default strict computer-style ordering, we use lexicographical sort.
